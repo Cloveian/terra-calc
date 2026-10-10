@@ -35,6 +35,8 @@
 - Water can be bought to skip hours; price rises with each purchase in the same week
 - All seeds expire at the end of the week, so only buy apple seeds you'll plant that week
 - A crop gets the multiplier of the week it's planted
+- More seed types are coming: "we're hoping to release a few more before next week :3" (dev, 10 Oct). Nothing known about them yet. The notes and tables are carrots + apples only
+- Prices of things already in the game are "not that likely to change", but "there might be some small adjustments before the required weeks start" (dev, 10 Oct). Re-check everything on 19 Oct
 - Code 15 hours during prep weeks = free Terra t-shirt (from the game's text)
 - Buying, planting and watering are instant and can wait until the last day, but crops only grow once the ship is approved, so ship early enough to fix a reviewer cut
 
@@ -44,12 +46,14 @@
 | Apple Seed | 5 (not limited stock, expires end of week) |
 | Dirt Plot  | min(1 + n, 10) (n = plots bought so far), so 11th = 1 … 19th = 9, then 10 each |
 | Water      | 50, +5 per water bought that week, max 75 |
+| New seeds  | ? (coming "before next week", dev 10 Oct) |
 
 ### Sell price
 | Item | Base Value |
 | --- | --- |
 | Carrot | 25 |
 | Apple | 30 |
+| New seeds | ? |
 
 Every week you get a multiplyer from 0.8-1.5 based on a few things:
 - vote score
@@ -67,7 +71,10 @@ Every week you get a multiplyer from 0.8-1.5 based on a few things:
 ## To find out
 - Multiplier rounding
 - How long grace water (wiggle day) lasts
+- New seeds: buy price, sell price, water per crop, weeks to grow, stock per week, which weeks they're in the shop, which tab
+- Can a crop other than carrots pay rent, and what does it pay
+- Re-check all prices (device upgrades + shop) when Week 1 starts (19 Oct)
 
-Answered by the dev (10 Oct): water curve, stock limits, seed expiry, plot price, rent pay. Details in [how-terra-works.md](how-terra-works.md).
+Answered by the dev (10 Oct): water curve, stock limits, seed expiry, plot price, rent pay, more seeds coming (yes), price stability (unlikely to change, small adjustments possible before Week 1). Details in [how-terra-works.md](how-terra-works.md).
 
 Found: max dirt plots = 45 (7×7 minus corners), RAM/SSD price steps (see [device-trees.md](device-trees.md)). Full list in [how-terra-works.md](how-terra-works.md#11-still-unknown).

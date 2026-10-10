@@ -158,6 +158,59 @@ export function displayOrder(tree) {
     return rows;
 }
 
+// Where to draw the tree, from Terra's own positions (root, x, y in data.js).
+// Terra's spacing is for small icons, so it's stretched (x by sx, y by sy) until no two cards
+// (card.w × card.h px, `gap` apart) overlap. Two cards are fine if they're far enough apart
+// either sideways or up/down, so every useful sy is tried, each with the smallest sx that works,
+// and the smallest canvas wins.
+// Returns { width, height, centres: { root, [id]: { x, y } }, edges: [[id, prerequisite or "root"]] }.
+export function treeLayout(tree, card, gap = 16, minScale = 0.6, padding = 8) {
+    const points = [{ id: "root", ...tree.root }, ...tree.nodes.map(({ id, x, y }) => ({ id, x, y }))];
+    const needX = card.w + gap;
+    const needY = card.h + gap;
+    const pairs = [];
+    for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+            pairs.push({ dx: Math.abs(points[i].x - points[j].x), dy: Math.abs(points[i].y - points[j].y) });
+        }
+    }
+    const rangeX = Math.max(...points.map((p) => p.x)) - Math.min(...points.map((p) => p.x));
+    const rangeY = Math.max(...points.map((p) => p.y)) - Math.min(...points.map((p) => p.y));
+
+    // each sy that just separates some pair up/down is a candidate
+    const candidates = [minScale, ...pairs.filter((p) => p.dy > 0).map((p) => needY / p.dy)]
+        .filter((s) => s >= minScale);
+    let best = null;
+    for (const sy of candidates) {
+        let sx = minScale;
+        for (const { dx, dy } of pairs) {
+            if (dy * sy >= needY) continue; // far enough apart up/down
+            sx = dx === 0 ? Infinity : Math.max(sx, needX / dx); // otherwise they need to be apart sideways
+        }
+        const area = (rangeX * sx + card.w) * (rangeY * sy + card.h);
+        if (!best || area < best.area) best = { sx, sy, area };
+    }
+    const { sx, sy } = best;
+
+    const minX = Math.min(...points.map((p) => p.x));
+    const minY = Math.min(...points.map((p) => p.y));
+    const centres = {};
+    for (const p of points) {
+        centres[p.id] = {
+            x: Math.round((p.x - minX) * sx + card.w / 2 + padding),
+            y: Math.round((p.y - minY) * sy + card.h / 2 + padding),
+        };
+    }
+    const edges = tree.nodes.flatMap((node) =>
+        node.requires.length ? node.requires.map((req) => [node.id, req]) : [[node.id, "root"]]);
+    return {
+        width: Math.max(...Object.values(centres).map((c) => c.x)) + card.w / 2 + padding,
+        height: Math.max(...Object.values(centres).map((c) => c.y)) + card.h / 2 + padding,
+        centres,
+        edges,
+    };
+}
+
 // rough "effort" for some coins: each extra hour grows an apple (30m) that needs a seed (5)
 export function nodeHours(coins, m) {
     return coins / (CROPS.apple.sell * m - CROPS.apple.buy);

@@ -25,45 +25,50 @@ export const STARTING_COINS = 25;
 
 // Tree keys and node ids are Terra's own ids from /device-upgrades.
 // cost: one price, or tiers: a price per buy (limit = tiers.length)
+// totals: what you end up with: [none bought, after 1 buy, after 2, …] (from the game's tier notes)
 // limit: 1 by default, null = no limit, { base, per } = base + how many `per` you own
 // requires: list of node ids, all needed first ([] = hangs off the device itself)
+// root, x, y: where Terra's own tree draws the device and each node (y grows downwards)
 export const TREES = {
     framework_12: {
         device: "Framework 12",
+        root: { x: -20, y: 180 },
         nodes: [
-            { id: "stylus_12",               name: "Framework Stylus",         cost: 500,  requires: [] },
-            { id: "expansion_card_12",       name: "USB Expansion Card",       cost: 100,  requires: [], limit: null },
-            { id: "fancy_expansion_card_12", name: "Fancy Expansion Card",     cost: 100,  requires: [], limit: { base: 4, per: "expansion_card_12" } },
-            { id: "framework_12_diy",        name: "Framework 12 DIY Edition", cost: 250,  requires: [] },
-            { id: "ram_12",                  name: "RAM",                      tiers: [750, 1300, 2100], requires: ["framework_12_diy"] },
-            { id: "ssd_12",                  name: "SSD",                      tiers: [1000, 2000],      requires: ["framework_12_diy"] },
-            { id: "cpu_12",                  name: "Core 3 304",               cost: 400,  requires: ["framework_12_diy"] },
-            { id: "cpu_i5_1334u",            name: "i5-1334U",                 cost: 400,  requires: ["cpu_12"] },
-            { id: "cpu_core5_320",           name: "Core 5 320",               cost: 1500, requires: ["cpu_i5_1334u"] },
-            { id: "framework_13_upgrade",    name: "Framework 13",             cost: 500,  requires: ["cpu_core5_320"] },
-            { id: "display_2k8_12",          name: "2.8K Display",             cost: 900,  requires: ["framework_13_upgrade"] },
-            { id: "cpu_ryzen_ai7_350",       name: "Ryzen AI 7 350",           cost: 2250, requires: ["framework_13_upgrade"] },
+            { id: "stylus_12",               name: "Framework Stylus",         cost: 500,  requires: [], x: -230, y: 385 },
+            { id: "expansion_card_12",       name: "USB Expansion Card",       cost: 100,  requires: [], limit: null, x: 55, y: 420 },
+            { id: "fancy_expansion_card_12", name: "Fancy Expansion Card",     cost: 100,  requires: [], limit: { base: 4, per: "expansion_card_12" }, x: 195, y: 355 },
+            { id: "framework_12_diy",        name: "Framework 12 DIY Edition", cost: 250,  requires: [], x: -20, y: -165 },
+            { id: "ram_12",                  name: "RAM",                      tiers: [750, 1300, 2100], totals: ["8 GB", "16 GB", "32 GB", "48 GB"], requires: ["framework_12_diy"], x: -315, y: -170 },
+            { id: "ssd_12",                  name: "SSD",                      tiers: [1000, 2000],      totals: ["500 GB", "1 TB", "2 TB"],     requires: ["framework_12_diy"], x: 280, y: -190 },
+            { id: "cpu_12",                  name: "Core 3 304",               cost: 400,  requires: ["framework_12_diy"], x: -55, y: -405 },
+            { id: "cpu_i5_1334u",            name: "i5-1334U",                 cost: 400,  requires: ["cpu_12"], x: -335, y: -565 },
+            { id: "cpu_core5_320",           name: "Core 5 320",               cost: 1500, requires: ["cpu_i5_1334u"], x: -360, y: -770 },
+            { id: "framework_13_upgrade",    name: "Framework 13",             cost: 500,  requires: ["cpu_core5_320"], x: 100, y: -890 },
+            { id: "display_2k8_12",          name: "2.8K Display",             cost: 900,  requires: ["framework_13_upgrade"], x: -150, y: -945 },
+            { id: "cpu_ryzen_ai7_350",       name: "Ryzen AI 7 350",           cost: 2250, requires: ["framework_13_upgrade"], x: 305, y: -605 },
         ],
     },
     ipad_mini: {
         device: "iPad Mini",
+        root: { x: 5, y: 245 },
         nodes: [
-            { id: "apple_pencil",         name: "Apple Pencil",         cost: 750,  requires: [] },
-            { id: "ipad_air_11",          name: "iPad Air 11",          cost: 400,  requires: [] },
-            { id: "smart_folio",          name: "Smart Folio",          cost: 600,  requires: [] },
-            { id: "apple_pencil_pro",     name: "Apple Pencil Pro",     cost: 400,  requires: ["apple_pencil"] },
-            { id: "ipad_air_13",          name: "iPad Air 13",          cost: 1600, requires: ["ipad_air_11"] },
-            { id: "ipad_pro_11",          name: "iPad Pro 11",          cost: 2000, requires: ["ipad_air_13"] },
-            { id: "magic_keyboard_folio", name: "Magic Keyboard Folio", cost: 1600, requires: ["smart_folio", "ipad_air_11"] },
+            { id: "apple_pencil",         name: "Apple Pencil",         cost: 750,  requires: [], x: -265, y: -215 },
+            { id: "ipad_air_11",          name: "iPad Air 11",          cost: 400,  requires: [], x: -65, y: -50 },
+            { id: "smart_folio",          name: "Smart Folio",          cost: 600,  requires: [], x: 300, y: 5 },
+            { id: "apple_pencil_pro",     name: "Apple Pencil Pro",     cost: 400,  requires: ["apple_pencil"], x: -450, y: -690 },
+            { id: "ipad_air_13",          name: "iPad Air 13",          cost: 1600, requires: ["ipad_air_11"], x: 50, y: -430 },
+            { id: "ipad_pro_11",          name: "iPad Pro 11",          cost: 2000, requires: ["ipad_air_13"], x: -105, y: -820 },
+            { id: "magic_keyboard_folio", name: "Magic Keyboard Folio", cost: 1600, requires: ["smart_folio", "ipad_air_11"], x: 445, y: -200 },
         ],
     },
     galaxy_tab_s10_fe: {
         device: "Galaxy Tab S10 FE+",
+        root: { x: 10, y: 255 },
         nodes: [
-            { id: "galaxy_tab_s11",      name: "Galaxy Tab S11",           cost: 2400, requires: [] },
-            { id: "smart_book_cover",    name: "Smart Book Cover",         cost: 800,  requires: [] },
-            { id: "galaxy_tab_s10_plus", name: "Galaxy Tab S10+",          cost: 800,  requires: ["galaxy_tab_s11"] },
-            { id: "book_cover_keyboard", name: "Book Cover Keyboard Slim", cost: 400,  requires: ["smart_book_cover"] },
+            { id: "galaxy_tab_s11",      name: "Galaxy Tab S11",           cost: 2400, requires: [], x: 50, y: -430 },
+            { id: "smart_book_cover",    name: "Smart Book Cover",         cost: 800,  requires: [], x: -250, y: -220 },
+            { id: "galaxy_tab_s10_plus", name: "Galaxy Tab S10+",          cost: 800,  requires: ["galaxy_tab_s11"], x: -105, y: -825 },
+            { id: "book_cover_keyboard", name: "Book Cover Keyboard Slim", cost: 400,  requires: ["smart_book_cover"], x: -455, y: -690 },
         ],
     },
 };

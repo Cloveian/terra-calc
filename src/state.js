@@ -1,4 +1,4 @@
-// The page's state and its URL hash. Pure: no page access, so it can be tested in Node.
+// Page state and URL hash.
 // state = { coins, plots, seeds, date, m, cap, goal, device, own, want, first }
 //   goal: null = use the tree picks, a number = custom goal typed by hand
 //   own / want: { id: qty }, first: ids to buy first (milestone order)

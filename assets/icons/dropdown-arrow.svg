@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- @license lucide-static v0.460.0 - ISC -->
+
+<svg
+   class="lucide lucide-chevron-down"
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   fill="none"
+   stroke="currentColor"
+   stroke-width="2"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="dropdown-arrow.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect3"
+       is_visible="true"
+       lpeversion="1" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect2"
+       is_visible="true"
+       lpeversion="1" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="38.916667"
+     inkscape:cx="12"
+     inkscape:cy="12"
+     inkscape:window-width="1908"
+     inkscape:window-height="1228"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     style="fill:#000000;stroke:#1a1a1a;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+     d="m 18.449679,8.8137045 c -0.08054,0.036167 -0.158004,0.0792 -0.231264,0.1284797 -0.256975,0.1728588 -0.455588,0.4171041 -0.668094,0.6423982 -0.412139,0.4369406 -0.885719,0.8104016 -1.336188,1.2077086 -1.014778,0.895021 -1.919616,1.917738 -3.006424,2.723769 -0.411619,0.305277 -0.853332,0.583262 -1.182013,0.976445 -0.05496,0.06575 -0.106448,0.134397 -0.154176,0.205568"
+     id="path2"
+     inkscape:path-effect="#path-effect2"
+     inkscape:original-d="m 18.449679,8.8137045 c -0.149438,0.059775 -0.10904,0.030701 -0.231264,0.1284797 -0.235932,0.1887462 -0.447112,0.4390948 -0.668094,0.6423982 -0.441287,0.4059841 -0.893525,0.8035376 -1.336188,1.2077086 -0.999678,0.91275 -2.027709,1.787607 -3.006424,2.723769 -0.368708,0.352677 -0.785845,0.659511 -1.182013,0.976445 -0.07433,0.05946 -0.09065,0.142046 -0.154176,0.205568" />
+  <path
+     style="fill:#000000;stroke:#1a1a1a;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+     d="m 5.6788009,8.5310493 c 1.1227094,0.7633654 2.1103492,1.7247847 2.9036402,2.8265527 0.3538963,0.491511 0.6727774,1.01462 1.1049251,1.438972 0.2645826,0.25981 0.5668428,0.47767 0.8479658,0.719486 0.396279,0.340872 0.750917,0.730108 1.053533,1.156317"
+     id="path3"
+     inkscape:path-effect="#path-effect3"
+     inkscape:original-d="m 5.6788009,8.5310493 c 0.9506795,0.9442635 2.0706687,1.7555887 2.9036402,2.8265527 0.3746502,0.481693 0.6863838,0.990535 1.1049251,1.438972 0.2625618,0.281316 0.5673208,0.466906 0.8479658,0.719486 0.386787,0.348108 0.64608,0.830355 1.053533,1.156317" />
+</svg>

@@ -16,7 +16,7 @@
 
 ## Game model
 
-Facts from the dev (10 Oct), not decisions: all seeds expire at the end of the week (so `seeds` resets to 0 after this week), apple seeds aren't limited stock. See [how-terra-works.md](../research/how-terra-works.md).
+Facts from the dev (10 Oct), not decisions: all seeds expire at the end of the week (so `seeds` resets to 0 after this week), apple seeds aren't limited stock, more seed types are coming ("a few more before next week"), and prices already in the game are unlikely to change but small adjustments are possible before Week 1 (19 Oct). See [how-terra-works.md](../research/how-terra-works.md).
 
 | Decision                  | Default                                                                                                                                          |                                                                  |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
@@ -30,6 +30,24 @@ Facts from the dev (10 Oct), not decisions: all seeds expire at the end of the w
 | Ship timing               | Warn on the page: "ship before the last day". A reviewer cut after the week ends dries out crops and can't be fixed, so you end up short on rent | y                                                                |
 | Late reviews              | Next week's coins only arrive once this week's ship is approved and sold. Assume they arrive in time, mention it in the UI                       | y                                                                |
 | Country prices            | Prices may depend on your country, and the $700 laptop grant (no Framework shipping) is upgradeable too. Make tree costs editable: "Prices may differ in your country, edit them" | |
+| Price changes before Week 1 | Re-check shop + tree prices on 19 Oct, update `data.js` and `PRICES_AS_OF` | |
+
+## New seeds
+
+Nothing about them is known yet (price, sell, water, growth time, stock, weeks, tab). Math for any seed list is in [how-terra-works.md §10](../research/how-terra-works.md#more-than-one-seed-type), planned code in the [build plan](build-plan.md#any-seed-list-for-the-new-seeds). These are the choices that math raises.
+
+| Decision                                  | Default                                                                                                                                                                                                      |     |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --- |
+| Where seed numbers live                   | `SEEDS` in `data.js`, one row per seed: `buy, sell, water, weeks, stock, from, until`. Only `buy` / `sell` are in the math for now. Editable in the UI like tree costs, so a seed can be typed in the day it drops |     |
+| Fields nobody knows yet                   | Assume the simple case (1 water, grows in-week, not limited, every week) and show "assumed" next to it                                                                                                       |     |
+| Which seeds go in the extra hours         | `seedMix`: seeds on hand first, then the best-profit seed the budget allows, the cheapest seed fills the rest (at most two types). Route table shows it: "7 apples + 8 X"                                     |     |
+| Hours vs better seeds                     | Always use every hour up to the cap (`w = min(cap, wMax)`), *then* pick the mix. Plots are permanent and the question is hours, even if a coin now and then would've bought a better seed instead of a plot |     |
+| First 10 hours in prep weeks              | Free carrots, as now. Loses at most `5m − 5` a crop against apples (≤ 25 coins/week). Revisit if a new seed earns a lot more than `25m`                                                                      |     |
+| Rent with new seeds                       | Still 10 carrots × 20 × m. Unknown whether other crops can pay rent or what they'd pay                                                                                                                       |     |
+| Seeds on hand in state / hash             | `seeds` becomes `{ id: count }`, one input per seed type. Hash `seeds=apple:3,x:2`; a bare number (`seeds=3`) still means apples                                                                              |     |
+| Seeds only in some weeks                  | `seedsFor(t)` filters by `from` / `until`. A seed with unknown weeks counts as always available                                                                                                               |     |
+| A seed that needs `water ≠ 1`, `weeks > 1` or `stock` | Not modelled. Show it in the list with "not in the math yet" and leave it out of the mix until §10's "what breaks it" gets built                                                                 |     |
+| Hours tables and tests                    | Stay apples-only (the baseline). Don't recompute until real seed numbers exist. The general code has to reproduce them with `[apple]`                                                                        |     |
 
 ## Solver
 

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { TREES, PRESETS } from "../src/data.js";
 import {
     withPrereqs, nodeCost, nextPrice, limitOf, goalCost, nodeHours,
-    dependentsOf, unpick, clampToLimits, normalize, buyOrder, displayOrder,
+    dependentsOf, unpick, clampToLimits, normalize, buyOrder, displayOrder, treeLayout,
 } from "../src/tree.js";
 
 const fw = TREES.framework_12;
@@ -169,4 +169,59 @@ test("displayOrder puts children under their first prerequisite", () => {
     for (const tree of Object.values(TREES)) {
         assert.equal(displayOrder(tree).length, tree.nodes.length); // nothing lost or doubled
     }
+});
+
+test("treeLayout: no two cards overlap, everything inside the canvas", () => {
+    const card = { w: 168, h: 150 };
+    for (const [device, tree] of Object.entries(TREES)) {
+        const layout = treeLayout(tree, card);
+        const centres = Object.entries(layout.centres);
+        assert.equal(centres.length, tree.nodes.length + 1, device); // nodes + root
+        for (const [id, c] of centres) {
+            assert.ok(c.x - card.w / 2 >= 0 && c.x + card.w / 2 <= layout.width, `${device} ${id} x`);
+            assert.ok(c.y - card.h / 2 >= 0 && c.y + card.h / 2 <= layout.height, `${device} ${id} y`);
+        }
+        for (let i = 0; i < centres.length; i++) {
+            for (let j = i + 1; j < centres.length; j++) {
+                const [a, ca] = centres[i];
+                const [b, cb] = centres[j];
+                const apart = Math.abs(ca.x - cb.x) >= card.w || Math.abs(ca.y - cb.y) >= card.h;
+                assert.ok(apart, `${device}: ${a} overlaps ${b}`);
+            }
+        }
+    }
+});
+
+test("treeLayout: stays compact (fits a laptop-width page)", () => {
+    // i5 and Core 5 are only 25 apart sideways in Terra's layout; separating them sideways
+    // instead of up/down once made the Framework tree ~7× wider
+    for (const tree of Object.values(TREES)) {
+        assert.ok(treeLayout(tree, { w: 168, h: 150 }).width < 1150, tree.device);
+    }
+});
+
+test("treeLayout: keeps Terra's shape (root at the bottom, Framework 13 above Core 5)", () => {
+    const { centres } = treeLayout(fw, { w: 168, h: 150 });
+    assert.ok(centres.root.y > centres.framework_12_diy.y);
+    assert.ok(centres.framework_13_upgrade.y < centres.cpu_core5_320.y);
+    assert.ok(centres.ram_12.x < centres.framework_12_diy.x && centres.framework_12_diy.x < centres.ssd_12.x);
+});
+
+test("treeLayout: edges go to each prerequisite, or the device for top-level nodes", () => {
+    const { edges } = treeLayout(ipad, { w: 168, h: 150 });
+    assert.equal(edges.length, 8); // 7 nodes, Magic Keyboard Folio has two prerequisites
+    assert.deepEqual(edges.filter(([from]) => from === "magic_keyboard_folio"), [
+        ["magic_keyboard_folio", "smart_folio"], ["magic_keyboard_folio", "ipad_air_11"],
+    ]);
+    assert.ok(edges.some(([from, to]) => from === "apple_pencil" && to === "root"));
+});
+
+test("totals (RAM/SSD): one per tier plus what you start with", () => {
+    for (const tree of Object.values(TREES)) {
+        for (const n of tree.nodes.filter((node) => node.totals)) {
+            assert.equal(n.totals.length, n.tiers.length + 1, n.id);
+        }
+    }
+    assert.equal(node(fw, "ram_12").totals.at(-1), "48 GB");
+    assert.equal(node(fw, "ssd_12").totals.at(-1), "2 TB");
 });

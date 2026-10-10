@@ -101,7 +101,7 @@ There's no true "everything maxed" anymore: USB cards have no limit, and each on
 - RAM, SSD, and expansion cards carry over to the 13
 - Skipping the extra USB card (Fancy ×4 only, i.e. just your 4 slots upgraded) takes 100 off: **10600** / **13750**
 
-**Hours/week needed** (same multiplier every week, from Prep 2: 4 coins, 13 plots, 3 apple seeds). Uses the rules confirmed by the dev on 10 Oct: rent crops pay 20 × m, plots cost `min(1 + n, 10)`, apple seeds expire weekly. See [how-terra-works.md](how-terra-works.md#10-the-calculators-model).
+**Hours/week needed** (same multiplier every week, from Prep 2: 4 coins, 13 plots, 3 apple seeds). Uses the rules confirmed by the dev on 10 Oct: rent crops pay 20 × m, plots cost `min(1 + n, 10)`, apple seeds expire weekly. See [how-terra-works.md](how-terra-works.md#10-the-calculators-model). **Apples-only baseline**: new seeds are coming (dev, 10 Oct), and one that earns more than `30m − 5` per crop can only lower these numbers. Not recomputed until the numbers are known.
 
 | $m$ | Max 12 | Max 13 | Max 13, no extra USB | FW13 path (3050) |
 | --- | --- | --- | --- | --- |
@@ -167,7 +167,7 @@ Device: **iPad Mini** (A17 Pro), "awwww it's so tiny!!"
 
 ## Tablets: hours/week needed
 
-Everything in the tree, same multiplier every week, from Prep 2 (4 coins, 13 plots, 3 apple seeds).
+Everything in the tree, same multiplier every week, from Prep 2 (4 coins, 13 plots, 3 apple seeds). Apples-only baseline, same note as above.
 
 | $m$ | Galaxy (4400) | iPad (7350) |
 | --- | --- | --- |

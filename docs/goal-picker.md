@@ -30,7 +30,7 @@ What exists in `data.js` now:
 
 | Decision                           | Default                                                                                       |     |
 | ---------------------------------- | --------------------------------------------------------------------------------------------- | --- |
-| Layout                             | Indented list in tree order (children under their prerequisite), not a drawn tree. Start ugly | y   |
+| Layout                             | Like Terra's own tree: its x/y positions from `/device-upgrades`, stretched so cards don't overlap, lines to prerequisites (was: indented list) | y, changed 10 Oct |
 | Controls                           | Checkbox for limit-1 nodes, − / + stepper for RAM, SSD, USB, Fancy                            | y   |
 | Owned vs want                      | Two columns per node: **Own** and **Want**                                                    | y   |
 | Want below owned                   | Not allowed: Want can't go below Own (refunds aren't modelled)                                | y   |
@@ -47,6 +47,8 @@ What exists in `data.js` now:
 | Total                              | Goal coins (want − owned), right above the h/week answer                                | y   |
 | The "Goal coins" field from step 5 | Tree fills it. Typing a number by hand switches to a custom goal and greys out the tree | y   |
 | Not reachable                      | Milestones list with ✅ / ❌, so you see which picks fit and which don't                  | y   |
+
+`nodeHours` is `coins / (30m − 5)` today, apples only. New seeds are coming (dev, 10 Oct); with a seed list it becomes `coins / (best profit per crop)`, see [how-terra-works.md §10](../research/how-terra-works.md#more-than-one-seed-type). The "≈ X h" numbers can only go down.
 
 ## Milestones
 

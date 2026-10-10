@@ -1,48 +1,280 @@
+/* Terra Calc look: half Qt/KDE (Breeze-ish panels, compact controls, toolbar buttons,
+   message boxes), half handmade and soft (logo colours, sticker outlines, rounder corners,
+   a handwritten font for titles). Pico CSS does the base; everything is driven by the
+   tokens below, so dark mode and your future drawings only need to change those. */
+
+/* ---- tokens -------------------------------------------------------------- */
+
+:root {
+    --font-hand: "Patrick Hand", "Comic Neue", system-ui, sans-serif; /* the handwritten font, used for everything */
+    --radius: 8px;          /* controls */
+    --radius-panel: 12px;   /* group boxes and cards */
+    --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.05), 0 4px 14px rgb(0 0 0 / 0.05);
+
+    /* message box colours (Breeze's) */
+    --tone-positive: #27ae60;
+    --tone-warning: #f67400;
+    --tone-error: #da4453;
+    --tone-info: #3daee9;
+}
+
+/* light: Breeze window grey behind white panels, logo cyan as the accent */
+[data-theme=light],
+:root:not([data-theme=dark]) {
+    --window: #eef1f2;
+    --view: #fcfcfc;
+    --line: #cdd3d6;
+    --ink: #232629;
+    --ink-muted: #63696e;
+    --accent: #1b7f8c;        /* readable cyan-teal for text and filled buttons */
+    --accent-soft: #dff4f6;   /* tint for checked / owned things */
+    --outline: #296068;       /* the dark teal outline round the logo's calculator */
+    --on-accent: #ffffff;     /* text and icons on filled accent buttons */
+}
+
+/* dark: Breeze dark */
+@media only screen and (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --window: #1b1e20;
+        --view: #25292c;
+        --line: #3c4247;
+        --ink: #f0f2f3;
+        --ink-muted: #a1a9b1;
+        --accent: #4cc6d3;
+        --accent-soft: #1d3a3e;
+        --outline: #70dce7;
+        --on-accent: #0f2a2e;  /* white on light cyan is too faint */
+    }
+}
+
+/* dark picked with the toggle at the bottom (same colours as above; the toggle sets data-theme) */
+:root[data-theme=dark] {
+    --window: #1b1e20;
+    --view: #25292c;
+    --line: #3c4247;
+    --ink: #f0f2f3;
+    --ink-muted: #a1a9b1;
+    --accent: #4cc6d3;
+    --accent-soft: #1d3a3e;
+    --outline: #70dce7;
+    --on-accent: #0f2a2e;
+}
+
+/* tokens → Pico (same selectors as Pico's own themes, so these win) */
+[data-theme=light],
+:root:not([data-theme=dark]),
+:root:not([data-theme]),
+:root[data-theme=dark] {
+    --pico-font-size: 93.75%;
+    --pico-font-family: var(--font-hand);
+    --pico-spacing: 0.85rem;
+    --pico-border-radius: var(--radius);
+    --pico-form-element-spacing-vertical: 0.45rem;
+    --pico-form-element-spacing-horizontal: 0.65rem;
+    --pico-background-color: var(--window);
+    --pico-color: var(--ink);
+    --pico-h1-color: var(--ink);
+    --pico-h2-color: var(--ink);
+    --pico-muted-color: var(--ink-muted);
+    --pico-muted-border-color: var(--line);
+    --pico-card-background-color: var(--view);
+    --pico-card-sectioning-background-color: var(--view);
+    --pico-card-box-shadow: var(--shadow-soft);
+    --pico-form-element-background-color: var(--view);
+    --pico-form-element-border-color: var(--line);
+    --pico-form-element-focus-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    --pico-primary: var(--accent);
+    --pico-primary-background: var(--accent);
+    --pico-primary-border: var(--accent);
+    --pico-primary-inverse: var(--on-accent);
+    --pico-primary-hover: var(--outline);
+    --pico-primary-hover-background: color-mix(in srgb, var(--accent) 85%, black);
+    --pico-primary-hover-border: color-mix(in srgb, var(--accent) 85%, black);
+    --pico-primary-focus: color-mix(in srgb, var(--accent) 35%, transparent);
+    --pico-secondary: var(--ink-muted);
+    --pico-secondary-border: var(--line);
+    --pico-secondary-hover: var(--ink);
+    --pico-secondary-hover-border: var(--ink-muted);
+    --pico-del-color: var(--tone-error);
+    --pico-table-border-color: var(--line);
+    --pico-table-row-stripped-background-color: color-mix(in srgb, var(--ink) 3.5%, transparent);
+}
+
+/* ---- page ---------------------------------------------------------------- */
+
 body {
-    font-family: system-ui, sans-serif;
-    max-width: 60rem;
-    margin: 0 auto;
-    padding: 1rem;
+    background: var(--window);
 }
 
-fieldset {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
-    margin-bottom: 1rem;
+.logo {
+    width: min(100%, 26rem);
+    height: auto;
 }
 
-label {
-    display: flex;
-    flex-direction: column;
+/* the wide logo (one row) is 6× wider than tall */
+@media (min-width: 700px) {
+    .logo {
+        width: min(100%, 44rem);
+    }
 }
 
+header.container {
+    padding-bottom: 0;
+}
+
+h2, legend, article > header {
+    font-family: var(--font-hand);
+    font-weight: normal;
+    letter-spacing: 0.02em;
+}
+
+h2 {
+    font-size: 1.6rem;
+    margin-bottom: 0.4rem;
+}
+
+/* nowrap so a face never breaks across two lines */
 .face {
     white-space: nowrap;
 }
 
-#warning:empty, .note:empty, .bad:empty, #goal-total:empty {
-    display: none;
+/* ---- group boxes: every section is a soft white panel with a hand-lettered title ---- */
+
+form > fieldset,
+main > article,
+form > article {
+    background: var(--view);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-soft);
+    padding: var(--pico-spacing) calc(var(--pico-spacing) * 1.25);
+    margin-bottom: calc(var(--pico-spacing) * 1.25);
 }
 
-.note {
-    color: #555;
+/* Qt group box: the title sits on the panel's top edge */
+form > fieldset > legend {
+    float: left; /* puts the legend inside the panel instead of cutting the border */
+    width: 100%;
+    font-size: 1.35rem;
+    color: var(--outline);
+    margin-bottom: 0.3rem;
 }
 
-.bad {
-    color: #c00;
+form > fieldset > legend + * {
+    clear: both;
 }
 
+/* Pico gives card headers and footers their own background and stretches them to the card's
+   edges, which would paint over the hand-drawn outline: keep them plain */
+article > footer {
+    background: none;
+    border: none;
+    margin: var(--pico-spacing) 0 0;
+    padding: 0;
+}
+
+article > header {
+    background: none;
+    border-bottom: 1px solid var(--line);
+    font-size: 1.35rem;
+    color: var(--outline);
+    padding: 0 0 0.4rem;
+    margin: 0 0 var(--pico-spacing);
+}
+
+/* the upgrades box inside the Goal panel: just a group, the tree window inside it is the frame */
+#picker {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+#picker > legend {
+    font-size: 1.15rem;
+    color: var(--ink-muted);
+    padding: 0 0.3rem;
+}
+
+/* fieldsets grow to fit their widest child by default, which made the upgrade table
+   widen the whole page on phones instead of scrolling inside its box */
+fieldset {
+    min-width: 0;
+}
+
+/* inputs: as many per row as fit (Pico's .grid goes to one per row on phones, which gets very tall) */
+form .grid {
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+
+label {
+    color: var(--ink-muted);
+    font-size: 0.92rem;
+}
+
+input, select {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---- buttons: flat Breeze buttons with a soft border ---- */
+
+button {
+    border-radius: var(--radius);
+    box-shadow: none;
+}
+
+/* presets: a Qt toolbar of checkable buttons; the one matching your picks looks pressed */
 .buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 0.5rem 0;
+    gap: 0.35rem;
+    margin: 0.2rem 0 var(--pico-spacing);
+    padding: 0.3rem;
+    background: var(--window);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
 }
 
-/* the preset that matches your picks */
-button[aria-pressed="true"] {
-    font-weight: bold;
+.buttons button,
+.buttons button.outline,
+.buttons button.secondary {
+    width: auto;
+    margin: 0;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.9rem;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.buttons button:hover {
+    background: var(--view);
+    border-color: var(--line);
+}
+
+.buttons button[aria-pressed="true"] {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--outline);
+    font-weight: 600;
+}
+
+/* small buttons inside the tree and lists (− / + and "first") */
+.stepper button, #milestones button {
+    width: auto;
+    margin: 0;
+    padding: 0.05rem 0.55rem;
+    font-size: 0.85rem;
+}
+
+.stepper {
+    white-space: nowrap;
+}
+
+.stepper output {
+    display: inline-block;
+    min-width: 2.5ch;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
 }
 
 /* typing a goal by hand greys out the tree */
@@ -50,48 +282,837 @@ button[aria-pressed="true"] {
     opacity: 0.5;
 }
 
-.stepper output {
+/* ---- message boxes (KDE's KMessageWidget): tinted box, coloured border ---- */
+
+.message {
+    --tone: var(--tone-info);
+    padding: 0.55rem 0.8rem;
+    margin-bottom: 0.6rem;
+    border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+    border-left-width: 4px;
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--tone) 12%, var(--view));
+    color: var(--ink);
+}
+
+.message:empty {
+    display: none;
+}
+
+.message[data-tone="positive"] { --tone: var(--tone-positive); }
+.message[data-tone="warning"]  { --tone: var(--tone-warning); }
+.message[data-tone="error"]    { --tone: var(--tone-error); }
+.message[data-tone="info"]     { --tone: var(--tone-info); }
+
+#summary {
+    font-size: 1.15rem;
+    padding: 0.75rem 1rem;
+}
+
+#goal-total:empty {
+    display: none;
+}
+
+.note {
+    color: var(--ink-muted);
+}
+
+/* ---- upgrade tree: sticker cards on Terra's layout, lines behind them ---- */
+
+.tree-canvas {
+    position: relative; /* width and height are set by ui.js from the layout */
+}
+
+.tree-lines {
+    position: absolute;
+    inset: 0;
+}
+
+.tree-lines path {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.tree-lines path.wanted {
+    stroke: var(--accent);
+    stroke-width: 4;
+}
+
+/* same size as CARD in ui.js: the layout keeps cards this size from overlapping */
+.tree-card {
+    position: absolute;
+    width: 168px;
+    height: 150px;
+    padding: 0.45rem 0.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.8rem;
+    line-height: 1.25;
+    background: var(--view);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+}
+
+.tree-card strong {
+    font-size: 0.85rem;
+}
+
+.tree-card small {
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* wanted: outlined like the logo's letters */
+.tree-card.wanted {
+    border-color: var(--outline);
+}
+
+/* owned: a soft tint, so text and controls stay readable in light and dark mode */
+.tree-card.owned {
+    background: var(--accent-soft);
+}
+
+.tree-root {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-style: dashed;
+    border-color: var(--outline);
+    background: var(--window);
+}
+
+.tree-root strong {
+    font-family: var(--font-hand);
+    font-weight: normal;
+    font-size: 1.15rem;
+}
+
+.tree-controls {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.6rem;
+}
+
+.tree-controls label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0;
+    font-size: inherit;
+    color: var(--ink);
+}
+
+.tree-controls input[type="checkbox"] {
+    margin: 0;
+}
+
+.control-word {
+    margin-right: 0.25rem;
+    color: var(--ink-muted);
+}
+
+/* smaller − / + inside cards so two rows fit */
+.tree-card .stepper button {
+    padding: 0 0.45rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+/* ---- route table: a Qt item view ---- */
+
+.view-box {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--view);
+}
+
+#route {
+    font-size: 0.88rem;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+#route th {
+    color: var(--ink-muted);
+    font-weight: 600;
+}
+
+#route td, #route th {
+    padding: 0.35rem 0.6rem;
+    white-space: nowrap;
+    border: none;
+    background: none;
+}
+
+/* numbers line up on the right, names on the left */
+#route td:not(:first-child), #route th:not(:first-child) {
+    text-align: right;
+}
+
+/* milestones: a tidy list, one row per pick, columns lined up */
+#milestones {
+    font-variant-numeric: tabular-nums;
+    padding-left: 1.6rem;
+}
+
+#milestones li {
+    margin-bottom: 0.3rem;
+}
+
+#milestones li > :first-child {
+    margin-right: 0.5rem;
+}
+
+@supports (grid-template-columns: subgrid) {
+    #milestones {
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        gap: 0.3rem 0.75rem;
+        align-items: center;
+        padding-left: 0; /* grid rows don't show list numbers, the badges show the order */
+    }
+
+    #milestones li {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: subgrid;
+        align-items: center;
+        margin: 0;
+    }
+
+    #milestones li > :first-child {
+        margin: 0;
+    }
+}
+
+.milestone-cost {
+    color: var(--ink-muted);
+    text-align: right;
+}
+
+/* small status pill, same colours as the message boxes */
+.badge {
+    --tone: var(--tone-info);
     display: inline-block;
-    min-width: 2ch;
+    padding: 0.05rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tone) 14%, var(--view));
+    font-size: 0.8rem;
+    white-space: nowrap;
     text-align: center;
 }
 
+.badge[data-tone="positive"] { --tone: var(--tone-positive); }
+.badge[data-tone="error"]    { --tone: var(--tone-error); }
+
+/* ---- error panel ---- */
+
 #errors {
-    border: 2px dashed #c00;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    border: 2px dashed var(--tone-error);
+    background: color-mix(in srgb, var(--tone-error) 6%, var(--view));
 }
 
 .error-art {
     font-size: 3rem;
 }
 
-#warning {
-    color: #a15c00;
+footer.container {
+    color: var(--ink-muted);
 }
 
-/* phones: the table scrolls sideways instead of squashing */
-.scroll {
-    overflow-x: auto;
+/* ---- hand-drawn icons (assets/icons) ----
+   Used as masks: only the drawing's shape counts, the colour is currentColor (or a tone),
+   so one file works in light and dark mode. */
+
+.icon-coin { --icon: url("assets/icons/coin.svg"); }
+.icon-dirt-plot { --icon: url("assets/icons/dirt-plot.svg"); }
+.icon-dirt-plot-sprout { --icon: url("assets/icons/dirt-plot-sprout.svg"); }
+.icon-apple-seed { --icon: url("assets/icons/apple-seed.svg"); }
+.icon-apple { --icon: url("assets/icons/apple.svg"); }
+.icon-carrot { --icon: url("assets/icons/carrot.svg"); }
+.icon-water-drop { --icon: url("assets/icons/water-drop.svg"); }
+.icon-multiplier { --icon: url("assets/icons/multiplier.svg"); }
+.icon-calendar { --icon: url("assets/icons/calendar.svg"); }
+.icon-check { --icon: url("assets/icons/check.svg"); }
+.icon-cross { --icon: url("assets/icons/cross.svg"); }
+.icon-plus { --icon: url("assets/icons/plus.svg"); }
+.icon-minus { --icon: url("assets/icons/minus.svg"); }
+.icon-dropdown-arrow { --icon: url("assets/icons/dropdown-arrow.svg"); }
+.icon-select-arrow { --icon: url("assets/icons/select-arrow.svg"); }
+.icon-select-arrow-up { --icon: url("assets/icons/select-arrow-up.svg"); }
+.icon-msg-positive { --icon: url("assets/icons/msg-positive.svg"); }
+.icon-msg-warning { --icon: url("assets/icons/msg-warning.svg"); }
+.icon-msg-error { --icon: url("assets/icons/msg-error.svg"); }
+.icon-msg-info { --icon: url("assets/icons/msg-info.svg"); }
+.icon-device-framework { --icon: url("assets/icons/device-framework.svg"); }
+.icon-device-ipad { --icon: url("assets/icons/device-ipad.svg"); }
+.icon-device-galaxy { --icon: url("assets/icons/device-galaxy.svg"); }
+.icon-upgrade-usb-card { --icon: url("assets/icons/upgrade-usb-card.svg"); }
+.icon-upgrade-cpu-core3 { --icon: url("assets/icons/upgrade-cpu-core3.svg"); }
+.icon-upgrade-cpu-i5 { --icon: url("assets/icons/upgrade-cpu-i5.svg"); }
+.icon-upgrade-cpu-core5 { --icon: url("assets/icons/upgrade-cpu-core5.svg"); }
+.icon-upgrade-cpu-ryzen { --icon: url("assets/icons/upgrade-cpu-ryzen.svg"); }
+.icon-upgrade-ram { --icon: url("assets/icons/upgrade-ram.svg"); }
+.icon-upgrade-ssd { --icon: url("assets/icons/upgrade-ssd.svg"); }
+.icon-upgrade-stylus { --icon: url("assets/icons/upgrade-stylus.svg"); }
+.icon-upgrade-pencil { --icon: url("assets/icons/upgrade-pencil.svg"); }
+.icon-upgrade-keyboard { --icon: url("assets/icons/upgrade-keyboard.svg"); }
+.icon-upgrade-display { --icon: url("assets/icons/upgrade-display.svg"); }
+.icon-upgrade-diy-kit { --icon: url("assets/icons/upgrade-diy-kit.svg"); }
+.icon-upgrade-folio-cover { --icon: url("assets/icons/upgrade-folio-cover.svg"); }
+
+.icon {
+    display: inline-block;
+    width: 1.25em;
+    height: 1.25em;
+    vertical-align: -0.3em;
+    background-color: currentColor;
+    -webkit-mask: var(--icon) center / contain no-repeat;
+    mask: var(--icon) center / contain no-repeat;
+    flex-shrink: 0;
 }
 
-table {
-    border-collapse: collapse;
+label > .icon {
+    color: var(--outline);
 }
 
-th, td {
-    border: 1px solid #ccc;
-    padding: 0.25rem 0.5rem;
-    text-align: right;
-    white-space: nowrap;
+#route th .icon {
+    width: 1.1em;
+    height: 1.1em;
 }
 
-th:first-child, td:first-child {
-    text-align: left;
+/* − / + steppers: the icon is the whole button face */
+.stepper button .icon {
+    width: 0.95em;
+    height: 0.95em;
+    vertical-align: -0.15em;
 }
 
-footer {
-    margin-top: 2rem;
-    font-size: 0.9em;
-    color: #555;
+/* message boxes: the tone's icon on the left, in the tone's colour */
+.message {
+    position: relative;
+    padding-left: 2.5rem;
+    --msg-icon: url("assets/icons/msg-info.svg");
+}
+
+.message::before {
+    content: "";
+    position: absolute;
+    left: 0.75rem;
+    top: 0.6rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    background-color: var(--tone);
+    -webkit-mask: var(--msg-icon) center / contain no-repeat;
+    mask: var(--msg-icon) center / contain no-repeat;
+}
+
+.message[data-tone="positive"] { --msg-icon: url("assets/icons/msg-positive.svg"); }
+.message[data-tone="warning"]  { --msg-icon: url("assets/icons/msg-warning.svg"); }
+.message[data-tone="error"]    { --msg-icon: url("assets/icons/msg-error.svg"); }
+
+/* the answer: a bigger icon */
+#summary {
+    padding-left: 3.2rem;
+}
+
+#summary::before {
+    left: 0.9rem;
+    top: 0.75rem;
+    width: 1.7rem;
+    height: 1.7rem;
+}
+
+/* status pills: tick or cross before the text */
+.badge::before {
+    content: "";
+    display: inline-block;
+    width: 0.95em;
+    height: 0.95em;
+    margin-right: 0.3em;
+    vertical-align: -0.12em;
+    background-color: var(--tone);
+    -webkit-mask: url("assets/icons/check.svg") center / contain no-repeat;
+    mask: url("assets/icons/check.svg") center / contain no-repeat;
+}
+
+.badge[data-tone="error"]::before {
+    -webkit-mask-image: url("assets/icons/cross.svg");
+    mask-image: url("assets/icons/cross.svg");
+}
+
+/* checkboxes: your tick (a plain image, so there's a copy per theme, see assets/icons/README.md) */
+input[type="checkbox"]:checked {
+    background-image: url("assets/icons/checkbox-tick-white.svg");
+    background-size: 0.9em auto;
+}
+
+@media only screen and (prefers-color-scheme: dark) {
+    :root:not([data-theme]) input[type="checkbox"]:checked {
+        background-image: url("assets/icons/checkbox-tick-dark.svg");
+    }
+}
+
+:root[data-theme=dark] input[type="checkbox"]:checked {
+    background-image: url("assets/icons/checkbox-tick-dark.svg");
+}
+
+/* dropdown: your arrow instead of Pico's chevron */
+.select-wrap {
+    position: relative;
+    display: block;
+    margin-bottom: var(--pico-spacing);
+}
+
+.select-wrap select {
+    margin-bottom: 0;
+    background-image: none;
+}
+
+.select-wrap::after {
+    content: "";
+    position: absolute;
+    right: 0.8rem;
+    top: 50%;
+    width: 1.1rem;
+    height: 1.1rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+    background-color: var(--ink-muted);
+    -webkit-mask: url("assets/icons/select-arrow.svg") center / contain no-repeat;
+    mask: url("assets/icons/select-arrow.svg") center / contain no-repeat;
+}
+
+/* tree cards: the upgrade's icon fills the space between the price and the controls */
+/* square, so a turned icon (ICON_TURNS in ui.js) stays in its spot; shrinks on cramped cards */
+.tree-icon {
+    flex: 0 1 2.6rem;
+    min-height: 0;
+    aspect-ratio: 1;
+    align-self: center;
+    margin: auto 0;
+    pointer-events: none;
+    background-color: var(--ink-muted);
+    -webkit-mask: var(--icon) center / contain no-repeat;
+    mask: var(--icon) center / contain no-repeat;
+}
+
+.tree-card.wanted .tree-icon {
+    background-color: var(--outline);
+}
+
+.tree-root .tree-icon {
+    flex: 0 0 2.4rem;
+    margin: 0;
+    background-color: var(--outline);
+}
+
+/* ---- hand-drawn outlines (drawn by ui.js, maths in src/sketch.js) ----
+   Each box's outline is a generated SVG background. The real border goes transparent but keeps
+   its space, so nothing moves; without JavaScript the normal borders show instead.
+   Per box: --sketch-color, --sketch-width (px), --sketch-opacity, --sketch-dash. */
+
+form > fieldset, main > article, form > article, .view-box {
+    --sketch-color: var(--line);
+    --sketch-width: 1.5;
+    --sketch-fill: var(--view);
+}
+
+.buttons {
+    --sketch-color: var(--line);
+    --sketch-width: 1.5;
+    --sketch-fill: var(--window);
+}
+
+.message {
+    --sketch-color: var(--tone);
+    --sketch-width: 1.5;
+    --sketch-opacity: 0.7;
+    --sketch-fill: color-mix(in srgb, var(--tone) 12%, var(--view));
+}
+
+.tree-card {
+    --sketch-color: var(--line);
+    --sketch-width: 2;
+    --sketch-fill: var(--view);
+}
+
+.tree-card.wanted {
+    --sketch-color: var(--outline);
+    --sketch-width: 2.5;
+}
+
+.tree-card.owned {
+    --sketch-fill: var(--accent-soft);
+}
+
+.tree-root {
+    --sketch-color: var(--outline);
+    --sketch-dash: 6 6;
+    --sketch-fill: var(--window);
+}
+
+#errors {
+    --sketch-color: var(--tone-error);
+    --sketch-width: 2;
+    --sketch-dash: 8 6;
+    --sketch-fill: color-mix(in srgb, var(--tone-error) 6%, var(--view));
+}
+
+/* !important because several boxes set their own border colour and `background` shorthand,
+   which would otherwise bring the real border and fill back or tile the outline image */
+/* each box's outline settings are its own: without this, a box inside another box (a message
+   inside a panel) would inherit the outer box's shadow, fill, dashes… */
+@property --sketch-shadow  { syntax: "*"; inherits: false; }
+@property --sketch-color   { syntax: "*"; inherits: false; }
+@property --sketch-fill    { syntax: "*"; inherits: false; }
+@property --sketch-width   { syntax: "*"; inherits: false; }
+@property --sketch-opacity { syntax: "*"; inherits: false; }
+@property --sketch-dash    { syntax: "*"; inherits: false; }
+@property --sketch-wobble  { syntax: "*"; inherits: false; }
+@property --sketch-every   { syntax: "*"; inherits: false; }
+@property --sketch-over    { syntax: "*"; inherits: false; }
+
+/* the shadow follows the wobbly fill too: drop-shadow() uses the painted shape,
+   box-shadow only ever follows the plain rounded rectangle */
+form > fieldset, main > article, form > article, .tree-card {
+    --sketch-shadow: drop-shadow(0 1px 1px rgb(0 0 0 / 0.06)) drop-shadow(0 3px 6px rgb(0 0 0 / 0.07));
+}
+
+.sketched {
+    box-shadow: none !important;
+    filter: var(--sketch-shadow, none);
+    border-color: transparent !important;
+    background-origin: border-box !important;
+    background-repeat: no-repeat !important;
+    background-size: 100% 100% !important;
+    background-position: 0 0 !important; /* Pico moves date inputs' background right, for its calendar icon */
+}
+
+/* filled boxes: their colour is drawn inside the wobbly outline instead
+   (clipped boxes keep theirs: they're cut to the wobble instead, see ui.js) */
+.sketched:not(.sketch-clip) {
+    background-color: transparent !important;
+}
+
+/* keep the table's striped rows off the hand-drawn frame */
+.view-box.sketched {
+    padding: 2px;
+}
+
+/* RAM / SSD: what you'll end up with */
+.tree-total {
+    color: var(--ink);
+}
+
+.tree-total b {
+    color: var(--outline);
+}
+
+/* handwriting everywhere: Patrick Hand is drawn small for its size, so scale every font to the
+   same x-height as the old system font (also evens out the fallback font used for kaomoji) */
+html {
+    font-size-adjust: 0.52;
+}
+
+/* input boxes: hand-drawn too, but a much tighter wobble and a thin line like their old border */
+input:not([type=checkbox]), select {
+    --sketch-color: var(--line);
+    --sketch-width: 1;
+    --sketch-wobble: 0.35;
+    --sketch-every: 24;
+    --sketch-fill: var(--view);
+}
+
+/* focused: a thicker accent line instead of Pico's focus ring (redrawn by ui.js on focus) */
+input:not([type=checkbox]):focus, select:focus {
+    --sketch-color: var(--accent);
+    --sketch-width: 2;
+}
+
+/* ---- tree window: the tree zooms and pans inside it (ui.js, src/view.js) ---- */
+
+.tree-view {
+    position: relative;
+    height: min(75vh, 760px);
+    overflow: clip; /* not "hidden": that would let the browser scroll it when a card gets focus */
+    touch-action: none; /* one finger pans, two fingers zoom (ui.js), instead of scrolling the page */
+    user-select: none;
+    cursor: grab;
+    border-radius: var(--radius);
+}
+
+.tree-view.dragging {
+    cursor: grabbing;
+}
+
+.tree-canvas {
+    transform-origin: 0 0;
+}
+
+.tree-hint {
+    margin: 0 0 0.4rem;
+    font-size: 0.85rem;
+}
+
+/* zoom buttons in the window's corner */
+.tree-zoom {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 2;
+    display: flex;
+    gap: 0.3rem;
+}
+
+.tree-zoom button {
+    width: auto;
+    margin: 0;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.85rem;
+    background: var(--view);
+}
+
+/* ---- more hand-drawn things (ui.js "clipped" boxes keep their own colours) ---- */
+
+/* the tree window: cut to a wobbly shape, its line drawn by the frame on top (same shape) */
+.tree-view {
+    background: var(--window);
+    border-radius: var(--radius-panel);
+    --sketch-color: transparent;
+}
+
+.tree-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: var(--radius-panel);
+    --sketch-color: var(--line);
+    --sketch-width: 1.5;
+}
+
+/* buttons: a tight wobble and a thin line */
+button {
+    --sketch-color: var(--outline);
+    --sketch-width: 1;
+    --sketch-wobble: 0.35;
+    --sketch-every: 18;
+}
+
+button.outline, button.secondary {
+    --sketch-color: var(--ink-muted);
+    --sketch-opacity: 0.7;
+}
+
+/* the preset toolbar: flat buttons, only the pressed one has a line */
+.buttons button {
+    --sketch-color: transparent;
+}
+
+.buttons button[aria-pressed="true"] {
+    --sketch-color: var(--accent);
+}
+
+/* status pills */
+.badge {
+    --sketch-color: var(--tone);
+    --sketch-width: 1;
+    --sketch-opacity: 0.7;
+    --sketch-wobble: 0.3;
+    --sketch-every: 14;
+}
+
+/* checkboxes: Pico's colours, a wobbly edge, your tick on top (--sketch-over) */
+input[type="checkbox"] {
+    --sketch-color: var(--ink-muted);
+    --sketch-opacity: 0.7;
+    --sketch-width: 1;
+    --sketch-wobble: 0.3;
+    --sketch-every: 12;
+    --sketch-over: none;
+}
+
+input[type="checkbox"]:checked {
+    --sketch-color: var(--outline);
+    --sketch-opacity: 1;
+    --sketch-over: url("assets/icons/checkbox-tick-white.svg");
+}
+
+@media only screen and (prefers-color-scheme: dark) {
+    :root:not([data-theme]) input[type="checkbox"]:checked {
+        --sketch-over: url("assets/icons/checkbox-tick-dark.svg");
+    }
+}
+
+:root[data-theme=dark] input[type="checkbox"]:checked {
+    --sketch-over: url("assets/icons/checkbox-tick-dark.svg");
+}
+
+/* the tick is the first background layer, the outline the second */
+input[type="checkbox"].sketched {
+    background-size: 0.9em auto, 100% 100% !important;
+    background-position: center, 0 0 !important;
+}
+
+/* focus: a thicker line instead of Pico's ring (ui.js redraws on focus) */
+button:focus-visible, input[type="checkbox"]:focus-visible {
+    --sketch-color: var(--outline);
+    --sketch-width: 2;
+    --sketch-opacity: 1;
+}
+
+/* the route table: soft wobbly bands for the header and every other row, no straight lines */
+#route tr {
+    border-radius: 6px;
+    --sketch-color: transparent;
+    --sketch-wobble: 0.5;
+    --sketch-every: 28;
+}
+
+#route thead tr {
+    --sketch-fill: var(--window);
+}
+
+#route tbody tr {
+    --sketch-fill: color-mix(in srgb, var(--ink) 5%, var(--view));
+}
+
+/* the drawing inside a box (ui.js): fills the box, behind everything else in it */
+.sketch-art {
+    position: absolute; /* size and position set by ui.js, to cover the whole box */
+    z-index: -1;
+    overflow: visible;
+    pointer-events: none;
+}
+
+/* boxes with a drawing inside: it's placed against the box, and stays behind only this box's contents */
+.sketched {
+    isolation: isolate;
+}
+
+form > fieldset, main > article, form > article, .message, button, .badge, .buttons, .view-box {
+    position: relative;
+}
+
+/* ---- number boxes: our own up/down buttons instead of the browser's (ui.js) ---- */
+
+input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+    padding-right: 2.2rem;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.number-wrap {
+    position: relative;
+    display: block;
+    margin-bottom: var(--pico-spacing);
+}
+
+.number-wrap input {
+    margin-bottom: 0;
+}
+
+/* stacked at the right end, inside the box */
+.number-buttons {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.number-buttons button {
+    flex: 1;
+    width: 1.6rem;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    color: var(--ink-muted);
+    --sketch-color: transparent;
+}
+
+.number-buttons button:hover {
+    background: var(--accent-soft);
+    color: var(--outline);
+}
+
+.number-buttons .icon {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+/* wrapped inputs (number boxes, the dropdown) miss Pico's small gap above an input in a label: add it back */
+.number-wrap, .select-wrap {
+    margin-top: calc(var(--pico-spacing) * 0.25);
+}
+
+/* boxes with a drawing inside: no border at all (not just an invisible one), so the drawing covers
+   exactly the area the box keeps: cards and the table frame hide anything past their border,
+   which used to cut off the outer edge of the hand-drawn line */
+.sketched:not(input, select, tr) {
+    border-width: 0 !important;
+}
+
+/* ---- the intro line and the notes at the bottom: their own soft boxes ---- */
+
+.intro, .footnotes {
+    position: relative;
+    padding: 0.6rem 0.9rem;
+    background: var(--view);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    --sketch-color: var(--line);
+    --sketch-width: 1.5;
+    --sketch-fill: var(--view);
+    --sketch-shadow: drop-shadow(0 1px 1px rgb(0 0 0 / 0.06)) drop-shadow(0 3px 6px rgb(0 0 0 / 0.07));
+}
+
+.intro {
+    margin-top: 0.5rem;
+}
+
+.footnotes {
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+}
+
+.footnotes p {
+    margin-bottom: 0.5rem;
+}
+
+/* GitHub link on the left, light/dark toggle on the right */
+.footer-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-top: 0.75rem;
+}
+
+.footer-row button {
+    width: auto;
+    margin: 0;
+    padding: 0.25rem 0.8rem;
+    font-size: 0.85rem;
 }

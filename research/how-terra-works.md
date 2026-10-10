@@ -10,7 +10,9 @@ Everything about the Terra game that matters for the calculator, in one place: h
 - **[notes]**: from my research notes or Slack, not confirmed by code
 - **[unknown]**: decided on the server, not visible anywhere yet
 
-Prices are numbers the server sends. They can change at any time, and the Cidery says it needs your address "to make sure we're showing the right price and item availability" **[code]**, so prices may depend on your country.
+Prices are numbers the server sends. They can change at any time, and the Cidery says it needs your address "to make sure we're showing the right price and item availability" **[code]**, so prices may depend on your country. The dev says things already in the game are "not that likely to change", but "there might be some small adjustments before the required weeks start" (Mon 19 Oct). **[dev]** (10 Oct) So: re-check every price (shop + device trees) when Week 1 starts.
+
+**New seeds are coming.** Asked if there'll ever be more seeds than apples: "yeah! we're hoping to release a few more before next week :3". **[dev]** (10 Oct) Nothing else is known about them (price, sell value, water, growth time, stock, tab). Every number in this doc is for carrots + apples, and §10 has the model with any seed list so they can be dropped in.
 
 ---
 
@@ -85,9 +87,11 @@ $$\text{plotCost}(w, n) = \sum_{p=n}^{w-1} \min(p - 9,\ 10)$$
 | --- | --- | --- | --- |
 | Carrot | Ratticus, free | 0 | 10 per week **[notes]**. In main weeks they're the rent crops. |
 | Apple | Heidi's shop | 5 **[notes]** | Under the shop's "Seeds" tab (`bonus_seeds`) **[code]** |
+| New seeds | ? | ? | "a few more before next week" **[dev]** (10 Oct). Price, sell value, water per crop, weeks to grow, stock, tab: all **[unknown]** |
 
-- Items can be tied to a week (`weekNumber`, `usableUntil`), and ones outside the usable weeks are hidden. **[code]**
+- Items can be tied to a week (`weekNumber`, `usableUntil`), and ones outside the usable weeks are hidden. **[code]** So a new seed could be for some weeks only.
 - **Apple seeds are not limited stock, but they go away at the end of the week.** **[dev]** So only buy what you'll plant that week; leftovers are wasted.
+- The expiry answer was "all seeds", so new seeds should expire at the end of the week too. Whether a *planted* crop that takes more than a week to grow survives the week end is **[unknown]** (no such crop exists yet).
 
 ### Crops
 
@@ -120,6 +124,7 @@ $$\text{plotCost}(w, n) = \sum_{p=n}^{w-1} \min(p - 9,\ 10)$$
 | --- | --- |
 | Carrot | 25 |
 | Apple | 30 |
+| New seeds | **[unknown]** |
 
 **[notes]** Prices come from the server.
 
@@ -128,7 +133,7 @@ $$\text{plotCost}(w, n) = \sum_{p=n}^{w-1} \min(p - 9,\ 10)$$
 - **A crop uses the multiplier of the week it was planted**, not the week you sell it. **[dev]**
 - The rent receipt also has a slot for a "going viral" bonus that stacks on top of the review multiplier. **[code]** It's **not implemented yet**. **[dev]**
 
-Coins from a week:
+Coins from a week (apples only, the version with any seed list is in §10):
 
 - **Prep:** `m × (25 × min(w, 10) + 30 × k)`
 - **Main:** `m × (20 × 10 + 30 × k)` (the 10 rent carrots pay 20 each)
@@ -146,10 +151,12 @@ Tabs: **Seeds** (`bonus_seeds`), **Water and plots** (`water`, `dirt_plots`), **
 | Apple seed | 5 **[notes]**, not limited stock, expires at the end of the week **[dev]** |
 | Dirt plot | `min(1 + n, 10)`, `n` = plots bought so far **[dev]** |
 | Water | starts at 50, **+5 per water bought that week, up to 75** (50, 55, 60, 65, 70, 75, 75, …) **[dev]** |
+| New seeds | **[unknown]**, coming "before next week" **[dev]** (10 Oct). Probably under Seeds (`bonus_seeds`), not confirmed |
 
-- Stock **refreshes every night at 00:00 Eastern**, and a tab can be empty ("nothing in this basket today — check back tomorrow!"). **[code]** Apple seeds aren't limited. **[dev]**
+- Stock **refreshes every night at 00:00 Eastern**, and a tab can be empty ("nothing in this basket today — check back tomorrow!"). **[code]** Apple seeds aren't limited. **[dev]** Whether new seeds are limited is **[unknown]**. If one is, the nightly refresh means the weekly cap could be 7 × the daily one.
+- Prices of things already in the shop are unlikely to change, small adjustments possible before Week 1. **[dev]** (10 Oct)
 - Buying water lets you skip coding hours. "If you plan it out, you can skip some hours or even a full week!" **[faq]**
-- Buying water **never pays for itself**: one water grows one crop worth at most 30 × m, and water costs 50+. It's only worth it to cover rent hours you can't code. A full skipped week (10 water) costs **675**.
+- Buying water **never pays for itself** (with apples): one water grows one crop worth at most 30 × m, and water costs 50+. It's only worth it to cover rent hours you can't code. A full skipped week (10 water) costs **675**. A new seed that sells for more than ~50/m per water would change this, so re-check once the numbers are out.
 
 ---
 
@@ -290,7 +297,9 @@ A referral who just signs up and gets verified earns a cosmetic ("Referrer's Hat
 
 ## 10. The calculator's model
 
-### One week
+### One week (apples only)
+
+This is what the code does now, with carrots + apples as the only seeds. The version for any seed list is in "More than one seed type" below; with apples only it collapses back to this.
 
 Inputs: coins `B`, plots `n`, apple seeds on hand `a`, hours `w`, multiplier `m`.
 
@@ -307,9 +316,94 @@ Coins are spent during the week (seeds + plots) and only come back once the ship
 
 From the current week to Week 12, each week do `w = min(cap, w_max)`, then the one-week update. Try `cap = 10, 11, … 45` and pick the first one that ends with enough coins for the goal.
 
-### What it means with the real prices
+### More than one seed type
 
-Starting from Prep 2 (4 coins, 13 plots, 3 apple seeds), same multiplier every week:
+New seeds are coming **[dev]** (10 Oct), numbers unknown. This is the one-week model with any list of seeds, so adding one should be a new row in `data.js`, not new math. Nothing here is implemented yet (see [build-plan.md](../docs/build-plan.md#farmjs)).
+
+**Seed list.** Each seed $i$ has a buy price $b_i$ and a sell price $s_i$. One crop of it at multiplier $m$ is worth
+
+$$p_i = m s_i - b_i$$
+
+more coins than you started with. Apple: $p = 30m - 5$. The free carrots are $b = 0$, $s = 25$ (20 as rent), 10 a week.
+
+| Seed | $b_i$ | $s_i$ | $p_i$ at $m = 1$ | Water per crop | Weeks to grow | Stock per week | Which weeks |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Carrot | 0 | 25 | 25 | 1 | grows in-week | 10 (free) | all |
+| Apple | 5 | 30 | 25 | 1 | grows in-week | not limited | all |
+| new seed(s) | ? | ? | ? | ? | ? | ? | ? |
+
+**The simple case** (assume this for a new seed until something says otherwise): 1 water per crop, grows the week it's planted, not limited stock, in the shop every week, expires at the end of the week like apples. Everything below is for the simple case. "What breaks it" covers the rest.
+
+**One week with any seeds.** The first 10 hours are the free carrots (rent in main weeks). Extra hours $k = \max(0,\ w - 10)$ each need a bought seed. Coins left for seeds after plots:
+
+$$B' = B - \text{plotCost}(w, n)$$
+
+Pick how many of each seed to plant, $x_i \ge 0$:
+
+$$\sum_i x_i = k \qquad \sum_i b_i x_i \le B' \qquad \text{maximise } \sum_i p_i x_i$$
+
+Seeds are bought with this week's coins and sales only come in after the ship is approved, so the budget is a real limit: you can't always plant the best seed in every slot. Then
+
+$$C = \text{plotCost}(w, n) + \sum_i b_i x_i$$
+
+$$S = \begin{cases} m\left(25 \cdot \min(w, 10) + \sum_i s_i x_i\right) & \text{prep week} \\ m\left(20 \cdot 10 + \sum_i s_i x_i\right) & \text{main week} \end{cases}$$
+
+$$B \leftarrow B - C + S \qquad n \leftarrow \max(n, w) \qquad a_i \leftarrow 0$$
+
+Same as before, just $\sum_i$ instead of apples. Written out, end-of-week coins are $B - \text{plotCost}(w, n) + (\text{carrot coins}) + \sum_i p_i x_i$, so picking the $x_i$ that maximise $\sum p_i x_i$ is the same as maximising next week's coins. Doing that week by week is the best you can do for the whole run, since sales from week $t$ are what pay for week $t + 1$.
+
+**Solving it.** Two constraints, so the best answer mixes **at most two seed types**: the best one you can afford, and a cheaper one to fill the hours the budget can't cover. First drop any seed that another seed beats on both price and profit (cheaper *and* $p$ at least as high), and any seed with $p_i \le 0$.
+
+With apples (A, $b_A = 5$) and one new seed X that costs more and earns more ($b_X > b_A$, $p_X > p_A$):
+
+$$x_X = \min\left(k,\ \left\lfloor \frac{B' - b_A k}{b_X - b_A} \right\rfloor\right) \qquad x_A = k - x_X$$
+
+(only makes sense when $b_A k \le B'$, i.e. $w \le w_{max}$.) Read it as: pay for $k$ apples first, then every $b_X - b_A$ coins left over upgrades one apple to an X. If X is cheaper *and* better than apples, X just replaces apples everywhere ($b_{min}$ becomes $b_X$).
+
+With more seeds: try every single seed and every pair with the formula above, keep the best feasible one. The exact (fractional) optimum is always a pair, so this finds it, and rounding to whole seeds costs at most one swapped seed. A handful of seed types, so it's instant. Checked against brute force on random cases.
+
+**$w_{max}$.** Hour $w$ is usable only if you can afford a plot and *some* seed for it, so the **cheapest** seed decides how many hours you can use, and the **best** seed decides what they earn:
+
+$$w_{max} = \text{biggest } w \le 45 \text{ with } \text{plotCost}(w, n) + b_{min} \max\left(0,\ k - \textstyle\sum_i a_i\right) \le B$$
+
+$b_{min}$ = cheapest buyable seed (5 while that's apples), $a_i$ = seeds of type $i$ on hand. This is the current `wMax` with `5` → $b_{min}$ and `a` → $\sum a_i$. At $w_{max}$ itself the budget is spent on cheap seeds; with fewer hours there's money for better ones.
+
+**Hours vs better seeds.** Near $w_{max}$, one more hour needs a plot (up to 10) and a cheap seed (5), 15 coins for $p_A$ back (25 at $m = 1$). Those 15 coins could instead turn one apple into an X for $p_X - p_A$ more. Which is better depends on the numbers, but the plot is permanent and the calculator's question is "how many hours", so keep the rule: use every hour up to the cap, *then* pick the best mix. Worth remembering if a new seed turns out to be much better than apples.
+
+**Seeds on hand.** The `a` term becomes per type, $a_i$. They're already paid for and expire at the end of the week, so plant them first (they cost 0 now), then run the mix on the remaining $k - \sum_i a_i$ hours with budget $B'$. Strictly a free seed $i$ is worth $m s_i$ and buying X is worth $p_X$, so if $p_X > m s_i$ you'd rather buy; ignore that, it's a few coins on a few seeds.
+
+**Worked example, made-up numbers.** Pretend a seed X costs **20** and sells for **65**. (Not real. Just to see the math move.) $m = 1$, prep week, $B = 200$, $n = 25$ plots, nothing on hand. So $p_A = 25$, $p_X = 45$.
+
+| Plan | $w$ | $k$ | Plots | Seeds | $C$ | $S$ | End coins |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| all apples | 25 | 15 | 0 | 15 × 5 = 75 | 75 | 250 + 450 = 700 | 825 |
+| best mix | 25 | 15 | 0 | 8 X + 7 A = 160 + 35 = 195 | 195 | 250 + 520 + 210 = 980 | **985** |
+| all apples at $w_{max}$ | 33 | 23 | 80 | 23 × 5 = 115 | 195 | 250 + 690 = 940 | 945, +8 plots |
+
+- Mix at $w = 25$: $B' = 200$. All X would cost 300. $x_X = \lfloor (200 - 75) / 15 \rfloor = 8$, $x_A = 7$. 9 X + 6 A would cost 210, too much. Check: $200 + 250 + 8 \cdot 45 + 7 \cdot 25 = 985$.
+- $w_{max}$: $w = 33$ costs $80 + 115 = 195 \le 200$, $w = 34$ costs $90 + 120 = 210$. Same as apples-only, because apples are still the cheapest seed. At $w = 33$, $B' = 120$ and 23 apples cost 115, so $x_X = \lfloor 5 / 15 \rfloor = 0$.
+- So this week, 25 h with the mix beats 33 h of apples (985 vs 945), but the 33 h week ends with 8 more plots. That's the "hours vs better seeds" trade-off above.
+
+**What breaks the simple case.** Each of these needs data the calculator doesn't have a slot for yet.
+
+- *Limited stock.* Add $x_i \le q_i$. The mix fills the best seed up to its cap, then the next best, and the pair rule above runs on what's left. $w_{max}$ only changes if *every* seed is limited (then $w_{max} \le 10 + \sum_i q_i + \sum_i a_i$). Stock refreshes nightly **[code]**, so a weekly $q_i$ may be 7 × daily. Needs: `stock` per seed (null = not limited).
+- *More than 1 water per crop.* Hours stop being crops. A crop of seed $i$ takes $h_i$ water, so $\sum_i h_i x_i = k$, plots used are $\sum_i x_i$, plotCost and $n \leftarrow \max(n, \cdot)$ run on crops not hours, and the thing to compare is profit per water, $p_i / h_i$. Rent stays 10 crops only if carrots stay 1 water. Needs: `water` per seed.
+- *Takes more than a week to grow.* Coins arrive $g_i - 1$ weeks later, so the week's $S$ splits into "now" and "later" and the state needs a queue of pending sales. The plot stays occupied, so next week has fewer free plots. The crop keeps the multiplier of the week it was planted **[dev]**, which already fits. Whether the planted crop survives the week end (seeds don't) is **[unknown]**. Needs: `weeks` per seed, plus `pending: [{ week, coins }]` and `busyPlots` in the state.
+- *Only in some weeks.* Items carry `weekNumber` / `usableUntil` and are hidden outside them **[code]**. The seed list becomes a function of $t$: in week $t$ only seeds with $\text{from}_i \le t \le \text{until}_i$ are buyable, so $b_{min}$, the best $p_i$ and $w_{max}$ can differ week to week. Needs: `from` / `until` per seed (in `t`), default "always".
+
+**Rent.** The 10 rent crops are the 10 free carrots. Whether a new crop can pay rent, and what it'd pay, is **[unknown]**. Until then, rent = 10 carrots at 20 × m and new seeds only go in the extra hours. One side effect of the general model: in prep weeks nothing forces carrots into the first 10 hours, and at $m > 1$ an apple ($30m - 5$) already beats a free carrot ($25m$) by $5m - 5$ a crop, at most 25 coins a week. The calculator keeps carrots first. If a new seed has $p_i$ far above $25m$, that choice is worth revisiting (see the design spec).
+
+**Effort estimate.** `nodeHours(coins, m) = coins / (30m − 5)` becomes
+
+$$\text{nodeHours}(coins, m) = \frac{coins}{\max_i p_i(m)}$$
+
+over the seeds buyable that week. It's rough either way: ignores plots, the budget cap and rent pay.
+
+**Numbers in this doc.** Every table (hours per goal at each $m$, 13845 best possible at 45 h, 2904 at the 10 h minimum, 1250 × m per full main week) is the **apples-only baseline**. A new seed with $p_i > 30m - 5$ can only lower the hours needed; a new seed with $p_i \le 30m - 5$ changes nothing. They're not recomputed until real numbers exist.
+
+### What it means with the real prices (apples-only baseline)
+
+Starting from Prep 2 (4 coins, 13 plots, 3 apple seeds), same multiplier every week, carrots + apples only:
 
 | Goal | Coins | m = 0.8 | m = 1.0 | m = 1.2 | m = 1.5 |
 | --- | --- | --- | --- | --- | --- |
@@ -325,17 +419,22 @@ The most coins possible at 45 h every week, m = 1, is **13845**. Doing only the 
 ### Plots are the only thing that compounds
 
 - Coins → more plots → more hours you can use → more coins. Plots are cheap now (305 for all of them), so you hit 45 plots in **Week 1** at full hours.
-- After that, every 45 h main week is a flat `(200 + 1050) × m = 1250 × m` coins.
+- After that, every 45 h main week is a flat `(200 + 1050) × m = 1250 × m` coins (apples only; a better seed raises the 1050).
 - A crop gets the multiplier of the week it's planted in, so a high multiplier matters in the weeks you plant the most: every main week at 45 h counts the same.
 
 ---
 
 ## 11. Still unknown
 
-Answered by the dev on 10 Oct: shop stock (not limited), seed expiry (end of week), plot price, water curve, rent pay, which week's multiplier applies, the growth goal, and the viral bonus (not implemented).
+Answered by the dev on 10 Oct: shop stock (not limited), seed expiry (end of week), plot price, water curve, rent pay, which week's multiplier applies, the growth goal, the viral bonus (not implemented), more seeds coming (yes, "before next week"), and price stability (unlikely to change, small adjustments possible before Week 1).
 
 | Thing | Why it matters | How to find out |
 | --- | --- | --- |
 | Multiplier rounding | Coin totals at m ≠ 1 | Sell crops and compare `unitPriceCoins` to base |
 | How long grace water lasts | Planning around the wiggle day | Watch the purse after a week ends |
 | Prices outside your country | Calculator defaults for other people | Make tree costs editable |
+| New seeds: buy price, sell price | $p_i = m s_i - b_i$, the whole §10 mix | Shop + market once they're released |
+| New seeds: water per crop, weeks to grow | Whether the simple case holds (hours = crops, coins same week) | Plant one and watch |
+| New seeds: stock per week, which weeks | Caps on $x_i$, seed list per week (`weekNumber`, `usableUntil`) | Shop tab over a few days / weeks |
+| Can other crops pay rent, and what do they pay | The `20 × 10` rent term | Try it in Week 1, or ask |
+| Re-check all prices when Week 1 starts (19 Oct) | Dev: small adjustments possible before then | `/device-upgrades` + shop on 19 Oct, update `data.js` and `PRICES_AS_OF` |

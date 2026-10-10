@@ -25,6 +25,9 @@ Sell prices get multiplied by 0.8-1.5 each week (vote score, project quality, "s
 | --- | --- | --- | --- |
 | Carrot | N/A | 25 (prep), 20 (rent) | 10 |
 | Apple | 5 | 30 | N/A |
+| New seeds | ? | ? | ? |
+
+New seeds are coming ("a few more before next week", dev, 10 Oct). No numbers yet. Everything below is **carrots + apples only**; the general version is in [how-terra-works.md §10](how-terra-works.md#more-than-one-seed-type) and the short form is under "New seeds" below.
 
 ### Referrals
 
@@ -47,6 +50,7 @@ Counts people you referred who **complete a week**.
 - Every crop needs 1 water (1 hour coded)
 - 10 carrots can be sold during prep weeks
 - Apple seeds go away at the end of the week, so only buy what you'll plant
+- Seeds are bought with this week's coins, sales arrive after, so the budget caps what you can plant
 
 ### Apples
 
@@ -71,6 +75,24 @@ Counts people you referred who **complete a week**.
 
 **Limit**
 - 10 per week
+
+### New seeds (numbers unknown)
+
+Seed $i$: buy $b_i$, sell $s_i$. One crop is worth
+
+$$p_i = m s_i - b_i$$
+
+more than you started with (apple: $30m - 5$). For $k$ extra hours with $B'$ coins left after plots, plant $x_i$ of each:
+
+$$\sum_i x_i = k \qquad \sum_i b_i x_i \le B' \qquad \text{maximise } \sum_i p_i x_i$$
+
+At most two seed types get mixed: the best one you can afford, and the cheapest one fills the rest. With apples and one new seed X ($b_X > 5$, $p_X > p_A$):
+
+$$x_X = \min\left(k,\ \left\lfloor \frac{B' - 5k}{b_X - 5} \right\rfloor\right) \qquad x_A = k - x_X$$
+
+Then $C = \text{plotCost}(w, n) + \sum_i b_i x_i$ and $S = m\left(\text{carrots} + \sum_i s_i x_i\right)$.
+
+Assumes 1 water per crop, grows in the week, not limited stock, in the shop every week. If a new seed breaks any of those, see [how-terra-works.md §10](how-terra-works.md#more-than-one-seed-type) ("What breaks the simple case"). Rent stays 10 carrots until someone finds out otherwise.
 
 ## Each week
 
@@ -137,6 +159,8 @@ $$w_{coins} = \text{the biggest } w \text{ with } 5\max(0,\ w - 10) + \text{plot
 $$w_{max} = \min\left(45,\ w_{coins}\right)$$
 
 The cost only goes up as $w$ goes up, so just try $w = 0, 1, \ldots, 45$ and keep the last one you can afford. That's 46 checks, instant.
+
+With more seed types the `5` becomes $b_{min}$, the cheapest buyable seed: the cheapest seed decides how many hours you can *use*, the best seed decides what they earn. As long as apples stay the cheapest, $w_{coins}$ doesn't change.
 
 The route picks a $w$ for each week:
 - Real weeks: $10 \le w \le w_{max}$ (under 10 = out)
@@ -224,7 +248,7 @@ Example (my situation), simulated with a script. Starts from the end of Prep 2 i
 
 ### Goals
 
-From right now (Prep 2: 4 coins, 13 plots, 3 apple seeds), $m = 1$. Costs are in [device-trees.md](device-trees.md).
+From right now (Prep 2: 4 coins, 13 plots, 3 apple seeds), $m = 1$. Costs are in [device-trees.md](device-trees.md). **Apples-only baseline**: a new seed with $p_i > 30m - 5$ can only bring these hours down, one with $p_i \le 30m - 5$ changes nothing. Not recomputed until real numbers exist.
 
 | Goal | Coins | Flat cap needed | Total hours (Prep 2 → Week 12) |
 | --- | --- | --- | --- |
@@ -252,7 +276,7 @@ The full table (every goal, $m$ = 0.8 to 1.5) is in [device-trees.md](device-tre
 - Plots are the only thing that compounds. A high multiplier early means more coins early, so more plots sooner.
 - Plots are cheap now (305 for all of them). At 1.5 in Prep 2, Prep 3 can do 45 useful hours instead of 36.
 - Plots hit 45 in Prep 3 at 1.5 and Week 1 at 1.0, so after that there's nothing left to unlock.
-- After plots are maxed, every real week at 45 h makes the same $1250m$ (200 rent + 1050 apples), so a point of multiplier is worth the same in Week 2 as in Week 12.
+- After plots are maxed, every real week at 45 h makes the same $1250m$ (200 rent + 1050 apples, apples-only), so a point of multiplier is worth the same in Week 2 as in Week 12.
 
 **So**
 - Prep 3 is where quality pays off extra (unlocks plots + it's a big prep week).
@@ -265,7 +289,7 @@ How much real money an hour of (credited) coding gets you. Real values are from 
 
 **The laptop:** 12 weeks × 10 h rent = 120 h for a $699 laptop, and those rent crops also pay 2400 coins at $m = 1$ (≈ $300 of upgrades at 8 coins per \$1). So ≈ **\$8.30/h**. That's the best rate, every hour past rent earns less.
 
-**Extra hours:** 1 extra hour = 1 apple ≈ $30m - 5$ coins (plus at most 10 for its plot, only once), and the tree is priced at ≈ 8 coins per real \$1, so an extra hour ≈ **\$3/h** at $m = 1$, **≈ \$5/h** at $m = 1.5$.
+**Extra hours:** 1 extra hour = 1 apple ≈ $30m - 5$ coins (plus at most 10 for its plot, only once), and the tree is priced at ≈ 8 coins per real \$1, so an extra hour ≈ **\$3/h** at $m = 1$, **≈ \$5/h** at $m = 1.5$. With new seeds the $30m - 5$ becomes the best $p_i$ you can afford, so these rates are the apples-only floor.
 
 | Goal | $m$ | h/week | Total hours | Real value | $/h overall |
 | --- | --- | --- | --- | --- | --- |
