@@ -134,11 +134,6 @@ function applyPreset(preset, name = null) {
     update();
 }
 
-function buyFirst(id) {
-    state = { ...state, first: [id, ...state.first.filter((other) => other !== id)] };
-    update();
-}
-
 // ---- drawing -------------------------------------------------------------
 
 function sameSelection(a, b) {
@@ -172,7 +167,9 @@ function drawDevicePicker() {
     const clear = button("Clear", () => applyPreset({}));
     clear.className = "secondary outline";
     presets.push(clear);
-    $("presets").replaceChildren(...presets);
+    const label = el("span", "Quick picks:");
+    label.className = "presets-label";
+    $("presets").replaceChildren(label, ...presets);
     sketchAll(presets, (b) => `preset:${b.textContent}`);
 
     $("pick-note").textContent = pickNote.trim();
@@ -192,6 +189,12 @@ function control(kind, node) {
     const verb = kind === "own" ? "Own" : "Want";
 
     if (!node.tiers && node.limit === undefined) {
+        // already owned: it's in your picks anyway, so say that instead of showing a locked checkbox
+        if (floor > 0) {
+            const owned = el("span", icon("check"), " owned");
+            owned.className = "control-word owned-note";
+            return owned;
+        }
         const box = el("input");
         box.type = "checkbox";
         box.id = `${kind}-${node.id}`;
@@ -208,10 +211,18 @@ function control(kind, node) {
     const plus = button(icon("plus"), () => setQty(kind, node.id, qty + 1), `${verb} one more ${node.name}`);
     plus.id = `${kind}-${node.id}-plus`;
     plus.disabled = !canAdd(tree(), selection, node.id);
+    if (plus.disabled) plus.title = limitHint(node); // why you can't add more
     const count = el("output", String(qty));
     const stepper = el("span", word, minus, count, plus);
     stepper.className = "stepper";
     return stepper;
+}
+
+// why a + button is greyed out
+function limitHint(node) {
+    if (node.tiers) return `All ${node.tiers.length} are picked`;
+    if (node.limit) return `Up to ${node.limit.base}, plus one per ${nameOf(node.limit.per)}`;
+    return "Only one of these";
 }
 
 // The tree laid out like Terra's: a card per upgrade, lines to its prerequisites.
@@ -250,16 +261,15 @@ function drawTree() {
     root.dataset.node = "root";
 
     const cards = displayOrder(tree()).map(({ node }) => {
-        const owned = state.own[node.id] ?? 0;
         const wanted = state.want[node.id] ?? 0;
         const price = nextPrice(node, wanted);
         // "750 coins", or "next: 1300 coins" when the price goes up with each buy
         const cost = price === null
-            ? "maxed"
+            ? `all ${node.tiers.length} picked`
             : `${node.tiers ? "next: " : ""}${price} coins · ≈${Math.round(nodeHours(price, state.m))} h`;
         const card = el("div",
             el("strong", node.name),
-            ...(node.totals ? [total(node, owned, wanted)] : []),
+            ...(node.totals ? [total(node, wanted)] : []),
             el("small", cost),
             icon(NODE_ICONS[node.id] ?? "upgrade-diy-kit", "tree-icon"),
             el("div", control("own", node), control("want", node)),
@@ -281,6 +291,7 @@ function drawTree() {
     // a new device (or the first draw) starts fitted; otherwise keep where you'd zoomed to
     if (viewDevice !== state.device) {
         viewDevice = state.device;
+        viewMoved = false;
         setView(fitView(treeSize(), viewportSize()));
     } else {
         setView(view);
@@ -292,8 +303,8 @@ const COLUMNS = [
     ["Week", (row) => weekName(row.week), "calendar"],
     ["Start coins", (row) => coins(row.startCoins)],
     ["Plots", (row) => row.plots, "dirt-plot"],
-    ["Max hours", (row) => row.wMax],
-    ["Hours", (row) => (row.out ? `${row.hours} (out)` : row.hours), "water-drop"],
+    ["Can use (h)", (row) => row.wMax], // the most hours you can afford seeds and plots for
+    ["Planned h", (row) => (row.out ? `${row.hours} (under 10 h: out)` : row.hours), "water-drop"],
     ["New plots", (row) => row.newPlots],
     ["Spent", (row) => coins(row.spent)],
     ["Sold", (row) => coins(row.sold)],
@@ -323,36 +334,130 @@ function drawTable(route) {
     sketchAll([head, ...rows.filter((_, i) => i % 2 === 1)], (row) => `route:${row.rowIndex}`, true);
 }
 
-function drawMilestones(route) {
+// The buy order, grouped by when you can afford each pick: a heading per week ("after Week 2"),
+// the picks for that week indented under it ([name ×qty | cost, running total | priority arrows]),
+// each name pushed in further by how deep it is in the upgrade tree, so you can see what needs what.
+function drawMilestones(route, cap) {
     const box = $("milestones-box");
     box.hidden = state.goal !== null || route.length === 0;
     if (box.hidden) return;
 
     const items = milestones(route, buyOrder(tree(), state.want, state.own, state.first));
     box.hidden = items.length === 0;
-    const rows = items.map((item, index) => {
-        // one row: [status badge] name ×qty | cost, running total | first
+    const ids = items.map((item) => item.id);
+    const depth = Object.fromEntries(displayOrder(tree()).map((row) => [row.node.id, row.depth]));
+    // does `id` need `other` first (directly or further up the tree)?
+    const needs = (id, other) => dependentsOf(tree(), other).includes(id);
+    // swap with the neighbour; the whole order is saved, so it stays like that
+    const move = (index, step) => {
+        const order = [...ids];
+        [order[index], order[index + step]] = [order[index + step], order[index]];
+        state = { ...state, first: order };
+        update();
+    };
+
+    const groups = [];
+    items.forEach((item, index) => {
         const when = item.now ? "now" : item.week === null ? "not by Week 12" : `after ${weekName(item.week)}`;
-        const badge = el("span", when);
-        badge.className = "badge";
-        badge.dataset.tone = item.now || item.week !== null ? "positive" : "error";
-        const qty = item.qty > 1 ? ` ×${item.qty}` : "";
-        const cost = el("span", `${coins(item.cost)} coins · total ${coins(item.total)}`);
-        cost.className = "milestone-cost";
-        const li = el("li", badge, el("span", `${item.name}${qty}`), cost);
-        if (index > 0) {
-            const first = button("first", () => buyFirst(item.id), `Buy ${item.name} first`);
-            first.id = `first-${item.id}`;
-            first.className = "secondary outline";
-            li.append(first);
-        } else {
-            li.append(el("span")); // keeps the columns lined up
+        let group = groups.at(-1);
+        if (group?.when !== when) {
+            group = { when, ok: item.now || item.week !== null, rows: [] };
+            groups.push(group);
         }
-        return li;
+        const qty = item.qty > 1 ? ` ×${item.qty}` : "";
+        // "400 coins for all 4 (500 so far)": what this pick costs, and everything up to it
+        const forAll = item.qty > 1 ? ` for all ${item.qty}` : "";
+        const cost = el("span", `${coins(item.cost)} coins${forAll} (${coins(item.total)} so far)`);
+        cost.className = "milestone-cost";
+        const sooner = button(icon("select-arrow-up"), () => move(index, -1), `Buy ${item.name} sooner`);
+        sooner.id = `sooner-${item.id}`;
+        sooner.className = "secondary outline";
+        sooner.disabled = index === 0 || needs(item.id, ids[index - 1]); // can't go before what it needs
+        sooner.title = index === 0 ? "Already first"
+            : sooner.disabled ? `Needs ${items[index - 1].name} first` : `Buy ${item.name} sooner`;
+        const later = button(icon("select-arrow"), () => move(index, 1), `Buy ${item.name} later`);
+        later.id = `later-${item.id}`;
+        later.className = "secondary outline";
+        later.disabled = index === items.length - 1 || needs(ids[index + 1], item.id); // or after what needs it
+        later.title = index === items.length - 1 ? "Already last"
+            : later.disabled ? `${items[index + 1].name} needs this first` : `Buy ${item.name} later`;
+        const arrows = el("span", sooner, later);
+        arrows.className = "priority";
+        const name = el("span", `${item.name}${qty}`);
+        name.style.paddingLeft = `${(depth[item.id] ?? 0) * 1.5}rem`;
+        name.dataset.node = item.id; // for the tree lines
+        group.rows.push(el("li", name, cost, arrows));
     });
-    $("milestones").replaceChildren(...rows);
-    sketchAll($("milestones").querySelectorAll(".badge, button"), (b) => b.id || `badge:${b.closest("li").querySelector("span + span").textContent}`);
+
+    const head = el("li", el("span"), el("span", "cost (so far)"), el("span", "priority")); // the arrows' tooltips say "Buy … sooner / later"
+    head.className = "milestone-head";
+    head.setAttribute("aria-hidden", "true");
+    $("milestones").replaceChildren(head, ...groups.map((group) => {
+        const badge = el("span", group.when);
+        badge.className = "badge";
+        badge.dataset.tone = group.ok ? "positive" : "error";
+        const list = el("ol", ...group.rows);
+        list.className = "milestone-items";
+        return el("li", badge, list);
+    }));
+    sketchAll($("milestones").querySelectorAll(".badge, button"), (b) => b.id || `badge:${b.textContent}`);
+    drawMilestoneLines();
     $("reset-order").hidden = state.first.length === 0;
+    $("milestones-note").textContent = `Bought in this order at ${cap} h/week, each one indented under what it needs first.`
+        + " Use the arrows to buy something sooner or later.";
+}
+
+// Thin wobbly grey lines joining each pick to the one it needs (its parent in the upgrade tree),
+// like a file tree: a line down the gap just left of the parent's name, with a short branch into
+// each of its picks. In the gap, it can't cross names at the parent's level or above. Drawn from
+// where the names ended up on the page, so again whenever the list changes size.
+const MILESTONE_LINES = { wobble: 0.6, every: 16 };
+
+function drawMilestoneLines() {
+    const list = $("milestones");
+    list.querySelector(":scope > .milestone-lines")?.remove();
+    const names = [...list.querySelectorAll("[data-node]")];
+    if (names.length === 0 || !list.offsetWidth) return;
+
+    const origin = list.getBoundingClientRect();
+    // where a name's text starts (after its tree indent), and its middle, from the list's top-left
+    const textStart = (name) => name.getBoundingClientRect().left - origin.left + parseFloat(getComputedStyle(name).paddingLeft);
+    const middle = (name) => {
+        const box = name.getBoundingClientRect();
+        return box.top - origin.top + box.height / 2;
+    };
+    const byId = new Map(names.map((name) => [name.dataset.node, name]));
+    const children = new Map(); // parent's name → its picks' names
+    for (const name of names) {
+        const node = tree().nodes.find((n) => n.id === name.dataset.node);
+        const parent = byId.get(node?.requires[0]); // the one it's drawn under in the tree
+        if (parent) children.set(parent, [...(children.get(parent) ?? []), name]);
+    }
+
+    const lines = document.createElementNS(SVG, "svg");
+    lines.classList.add("milestone-lines");
+    lines.setAttribute("aria-hidden", "true");
+    for (const [parent, kids] of children) {
+        const seed = seedOf(`line:${parent.dataset.node}`);
+        const start = textStart(parent);
+        const x = start - 8; // the gap just left of the parent's name
+        const top = middle(parent);
+        const bottom = Math.max(...kids.map(middle));
+        const parts = [
+            wobblyLine(start - 3, top, x, top, seed, MILESTONE_LINES), // out of the parent
+            wobblyLine(x, top, x, bottom, seed + 1, MILESTONE_LINES), // down past its picks
+            ...kids.map((kid, i) => wobblyLine(x, middle(kid), textStart(kid) - 5, middle(kid), seed + 2 + i, MILESTONE_LINES)),
+        ];
+        const path = document.createElementNS(SVG, "path");
+        path.setAttribute("d", parts.join(" "));
+        lines.append(path);
+    }
+    list.append(lines);
+}
+
+// "from Prep 2 to Week 12": which weeks a plan covers (prep weeks included)
+function weeksSpan(route) {
+    return `from ${weekName(route[0].week)} to Week 12`;
 }
 
 function render() {
@@ -365,16 +470,22 @@ function render() {
     warning.replaceChildren();
 
     const total = goalCost(tree(), state.want, state.own);
-    $("goal-total").replaceChildren(
-        ...(state.goal === null && total > 0 ? [icon("coin"), " Your picks cost ", el("strong", `${coins(total)} coins`), " (on top of what you own)."] : []),
-    );
+    showPicksGoal(total);
+    if (state.goal === null && total > 0) {
+        $("goal-total").replaceChildren(icon("coin"), " Your picks cost ", el("strong", `${coins(total)} coins`), " (on top of what you own).");
+    } else if (state.goal === null) {
+        // nothing picked yet: the real question needs picks
+        $("goal-total").replaceChildren("Pick the upgrades you want in the Goal panel (or press a quick pick), and this turns into the hours a week you need.");
+    } else {
+        $("goal-total").replaceChildren();
+    }
 
     const t = weekIndex(state.date);
     if (t > LAST_WEEK) {
         summary.dataset.tone = "info";
         summary.replaceChildren("Terra's over! ", face("over"));
         drawTable([]);
-        drawMilestones([]);
+        drawMilestones([], 0);
         return;
     }
 
@@ -390,7 +501,8 @@ function render() {
             summary.dataset.tone = "positive";
             summary.replaceChildren(
                 "You need ", el("strong", `${result.cap} h/week`),
-                ` (${result.totalHours} h total) to reach ${coins(goal)} coins. `, face("reachable"),
+                ` ${weeksSpan(route)} (${route.length} weeks, ${result.totalHours} h) to reach ${coins(goal)} coins. `,
+                face("reachable"),
             );
         } else {
             cap = MAX_PLOTS;
@@ -398,14 +510,15 @@ function render() {
             summary.dataset.tone = "error";
             summary.replaceChildren(
                 el("strong", "Not reachable."),
-                ` The best you can get is ${coins(route.at(-1).endCoins)} coins at ${MAX_PLOTS} h/week. `, face("unreachable"),
+                ` The best you can get is ${coins(route.at(-1).endCoins)} coins, at ${MAX_PLOTS} h/week ${weeksSpan(route)}. `,
+                face("unreachable"),
             );
         }
     } else {
         route = simulateRoute(inventory, t, state.cap, state.m);
         summary.dataset.tone = "info";
         summary.replaceChildren(
-            `At ${state.cap} h/week you end Week 12 with `,
+            `At ${state.cap} h/week ${weeksSpan(route)} you end with `,
             el("strong", `${coins(route.at(-1).endCoins)} coins`), ". ", face("rich"),
         );
     }
@@ -420,7 +533,11 @@ function render() {
         );
     }
 
-    drawMilestones(goal > 0 ? route : []);
+    // 8: the hours/week box only counts when there's no goal: grey it out otherwise
+    const capUsed = goal === 0;
+    $("cap").disabled = !capUsed;
+    $("cap").closest(".number-wrap")?.querySelectorAll("button").forEach((b) => { b.disabled = !capUsed; });
+    drawMilestones(goal > 0 ? route : [], cap);
     drawTable(route);
     redrawOutlines(); // message boxes may have changed colour or text
 }
@@ -429,6 +546,7 @@ function render() {
 
 let view = { scale: 1, x: 0, y: 0 };
 let viewDevice = null; // which device `view` belongs to
+let viewMoved = false; // you've panned or zoomed since it was last fitted (then it isn't re-fitted for you)
 
 function viewportSize() {
     return { w: $("tree-view").clientWidth, h: $("tree-view").clientHeight };
@@ -445,6 +563,7 @@ function setView(next) {
 
 // zoom around the middle of the window (the buttons)
 function zoomBy(factor) {
+    viewMoved = true;
     const { w, h } = viewportSize();
     setView(zoomAt(view, factor, w / 2, h / 2));
 }
@@ -530,10 +649,20 @@ function drawOutline(box) {
     if (clipped) box.style.clipPath = `path("${d}")`;
 }
 
-// RAM/SSD: "total 8 GB → 48 GB" (what you have → what you'll have), or just "total 48 GB"
-function total(node, owned, wanted) {
-    const line = el("span", "total ", el("b", node.totals[owned]));
-    if (wanted > owned) line.append(" → ", el("b", node.totals[wanted]));
+// RAM/SSD: what your picks come to → what one more would make it ("32 → 48 GB", like the
+// "next: … coins" price under it), or just "48 GB" when there's no more to buy
+function total(node, wanted) {
+    const now = node.totals[wanted];
+    const next = node.totals[wanted + 1];
+    const line = el("span");
+    if (next === undefined) {
+        line.append(el("b", now));
+    } else {
+        const [nowNumber, nowUnit] = now.split(" ");
+        const [nextNumber, nextUnit] = next.split(" ");
+        // "32 → 48 GB" when the unit is the same, "500 GB → 1 TB" when it isn't
+        line.append(el("b", nowUnit === nextUnit ? nowNumber : now), " → ", el("b", `${nextNumber} ${nextUnit}`));
+    }
     line.className = "tree-total";
     return line;
 }
@@ -579,18 +708,46 @@ function update() {
     const focused = document.activeElement?.id;
     history.replaceState(null, "", "#" + toHash(state, TODAY));
     render();
-    if (focused) $(focused)?.focus();
+    if (focused) $(focused)?.focus({ preventScroll: true }); // put focus back without scrolling the page
 }
 
 function fillForm() {
     for (const key of FORM_FIELDS) {
-        $(key).value = key === "goal" ? (state.goal ?? "") : state[key];
+        if (key !== "goal") $(key).value = state[key];
+        else if (state.goal !== null) $(key).value = state.goal; // the picks' total is filled in by render()
     }
 }
 
 // state → raw strings, so form edits go through clean() just like the hash
 function rawOf(s) {
     return Object.fromEntries(new URLSearchParams(toHash(s, TODAY)));
+}
+
+// The goal box: your own goal if you typed one, otherwise your picks' total, shown muted
+// (left alone while you're typing in it)
+function showPicksGoal(total) {
+    const box = $("goal");
+    box.classList.toggle("from-picks", state.goal === null);
+    if (state.goal === null && document.activeElement !== box) box.value = total > 0 ? total : "";
+}
+
+// The date box: your calendar drawing instead of the browser's icon. Firefox doesn't let pages
+// restyle its icon, so this button sits on top of it and opens the browser's own date picker.
+function addDateButton(input) {
+    const pick = button(icon("date-input"), () => {
+        try {
+            input.showPicker();
+        } catch {
+            input.focus(); // older browsers: at least put you in the box
+        }
+    }, "Pick a date");
+    pick.id = "date-picker";
+    pick.tabIndex = -1; // from the keyboard, the box itself opens the picker
+    pick.className = "date-button";
+    const wrap = el("span");
+    wrap.className = "date-wrap";
+    input.replaceWith(wrap);
+    wrap.append(input, pick);
 }
 
 // Number boxes: our own up/down buttons (your dropdown arrow) instead of the browser's spinners.
@@ -613,7 +770,7 @@ function addNumberButtons(input) {
         let timer;
         const stop = () => clearTimeout(timer);
         b.addEventListener("pointerdown", (event) => {
-            event.preventDefault(); // keep focus where it is
+            event.preventDefault(); // leave focus where it is (it's put back without scrolling, see update())
             nudge(direction);
             const again = (delay) => { timer = setTimeout(() => { nudge(direction); again(70); }, delay); };
             again(400);
@@ -653,12 +810,14 @@ function showErrors(problems) {
 
 // ---- start ---------------------------------------------------------------
 
-$("prices-as-of").textContent = PRICES_AS_OF;
+$("prices-as-of").textContent = new Date(`${PRICES_AS_OF}T00:00:00Z`)
+    .toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }); // "9 Oct 2026"
 document.querySelectorAll("input[type=number]").forEach(addNumberButtons);
+addDateButton($("date"));
 
 // boxes that stay on the page: panels, the upgrades area, the preset strip, message boxes, the route table
 sketchAll(
-    document.querySelectorAll(".intro, .footnotes, form > fieldset, main > article, form > article, .buttons, .message, .view-box"),
+    document.querySelectorAll(".intro, .footnotes, .panel, .buttons, .message, .view-box"),
     (box) => box.id || box.querySelector(":scope > legend, :scope > header")?.textContent || box.className,
     true,
 );
@@ -668,13 +827,18 @@ sketchAll(document.querySelectorAll(".tree-view, .tree-frame"), () => "tree-view
 // buttons that stay on the page (zoom, reset order, ok, use my picks, light/dark)
 drawThemeToggle();
 sketchAll(document.querySelectorAll("main button, footer button"), (b) => b.id, true);
-// tree: scroll to zoom (around the mouse), drag to pan, pinch on touch screens
+// tree: drag to pan, zoom with the buttons, scrolling or a pinch on touch screens. In the split view
+// (two columns) the Goal panel doesn't scroll, so plain scrolling zooms; in one column it scrolls the
+// page, so it takes ctrl + scroll (a trackpad pinch sends that too). Same query as in style.css.
+const splitView = matchMedia("(min-width: 1200px) and (min-height: 700px)");
 const treeView = $("tree-view");
 treeView.addEventListener("wheel", (event) => {
-    event.preventDefault(); // zoom instead of scrolling the page
+    if (!event.ctrlKey && !splitView.matches) return;
+    event.preventDefault(); // zoom the tree, not the whole page
+    viewMoved = true;
     const box = treeView.getBoundingClientRect();
     const px = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? box.height : 1; // lines/pages → px
-    setView(zoomAt(view, Math.exp(-event.deltaY * px * 0.0015), event.clientX - box.left, event.clientY - box.top));
+    setView(zoomAt(view, Math.exp(-event.deltaY * px * 0.002), event.clientX - box.left, event.clientY - box.top));
 }, { passive: false });
 
 const pointers = new Map(); // pointers pressed on the tree: id → { x, y }
@@ -690,6 +854,7 @@ treeView.addEventListener("pointermove", (event) => {
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     const now = [...pointers.values()];
     if (now.length === 1) {
+        viewMoved = true;
         setView({ ...view, x: view.x + now[0].x - before[0].x, y: view.y + now[0].y - before[0].y });
     } else if (now.length === 2) {
         // pinch: zoom by how much the fingers spread, around their middle, and follow the middle
@@ -724,8 +889,113 @@ treeView.addEventListener("focusin", (event) => {
 $("zoom-in").addEventListener("click", () => zoomBy(1.25));
 $("zoom-out").addEventListener("click", () => zoomBy(1 / 1.25));
 $("zoom-fit").addEventListener("click", () => setView(fitView(treeSize(), viewportSize())));
-// the window changes size with the page: keep the tree in view
-new ResizeObserver(() => setView(view)).observe(treeView);
+// The handwritten font usually arrives after the first draw, and text gets narrower with it.
+// Boxes that are redrawn on changes (pills, buttons, the tree) would keep outlines made for the
+// wider fallback font (the pills' fill no longer filled their outline), so draw everything again.
+document.fonts.ready.then(() => update());
+
+// the link holds your numbers: copy it to share or keep them
+$("copy-link").addEventListener("click", async () => {
+    const copy = $("copy-link");
+    try {
+        await navigator.clipboard.writeText(location.href);
+        copy.textContent = "Copied!";
+    } catch {
+        copy.textContent = "Copy it from the address bar";
+    }
+    setTimeout(() => {
+        copy.textContent = "Copy link";
+        drawOutline(copy); // the text change removed its drawing
+    }, 2000);
+    drawOutline(copy);
+});
+
+// ---- resizing the columns (wide screens) -----------------------------------
+// Drag the divider (or focus it and use the arrow keys) to give the left column more or less of the
+// page; double-click to go back to the default. Your width is remembered in this browser.
+
+const divider = $("column-divider");
+const SPLIT = { min: 30, max: 70, step: 2, normal: 44.4 }; // the left column, % of the page
+
+function currentSplit() {
+    return parseFloat(document.querySelector(".page").style.getPropertyValue("--split")) || SPLIT.normal;
+}
+
+function setSplit(percent, save = true) {
+    const split = Math.min(SPLIT.max, Math.max(SPLIT.min, percent));
+    document.querySelector(".page").style.setProperty("--split", split);
+    divider.setAttribute("aria-valuenow", Math.round(split));
+    if (save) {
+        try {
+            localStorage.setItem("split", split);
+        } catch {
+            // storage blocked: the width just lasts until the page is closed
+        }
+    }
+}
+
+// the line: wobbly like the tree's branches, as tall as the divider
+function drawDivider() {
+    const h = divider.offsetHeight;
+    if (!h) return;
+    const x = divider.offsetWidth / 2;
+    const lines = document.createElementNS(SVG, "svg");
+    lines.setAttribute("aria-hidden", "true");
+    const path = document.createElementNS(SVG, "path");
+    path.setAttribute("d", wobblyLine(x, 8, x, h - 8, seedOf("column-divider"), SKETCH_BRANCHES));
+    lines.append(path);
+    divider.replaceChildren(lines);
+}
+
+// after a resize the tree window is a new size: fit the tree again, unless you've moved it yourself
+function afterResize() {
+    if (!viewMoved) setView(fitView(treeSize(), viewportSize()));
+}
+
+divider.addEventListener("pointerdown", (event) => {
+    divider.setPointerCapture(event.pointerId);
+    document.body.classList.add("resizing");
+});
+divider.addEventListener("pointermove", (event) => {
+    if (!divider.hasPointerCapture(event.pointerId)) return;
+    const page = document.querySelector(".page").getBoundingClientRect();
+    setSplit(((event.clientX - page.left) / page.width) * 100, false);
+});
+divider.addEventListener("lostpointercapture", () => {
+    document.body.classList.remove("resizing");
+    setSplit(currentSplit()); // save where you let go
+    afterResize();
+});
+divider.addEventListener("keydown", (event) => {
+    const step = { ArrowLeft: -SPLIT.step, ArrowRight: SPLIT.step }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    setSplit(currentSplit() + step);
+    afterResize();
+});
+divider.addEventListener("dblclick", () => {
+    document.querySelector(".page").style.removeProperty("--split");
+    divider.setAttribute("aria-valuenow", Math.round(SPLIT.normal));
+    try {
+        localStorage.removeItem("split");
+    } catch {
+        // nothing saved to remove
+    }
+    afterResize();
+});
+new ResizeObserver(drawDivider).observe(divider);
+try {
+    const saved = parseFloat(localStorage.getItem("split"));
+    setSplit(Number.isFinite(saved) ? saved : SPLIT.normal, false);
+} catch {
+    setSplit(SPLIT.normal, false);
+}
+
+// the buy order list changes size with the page: its tree lines go with the names
+new ResizeObserver(() => drawMilestoneLines()).observe($("milestones"));
+// the window changes size with the page (fonts loading, text wrapping, the hint opening): fit the
+// tree again, or if you've moved it yourself, just keep it in view
+new ResizeObserver(() => (viewMoved ? setView(view) : afterResize())).observe(treeView);
 
 // input boxes too (not checkboxes): a tighter, thinner wobble, set in style.css
 for (const input of document.querySelectorAll("input:not([type=checkbox]), select")) {
@@ -765,14 +1035,37 @@ if (loaded.problems.length) showErrors(loaded.problems);
 fillForm();
 update();
 
-$("form").addEventListener("input", (event) => {
+document.addEventListener("input", (event) => {
     if (!FORM_FIELDS.includes(event.target.id)) return;
     const form = Object.fromEntries(FORM_FIELDS.map((key) => [key, $(key).value]));
+    // the goal box shows the picks' total unless you typed your own: only read it when it's
+    // what you're editing, or editing anything else would turn that total into a custom goal
+    if (event.target.id !== "goal") form.goal = state.goal ?? "";
     // problems are ignored here: half-typed numbers are normal while typing
     state = clean({ ...rawOf(state), ...form }, TODAY).state;
     update();
 });
 $("form").addEventListener("submit", (event) => event.preventDefault()); // Enter shouldn't reload the page
+// The first scroll (the page, or the left column on wide screens) shrinks the logo into the
+// top-left corner, for good: it gives the plan and the tree more room. On wide screens the tree
+// window gets taller, so the tree is fitted again (unless you've moved it yourself).
+const pageLeft = document.querySelector(".page-left");
+function onFirstScroll() {
+    if (scrollY <= 0 && pageLeft.scrollTop <= 0) return;
+    document.body.classList.add("scrolled");
+    removeEventListener("scroll", onFirstScroll);
+    pageLeft.removeEventListener("scroll", onFirstScroll);
+    setTimeout(() => {
+        if (!viewMoved) setView(fitView(treeSize(), viewportSize()));
+    }, 300); // after the header has finished shrinking (style.css)
+}
+addEventListener("scroll", onFirstScroll, { passive: true });
+pageLeft.addEventListener("scroll", onFirstScroll, { passive: true });
+onFirstScroll(); // a reload can start part-way down the page
+
+// switching between one and two columns changes the tree window's size a lot: fit the tree again
+splitView.addEventListener("change", () => setView(fitView(treeSize(), viewportSize())));
+$("goal").addEventListener("blur", () => showPicksGoal(goalCost(tree(), state.want, state.own)));
 $("device").addEventListener("change", (event) => setDevice(event.target.value));
 $("use-picks").addEventListener("click", () => {
     state = { ...state, goal: null };

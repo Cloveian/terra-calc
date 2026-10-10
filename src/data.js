@@ -77,14 +77,14 @@ export const TREES = {
 // so { cpu_ryzen_ai7_350: 1 } is enough for "everything up to the Ryzen".
 export const PRESETS = {
     framework_12: {
-        "Framework 13": {
+        "Up to Framework 13": {
             framework_12_diy: 1, cpu_12: 1, cpu_i5_1334u: 1, cpu_core5_320: 1, framework_13_upgrade: 1,
         },
         "Max 12": {
             stylus_12: 1, expansion_card_12: 1, fancy_expansion_card_12: 4, framework_12_diy: 1,
             ram_12: 3, ssd_12: 2, cpu_12: 1, cpu_i5_1334u: 1, cpu_core5_320: 1,
         },
-        "Max 12, no extra USB": {
+        "Max 12 (no USB card)": {
             stylus_12: 1, fancy_expansion_card_12: 4, framework_12_diy: 1,
             ram_12: 3, ssd_12: 2, cpu_12: 1, cpu_i5_1334u: 1, cpu_core5_320: 1,
         },
@@ -93,7 +93,7 @@ export const PRESETS = {
             cpu_12: 1, cpu_i5_1334u: 1, cpu_core5_320: 1, framework_13_upgrade: 1,
             display_2k8_12: 1, cpu_ryzen_ai7_350: 1,
         },
-        "Max 13, no extra USB": {
+        "Max 13 (no USB card)": {
             fancy_expansion_card_12: 4, framework_12_diy: 1, ram_12: 3, ssd_12: 2,
             cpu_12: 1, cpu_i5_1334u: 1, cpu_core5_320: 1, framework_13_upgrade: 1,
             display_2k8_12: 1, cpu_ryzen_ai7_350: 1,

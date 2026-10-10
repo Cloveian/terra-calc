@@ -33,44 +33,96 @@
         <p class="intro">How many hours a week do you need to code in Terra to afford your upgrades? <span class="face">(⁎ˆ꒳ˆ⁎)</span></p>
     </header>
 
-    <main class="container">
-        <!-- shown when the link had values that had to be fixed -->
-        <article id="errors" hidden>
-            <!-- TODO: goofy error drawing goes here -->
-            <div class="error-art" aria-hidden="true">「(°ヘ°)</div>
-            <h2>Something in that link was off</h2>
-            <p>I fixed what I could:</p>
-            <ul id="error-list"></ul>
-            <button type="button" id="errors-ok">ok</button>
-        </article>
+    <!-- wide screens: two columns; the left one scrolls, the Goal panel (with the tree) on the
+         right fills the screen and stays put.
+         narrow screens: the wrappers step aside and it's one column, in this order:
+         Inventory, Plan, Goal, Your plan, notes (style.css, "page layout") -->
+    <main class="container page">
+        <div class="page-left">
+            <!-- shown when the link had values that had to be fixed -->
+            <article id="errors" class="panel" hidden>
+                <!-- TODO: goofy error drawing goes here -->
+                <div class="error-art" aria-hidden="true">「(°ヘ°)</div>
+                <h2>Something in that link was off</h2>
+                <p>I fixed what I could:</p>
+                <ul id="error-list"></ul>
+                <button type="button" id="errors-ok">ok</button>
+            </article>
 
-        <form id="form">
-            <fieldset>
-                <legend>Inventory</legend>
-                <div class="grid">
-                    <label><span class="icon icon-coin" aria-hidden="true"></span> Coins <input id="coins" type="number" min="0" step="any"></label>
-                    <label><span class="icon icon-dirt-plot" aria-hidden="true"></span> Dirt plots <input id="plots" type="number" min="10" max="45"></label>
-                    <label><span class="icon icon-apple-seed" aria-hidden="true"></span> Apple seeds <input id="seeds" type="number" min="0"></label>
-                    <label><span class="icon icon-calendar" aria-hidden="true"></span> Date (US Eastern) <input id="date" type="date"></label>
+            <form id="form">
+                <fieldset class="panel">
+                    <legend>Inventory</legend>
+                    <div class="grid">
+                        <label><span class="icon icon-coin" aria-hidden="true"></span> Coins <input id="coins" type="number" min="0" step="any"></label>
+                        <label><span class="icon icon-dirt-plot" aria-hidden="true"></span> Dirt plots <input id="plots" type="number" min="10" max="45"></label>
+                        <label><span class="icon icon-apple-seed" aria-hidden="true"></span> Apple seeds <input id="seeds" type="number" min="0"></label>
+                        <label><span class="icon icon-calendar" aria-hidden="true"></span> Date (US Eastern) <input id="date" type="date"></label>
+                    </div>
+                </fieldset>
+
+                <fieldset class="panel">
+                    <legend>Settings</legend>
+                    <div class="grid">
+                        <label><span class="icon icon-multiplier" aria-hidden="true"></span> Multiplier (0.8–1.5, from your project review; 1 if unsure) <input id="m" type="number" min="0.8" max="1.5" step="0.1"></label>
+                        <label><span class="icon icon-water-drop" aria-hidden="true"></span> Hours/week to plan with (only when nothing is picked) <input id="cap" type="number" min="10" max="45"></label>
+                    </div>
+                </fieldset>
+            </form>
+
+            <article id="result" class="panel">
+                <header>Your plan</header>
+                <p id="goal-total"></p>
+                <p id="summary" class="message"></p>
+                <p id="warning" class="message" data-tone="warning"></p>
+
+                <div id="milestones-box" hidden>
+                    <h2>When you can afford each pick</h2>
+                    <p id="milestones-note" class="note"></p>
+                    <ol id="milestones"></ol>
+                    <button type="button" id="reset-order" class="secondary outline" hidden>Reset order</button>
                 </div>
-            </fieldset>
 
-            <fieldset>
-                <legend>Plan</legend>
-                <div class="grid">
-                    <label><span class="icon icon-multiplier" aria-hidden="true"></span> Multiplier <input id="m" type="number" min="0.8" max="1.5" step="0.1"></label>
-                    <label><span class="icon icon-water-drop" aria-hidden="true"></span> Hours/week (used when there's no goal) <input id="cap" type="number" min="10" max="45"></label>
+                <p class="note">Week by week. Coins in this table are before any upgrades are bought.</p>
+                <div class="overflow-auto view-box">
+                    <table id="route"></table>
                 </div>
-            </fieldset>
+            </article>
 
-            <article>
+            <!-- at the end of the left column: on wide screens only that column scrolls -->
+            <footer id="page-footer" class="page-footer">
+                <div class="footnotes">
+                    <p>Ship before the last day of the week: if a reviewer cuts your hours after the week ends, your crops dry out and you end up short on rent.</p>
+                    <p>Next week's coins only arrive once this week's ship is approved and sold. This plan assumes that happens in time.</p>
+                    <p>Hours are approved Hackatime hours (AI time counts a third). In the main weeks your 10 rent carrots pay 20 coins each instead of 25.</p>
+                    <p>Your numbers are saved in this page's link: copy it to share them or come back later.</p>
+                    <p>Prices as of <span id="prices-as-of"></span>, and they may differ in your country. Not made by the Terra team. Terra is a <a href="https://hackclub.com">Hack Club</a> event.</p>
+                    <div class="footer-row">
+                        <a href="https://github.com/Cloveian/terra-calc">Source on GitHub</a>
+                        <button type="button" id="copy-link" class="secondary outline">Copy link</button>
+                        <button type="button" id="theme-toggle" class="secondary outline"></button>
+                    </div>
+                </div>
+            </footer>
+        </div>
+
+        <!-- wide screens: drag (or arrow keys) to resize the columns, double-click to reset (ui.js) -->
+        <div id="column-divider" class="column-divider" role="separator" aria-orientation="vertical"
+             aria-label="Resize the columns" aria-valuemin="30" aria-valuemax="70" tabindex="0"
+             title="Drag to resize, double-click to reset"></div>
+
+        <div class="page-right">
+            <article id="goal-panel" class="panel">
                 <header>Goal</header>
                 <label><span id="device-icon" class="icon" aria-hidden="true"></span> Device <span class="select-wrap"><select id="device"></select></span></label>
                 <div id="presets" class="buttons"></div>
 
                 <fieldset id="picker">
                     <legend>Upgrades</legend>
-                    <p class="note tree-hint">Scroll to zoom, drag to move around.</p>
+                    <!-- one line until opened, so the tree keeps its room -->
+                    <details class="tree-help note">
+                        <summary>Drag to move around, zoom with the buttons or <span class="hint-split">scrolling</span><span class="hint-single">ctrl + scroll</span><span class="hint-touch">pinching</span>. <span class="tree-help-more">What's own / want?</span></summary>
+                        <p class="tree-legend"><strong>own</strong> = already bought in the Cidery (not counted in the cost) · <strong>want</strong> = what you're saving for · <strong>≈ h</strong> = rough extra coding hours a price costs · owned cards are tinted, wanted ones outlined</p>
+                    </details>
                     <!-- the tree moves and zooms inside this window (ui.js) -->
                     <div id="tree-view" class="tree-view">
                         <div class="tree-zoom">
@@ -89,41 +141,11 @@
                 <p id="pick-warning" class="message" data-tone="warning"></p>
 
                 <footer>
-                    <label><span class="icon icon-coin" aria-hidden="true"></span> Or type a goal in coins <input id="goal" type="number" min="0" step="any"></label>
+                    <label><span class="icon icon-coin" aria-hidden="true"></span> Goal in coins (your picks' total, or type your own) <input id="goal" type="number" min="0" step="any"></label>
                     <button type="button" id="use-picks" class="secondary" hidden>Use my picks instead</button>
                 </footer>
             </article>
-        </form>
-
-        <article id="result">
-            <header>Your plan</header>
-            <p id="goal-total"></p>
-            <p id="summary" class="message"></p>
-            <p id="warning" class="message" data-tone="warning"></p>
-
-            <div id="milestones-box" hidden>
-                <h2>When you can afford each pick</h2>
-                <p class="note">Bought in this order. Press "first" to buy something sooner.</p>
-                <ol id="milestones"></ol>
-                <button type="button" id="reset-order" class="secondary outline" hidden>Reset order</button>
-            </div>
-
-            <div class="overflow-auto view-box">
-                <table id="route"></table>
-            </div>
-        </article>
-    </main>
-
-    <footer class="container">
-        <div class="footnotes">
-            <p>Ship before the last day of the week: if a reviewer cuts your hours after the week ends, your crops dry out and you end up short on rent.</p>
-            <p>Next week's coins only arrive once this week's ship is approved and sold. This plan assumes that happens in time.</p>
-            <p>Prices as of <span id="prices-as-of"></span>, and they may differ in your country. Not made by the Terra team. Terra is a <a href="https://hackclub.com">Hack Club</a> event.</p>
-            <div class="footer-row">
-                <a href="https://github.com/Cloveian/terra-calc">Source on GitHub</a>
-                <button type="button" id="theme-toggle" class="secondary outline"></button>
-            </div>
         </div>
-    </footer>
+    </main>
 </body>
 </html>

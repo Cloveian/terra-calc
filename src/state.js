@@ -7,6 +7,12 @@ import { normalize, limitOf } from "./tree.js";
 
 export const DEFAULT_DEVICE = "framework_12";
 
+// what each value is called on the page, for the "something in that link was off" list
+const LABELS = {
+    coins: "Coins", plots: "Dirt plots", seeds: "Apple seeds", date: "Date", m: "Multiplier",
+    cap: "Hours/week", goal: "Goal", device: "Device", own: "Own", want: "Want", first: "Buy order",
+};
+
 export const HASH_KEYS = ["coins", "plots", "seeds", "date", "m", "cap", "goal", "device", "own", "want", "first"];
 
 export function defaults(today) {
@@ -27,11 +33,11 @@ function number(raw, key, fallback, problems, fix) {
     const n = Number(text);
     // Number("") is 0, so blank needs its own check
     if (text === "" || !Number.isFinite(n)) {
-        problems.push(`${key}: "${raw[key]}" isn't a number, used ${fallback}`);
+        problems.push(`${LABELS[key]}: "${raw[key]}" isn't a number, used ${fallback}`);
         return fallback;
     }
     const fixed = fix(n);
-    if (fixed !== n) problems.push(`${key}: ${n} is out of range, used ${fixed}`);
+    if (fixed !== n) problems.push(`${LABELS[key]}: ${n} is out of range, used ${fixed}`);
     return fixed;
 }
 
@@ -43,9 +49,9 @@ function parseSelection(text, tree, label, problems) {
         const [id, qtyText = "1", extra] = part.split(":");
         const qty = Number(qtyText);
         if (!tree.nodes.some((node) => node.id === id)) {
-            problems.push(`${label}: there's no upgrade called "${id}"`);
+            problems.push(`${LABELS[label]}: there's no upgrade called "${id}"`);
         } else if (extra !== undefined || qtyText === "" || !Number.isInteger(qty) || qty < 0) {
-            problems.push(`${label}: "${part}" isn't an amount`);
+            problems.push(`${LABELS[label]}: "${part}" isn't an amount`);
         } else {
             selection[id] = qty;
         }
@@ -65,7 +71,7 @@ function reportClamps(tree, label, before, after, problems) {
     for (const [id, qty] of Object.entries(before)) {
         if ((after[id] ?? 0) < qty) {
             const node = tree.nodes.find((n) => n.id === id);
-            problems.push(`${label}: ${qty} × ${node.name} is over the limit, used ${after[id] ?? 0}`);
+            problems.push(`${LABELS[label]}: ${qty} × ${node.name} is over the limit, used ${after[id] ?? 0}`);
         }
     }
 }
@@ -78,14 +84,14 @@ export function clean(raw, today) {
     let device = d.device;
     if ("device" in raw) {
         if (raw.device in TREES) device = raw.device;
-        else problems.push(`device: there's no device called "${raw.device}", used ${TREES[d.device].device}`);
+        else problems.push(`${LABELS.device}: there's no device called "${raw.device}", used ${TREES[d.device].device}`);
     }
     const tree = TREES[device];
 
     let date = d.date;
     if ("date" in raw) {
         if (/^\d{4}-\d{2}-\d{2}$/.test(raw.date) && !Number.isNaN(Date.parse(raw.date))) date = raw.date;
-        else problems.push(`date: "${raw.date}" isn't a date, used today`);
+        else problems.push(`${LABELS.date}: "${raw.date}" isn't a date, used today`);
     }
 
     let goal = null;
@@ -103,7 +109,7 @@ export function clean(raw, today) {
     for (const id of (raw.first ?? "").split(",")) {
         if (id === "") continue;
         if (tree.nodes.some((node) => node.id === id)) first.push(id);
-        else problems.push(`first: there's no upgrade called "${id}"`);
+        else problems.push(`${LABELS.first}: there's no upgrade called "${id}"`);
     }
 
     const state = {

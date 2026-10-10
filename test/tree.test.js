@@ -31,7 +31,7 @@ test("limitOf", () => {
 });
 
 test("goalCost of presets and whole trees", () => {
-    assert.equal(goalCost(fw, PRESETS.framework_12["Framework 13"]), 3050);
+    assert.equal(goalCost(fw, PRESETS.framework_12["Up to Framework 13"]), 3050);
     assert.equal(goalCost(fw, PRESETS.framework_12["Max 12"]), 10700);
     assert.equal(goalCost(fw, PRESETS.framework_12["Max 13"]), 13850);
     assert.equal(goalCost(ipad, everything(ipad)), 7350);
@@ -55,8 +55,8 @@ test("presets use real ids and stay within limits", () => {
 
 test("preset costs", () => {
     const fwPresets = PRESETS.framework_12;
-    assert.equal(goalCost(fw, fwPresets["Max 12, no extra USB"]), 10600);
-    assert.equal(goalCost(fw, fwPresets["Max 13, no extra USB"]), 13750);
+    assert.equal(goalCost(fw, fwPresets["Max 12 (no USB card)"]), 10600);
+    assert.equal(goalCost(fw, fwPresets["Max 13 (no USB card)"]), 13750);
     assert.equal(goalCost(ipad, PRESETS.ipad_mini.Everything), 7350);
     assert.equal(goalCost(galaxy, PRESETS.galaxy_tab_s10_fe.Everything), 4400);
 });
@@ -127,7 +127,7 @@ test("normalize", () => {
 });
 
 test("buyOrder: prerequisites first, then cheapest", () => {
-    const order = buyOrder(fw, PRESETS.framework_12["Framework 13"]).map((item) => item.id);
+    const order = buyOrder(fw, PRESETS.framework_12["Up to Framework 13"]).map((item) => item.id);
     assert.deepEqual(order, ["framework_12_diy", "cpu_12", "cpu_i5_1334u", "cpu_core5_320", "framework_13_upgrade"]);
 
     const max13 = buyOrder(fw, PRESETS.framework_12["Max 13"]);
@@ -151,7 +151,7 @@ test("buyOrder: `first` pulls a pick (and its prerequisites) forward", () => {
 });
 
 test("buyOrder: `first` ignores picks you don't want", () => {
-    const want = PRESETS.framework_12["Framework 13"];
+    const want = PRESETS.framework_12["Up to Framework 13"];
     assert.deepEqual(buyOrder(fw, want, {}, ["cpu_ryzen_ai7_350"]), buyOrder(fw, want));
     // Max 12 has no FW13: wanting the Ryzen first must not pull DIY ahead of the 100-coin USB card
     assert.equal(buyOrder(fw, PRESETS.framework_12["Max 12"], {}, ["cpu_ryzen_ai7_350"])[0].id, "expansion_card_12");

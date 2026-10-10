@@ -140,9 +140,7 @@ h2 {
 
 /* ---- group boxes: every section is a soft white panel with a hand-lettered title ---- */
 
-form > fieldset,
-main > article,
-form > article {
+.panel {
     background: var(--view);
     border: 1px solid var(--line);
     border-radius: var(--radius-panel);
@@ -456,40 +454,59 @@ button {
     text-align: right;
 }
 
-/* milestones: a tidy list, one row per pick, columns lined up */
+/* milestones: a heading per week, the picks for it indented under it:
+   name ×qty | cost · running total | priority arrows, lined up the same in every group */
 #milestones {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.5rem;
     font-variant-numeric: tabular-nums;
-    padding-left: 1.6rem;
 }
 
-#milestones li {
-    margin-bottom: 0.3rem;
+#milestones > li {
+    list-style: none;
+    margin-bottom: 0.5rem;
 }
 
-#milestones li > :first-child {
-    margin-right: 0.5rem;
+.milestone-items {
+    margin: 0.3rem 0 0;
+    padding-left: 2.5rem;
 }
 
-@supports (grid-template-columns: subgrid) {
-    #milestones {
-        display: grid;
-        grid-template-columns: auto 1fr auto auto;
-        gap: 0.3rem 0.75rem;
-        align-items: center;
-        padding-left: 0; /* grid rows don't show list numbers, the badges show the order */
-    }
+.milestone-items li, .milestone-head {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr auto 4rem;
+    gap: 0.2rem 0.75rem;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
 
-    #milestones li {
-        display: grid;
-        grid-column: 1 / -1;
-        grid-template-columns: subgrid;
-        align-items: center;
-        margin: 0;
-    }
+/* the column labels, over the cost and arrow columns */
+.milestone-head {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+}
 
-    #milestones li > :first-child {
-        margin: 0;
-    }
+.milestone-head span:nth-child(2) {
+    text-align: right;
+}
+
+.priority {
+    display: inline-flex;
+    gap: 0.25rem;
+}
+
+.priority button {
+    width: auto;
+    margin: 0;
+    padding: 0.1rem 0.4rem;
+    line-height: 1;
+}
+
+.priority .icon {
+    width: 0.8rem;
+    height: 0.8rem;
 }
 
 .milestone-cost {
@@ -524,7 +541,7 @@ button {
     font-size: 3rem;
 }
 
-footer.container {
+.page-footer {
     color: var(--ink-muted);
 }
 
@@ -541,6 +558,7 @@ footer.container {
 .icon-water-drop { --icon: url("assets/icons/water-drop.svg"); }
 .icon-multiplier { --icon: url("assets/icons/multiplier.svg"); }
 .icon-calendar { --icon: url("assets/icons/calendar.svg"); }
+.icon-date-input { --icon: url("assets/icons/date-input.svg"); }
 .icon-check { --icon: url("assets/icons/check.svg"); }
 .icon-cross { --icon: url("assets/icons/cross.svg"); }
 .icon-plus { --icon: url("assets/icons/plus.svg"); }
@@ -720,7 +738,7 @@ input[type="checkbox"]:checked {
    its space, so nothing moves; without JavaScript the normal borders show instead.
    Per box: --sketch-color, --sketch-width (px), --sketch-opacity, --sketch-dash. */
 
-form > fieldset, main > article, form > article, .view-box {
+.panel, .view-box {
     --sketch-color: var(--line);
     --sketch-width: 1.5;
     --sketch-fill: var(--view);
@@ -783,7 +801,7 @@ form > fieldset, main > article, form > article, .view-box {
 
 /* the shadow follows the wobbly fill too: drop-shadow() uses the painted shape,
    box-shadow only ever follows the plain rounded rectangle */
-form > fieldset, main > article, form > article, .tree-card {
+.panel, .tree-card {
     --sketch-shadow: drop-shadow(0 1px 1px rgb(0 0 0 / 0.06)) drop-shadow(0 3px 6px rgb(0 0 0 / 0.07));
 }
 
@@ -856,11 +874,6 @@ input:not([type=checkbox]):focus, select:focus {
 
 .tree-canvas {
     transform-origin: 0 0;
-}
-
-.tree-hint {
-    margin: 0 0 0.4rem;
-    font-size: 0.85rem;
 }
 
 /* zoom buttons in the window's corner */
@@ -999,7 +1012,7 @@ button:focus-visible, input[type="checkbox"]:focus-visible {
     isolation: isolate;
 }
 
-form > fieldset, main > article, form > article, .message, button, .badge, .buttons, .view-box {
+.panel, .message, button, .badge, .buttons, .view-box {
     position: relative;
 }
 
@@ -1115,4 +1128,369 @@ input[type="number"]::-webkit-outer-spin-button {
     margin: 0;
     padding: 0.25rem 0.8rem;
     font-size: 0.85rem;
+}
+
+/* the goal box while it's showing your picks' total, not a goal you typed */
+#goal.from-picks {
+    color: var(--ink-muted);
+}
+
+/* ---- page layout: Goal panel (with the tree) on the right on wide screens ---- */
+
+/* narrow: one column; the two column wrappers step aside and this sets the order */
+.page {
+    display: flex;
+    flex-direction: column;
+}
+
+.page-left, .page-right {
+    display: contents;
+}
+
+#errors { order: 1; }
+#form { order: 2; }
+#goal-panel { order: 3; }
+#result { order: 4; }
+#page-footer { order: 5; }
+
+/* (and tall enough: on a short window the Goal panel can't fit, so it stays one scrolling column;
+   the same query is in ui.js) */
+@media (min-width: 1200px) and (min-height: 700px) {
+    /* wider than Pico's usual page, so both columns have room */
+    header.container, main.container {
+        max-width: min(1800px, 96vw);
+    }
+
+    /* the page itself doesn't scroll: the header stays, the left column scrolls on its own,
+       and the Goal panel fills the rest of the screen and never moves */
+    body {
+        height: 100vh;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    header.container {
+        flex: none;
+        width: 100%;
+    }
+
+    .page {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        display: grid;
+        /* --split: the left column's share of the page (%), set by dragging the divider (ui.js) */
+        grid-template-columns: minmax(0, calc(var(--split, 44.4) * 1%)) 1.5rem minmax(0, 1fr);
+        padding-bottom: 1rem;
+    }
+
+    .page > .column-divider {
+        display: block; /* beats the "one column: hidden" rule further down */
+    }
+
+    /* a little padding (pulled back with the negative margin) so the panels' shadows
+       aren't cut off at the edge of the scrolling area */
+    .page-left {
+        display: block;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 0.5rem 0.75rem 1rem 0.5rem;
+        margin: -0.5rem -0.75rem 0 -0.5rem;
+    }
+
+    .page-right {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    /* the Goal panel fills its column, and the tree fills what the rest of the panel leaves */
+    #goal-panel {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
+    }
+
+    #picker {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* the tree needs the height more than the heading does (screen readers still get it) */
+    #picker > legend {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .tree-view {
+        flex: 1;
+        min-height: 240px;
+        height: auto;
+    }
+}
+
+/* ---- after the first scroll: a small logo in the top-left corner (ui.js adds .scrolled) ---- */
+
+.logo {
+    transition: width 0.25s ease;
+}
+
+body.scrolled header.container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+body.scrolled header h1 {
+    flex: none;
+    margin: 0;
+    line-height: 0;
+}
+
+body.scrolled .logo {
+    width: 6rem; /* the stacked logo, on phones */
+}
+
+body.scrolled .intro {
+    margin: 0;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+/* phones: no room next to the logo, so the intro goes */
+@media (max-width: 699px) {
+    body.scrolled .intro {
+        display: none;
+    }
+}
+
+@media (min-width: 700px) {
+    body.scrolled .logo {
+        width: 12rem; /* the one-row logo */
+    }
+}
+
+/* ---- the date box: your calendar drawing on a button over the browser's own icon (ui.js) ---- */
+
+.date-wrap {
+    position: relative;
+    display: block;
+    margin-top: calc(var(--pico-spacing) * 0.25);
+    margin-bottom: var(--pico-spacing);
+}
+
+.date-wrap input {
+    margin-bottom: 0;
+}
+
+/* Chrome's icon: hidden (Firefox's is covered by the button instead) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+}
+
+.date-button {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    right: 4px;
+    width: 2rem;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    background: var(--view);
+    color: var(--ink-muted);
+    --sketch-color: transparent;
+}
+
+.date-button:hover {
+    background: var(--accent-soft);
+    color: var(--outline);
+}
+
+.date-button .icon {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+/* the buy order's tree lines (ui.js): thin, grey, behind the names and pills */
+#milestones {
+    position: relative;
+}
+
+.milestone-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.milestone-lines path {
+    fill: none;
+    stroke: var(--ink-muted);
+    stroke-opacity: 0.5;
+    stroke-width: 1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ---- the divider between the columns (wide screens only) ---- */
+
+.column-divider {
+    display: none; /* one column: nothing to resize */
+    position: relative;
+    cursor: col-resize;
+    touch-action: none;
+    outline: none;
+}
+
+/* its hand-drawn line (ui.js), thicker and in the accent colour while you use it */
+.column-divider svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.column-divider path {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    transition: stroke 0.15s, stroke-width 0.15s;
+}
+
+.column-divider:hover path,
+.column-divider:focus-visible path,
+body.resizing .column-divider path {
+    stroke: var(--accent);
+    stroke-width: 3;
+}
+
+/* while dragging: no text selection, the resize cursor everywhere */
+body.resizing {
+    user-select: none;
+    cursor: col-resize;
+}
+
+/* the tree hint names the right way to zoom: plain scrolling in the split view, ctrl + scroll otherwise */
+.hint-split {
+    display: none;
+}
+
+@media (min-width: 1200px) and (min-height: 700px) {
+    .hint-split {
+        display: inline;
+    }
+
+    .hint-single {
+        display: none;
+    }
+}
+
+/* ---- usability bits ---- */
+
+/* "Quick picks:" in front of the preset buttons */
+.presets-label {
+    align-self: center;
+    padding: 0 0.3rem;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+}
+
+/* on a card you already own: "✓ owned" where the want box would be */
+.owned-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    color: var(--outline);
+}
+
+.owned-note .icon {
+    width: 0.9em;
+    height: 0.9em;
+}
+
+/* the tree hint, which opens to say what own / want / ≈ h mean */
+.tree-help {
+    margin: 0 0 0.4rem;
+    padding: 0;
+    border: none;
+    font-size: 0.85rem;
+}
+
+.tree-help > summary {
+    color: var(--ink-muted);
+    line-height: 1.4;
+}
+
+/* Pico's chevron floats right and rotates: here it's the select arrow after the text
+   (pointing down to open, up to close) */
+.tree-help > summary::after {
+    display: inline-block;
+    float: none;
+    width: 0.8em;
+    height: 0.8em;
+    margin-inline-start: 0.25rem;
+    vertical-align: middle;
+    transform: none !important;
+    background: currentColor;
+    -webkit-mask: url("assets/icons/select-arrow.svg") center / contain no-repeat;
+    mask: url("assets/icons/select-arrow.svg") center / contain no-repeat;
+}
+
+.tree-help[open] > summary {
+    margin-bottom: 0;
+}
+
+.tree-help[open] > summary::after {
+    -webkit-mask-image: url("assets/icons/select-arrow-up.svg");
+    mask-image: url("assets/icons/select-arrow-up.svg");
+}
+
+.tree-help-more {
+    color: var(--accent);
+    text-decoration: underline dotted;
+}
+
+.tree-legend {
+    margin: 0.3rem 0 0;
+    font-size: 0.8rem;
+}
+
+/* copy link and the light/dark toggle together on the right */
+#copy-link {
+    margin-left: auto;
+}
+
+/* touch screens: the zoom hint says "pinching" */
+.hint-touch {
+    display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .hint-touch {
+        display: inline;
+    }
+
+    .hint-split, .hint-single {
+        display: none !important;
+    }
 }
