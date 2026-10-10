@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Terra Calc</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="src/ui.js"></script>
+</head>
+<body>
+    <h1>Terra Calc <span class="face">🌿(⁎ˆ꒳ˆ⁎)🌱</span></h1>
+    <p>How many hours a week do you need to code in Terra to afford your upgrades?</p>
+
+    <!-- shown when the link had values that had to be fixed -->
+    <section id="errors" hidden>
+        <!-- TODO: goofy error drawing goes here -->
+        <div class="error-art" aria-hidden="true">「(°ヘ°)</div>
+        <h2>Something in that link was off</h2>
+        <p>I fixed what I could:</p>
+        <ul id="error-list"></ul>
+        <button type="button" id="errors-ok">ok</button>
+    </section>
+
+    <form id="form">
+        <fieldset>
+            <legend>Inventory</legend>
+            <label>Coins <input id="coins" type="number" min="0" step="any"></label>
+            <label>Dirt plots <input id="plots" type="number" min="10" max="45"></label>
+            <label>Apple seeds <input id="seeds" type="number" min="0"></label>
+            <label>Date (US Eastern) <input id="date" type="date"></label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Plan</legend>
+            <label>Multiplier <input id="m" type="number" min="0.8" max="1.5" step="0.1"></label>
+            <label>Hours/week (used when there's no goal) <input id="cap" type="number" min="10" max="45"></label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Goal</legend>
+            <label>Device <select id="device"></select></label>
+            <div id="presets" class="buttons"></div>
+            <p id="pick-note" class="note"></p>
+            <p id="pick-warning" class="bad"></p>
+
+            <fieldset id="picker">
+                <legend>Upgrades</legend>
+                <div class="scroll">
+                    <table id="tree"></table>
+                </div>
+            </fieldset>
+
+            <label>Or type a goal in coins <input id="goal" type="number" min="0" step="any"></label>
+            <button type="button" id="use-picks" hidden>Use my picks instead</button>
+        </fieldset>
+    </form>
+
+    <section id="result">
+        <p id="goal-total"></p>
+        <p id="summary"></p>
+        <p id="warning"></p>
+
+        <div id="milestones-box" hidden>
+            <h2>When you can afford each pick</h2>
+            <p class="note">Bought in this order. Press "first" to buy something sooner.</p>
+            <ol id="milestones"></ol>
+            <button type="button" id="reset-order" hidden>Reset order</button>
+        </div>
+
+        <div class="scroll">
+            <table id="route"></table>
+        </div>
+    </section>
+
+    <footer>
+        <p>Ship before the last day of the week: if a reviewer cuts your hours after the week ends, your crops dry out and you end up short on rent.</p>
+        <p>Next week's coins only arrive once this week's ship is approved and sold. This plan assumes that happens in time.</p>
+        <p>Prices as of <span id="prices-as-of"></span>, and they may differ in your country. Not made by the Terra team. Terra is a <a href="https://hackclub.com">Hack Club</a> event.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,97 @@
+body {
+    font-family: system-ui, sans-serif;
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+}
+
+.face {
+    white-space: nowrap;
+}
+
+#warning:empty, .note:empty, .bad:empty, #goal-total:empty {
+    display: none;
+}
+
+.note {
+    color: #555;
+}
+
+.bad {
+    color: #c00;
+}
+
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+/* the preset that matches your picks */
+button[aria-pressed="true"] {
+    font-weight: bold;
+}
+
+/* typing a goal by hand greys out the tree */
+#picker:disabled {
+    opacity: 0.5;
+}
+
+.stepper output {
+    display: inline-block;
+    min-width: 2ch;
+    text-align: center;
+}
+
+#errors {
+    border: 2px dashed #c00;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.error-art {
+    font-size: 3rem;
+}
+
+#warning {
+    color: #a15c00;
+}
+
+/* phones: the table scrolls sideways instead of squashing */
+.scroll {
+    overflow-x: auto;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 0.25rem 0.5rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+th:first-child, td:first-child {
+    text-align: left;
+}
+
+footer {
+    margin-top: 2rem;
+    font-size: 0.9em;
+    color: #555;
+}

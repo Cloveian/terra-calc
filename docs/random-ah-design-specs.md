@@ -51,12 +51,12 @@ Facts from the dev (10 Oct), not decisions: all seeds expire at the end of the w
 
 ## Input / userscript
 
-| Decision             | Default                                                                                                                                  |             |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| Getting inventory in | Form fields + URL hash (`#coins=4&plots=13&seeds=3`)                                                                                     | y           |
-| Bad hash values      | Clamp (plots 10-45, coins ≥ 0), ignore unknown ids, fall back to defaults                                                                | y           |
-| Live prices          | `data.js` is the default, live prices (from a userscript) merge on top. Too big for the URL, so later via `localStorage` / `postMessage` | y           |
-| Userscript           | Later week. Reads inventory read-only, adds a "Plan my route" button that opens the site with the hash. Ask in #terra-help first         | asked miggy |
+| Decision             | Default                                                                                                                                  |                                                                                 |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Getting inventory in | Form fields + URL hash (`#coins=4&plots=13&seeds=3`)                                                                                     | y                                                                               |
+| Bad hash values      | Clamp (plots 10-45, coins ≥ 0), ignore unknown ids, fall back to defaults                                                                | y                                                                               |
+| Live prices          | `data.js` is the default, live prices (from a userscript) merge on top. Too big for the URL, so later via `localStorage` / `postMessage` | y                                                                               |
+| Userscript           | Later week. Reads inventory read-only, adds a "Plan my route" button that opens the site with the hash. Ask in #terra-help first         | ~~asked miggy~~ oked by miggy, just be clear in the UI that it does `GET` stuff |
 
 ## Code / UI
 

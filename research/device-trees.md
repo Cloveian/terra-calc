@@ -74,15 +74,15 @@ Source: the game's `/device-upgrades` data (captured 9 Oct 2026, Prep 2). Prices
 
 Running total, each row adds to the one above it.
 
-| Milestone | Adds | Running total |
-| --- | --- | --- |
-| Framework 13 (DIY → Core 3 → i5 → Core 5 → FW13) | 3050 | 3050 |
-| + 2.8K Display | 900 | 3950 |
-| + Ryzen AI 7 350 | 2250 | 6200 |
-| + RAM ×3 (750 + 1300 + 2100) | 4150 | 10350 |
-| + SSD ×2 (1000 + 2000) | 3000 | 13350 |
-| + USB card + Fancy card ×4 (no stylus) | 500 | 13850 |
-| + Stylus | 500 | 14350 |
+| Milestone                                        | Adds | Running total |
+| ------------------------------------------------ | ---- | ------------- |
+| Framework 13 (DIY → Core 3 → i5 → Core 5 → FW13) | 3050 | 3050          |
+| + 2.8K Display                                   | 900  | 3950          |
+| + Ryzen AI 7 350                                 | 2250 | 6200          |
+| + RAM ×3 (750 + 1300 + 2100)                     | 4150 | 10350         |
+| + SSD ×2 (1000 + 2000)                           | 3000 | 13350         |
+| + USB card + Fancy card ×4 (no stylus)           | 500  | 13850         |
+| + Stylus                                         | 500  | 14350         |
 
 Everything once (no repeats): 8650.
 
@@ -90,9 +90,9 @@ There's no true "everything maxed" anymore: USB cards have no limit, and each on
 
 ### Max builds
 
-| Build | What's in it | Coins |
-| --- | --- | --- |
-| **Max 12** | DIY + Core 3 → i5 → Core 5, RAM ×3, SSD ×2, USB + Fancy ×4, Stylus | 10700 |
+| Build      | What's in it                                                                     | Coins |
+| ---------- | -------------------------------------------------------------------------------- | ----- |
+| **Max 12** | DIY + Core 3 → i5 → Core 5, RAM ×3, SSD ×2, USB + Fancy ×4, Stylus               | 10700 |
 | **Max 13** | Framework 13 + 2.8K + Ryzen AI 7 350, RAM ×3, SSD ×2, USB + Fancy ×4 (no stylus) | 13850 |
 
 - Max 12 = everything except Framework 13, 2.8K Display, Ryzen AI 7 350
