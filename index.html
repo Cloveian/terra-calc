@@ -83,8 +83,12 @@
                 </div>
 
                 <p class="note">Week by week. Coins in this table are before any upgrades are bought.</p>
-                <div class="overflow-auto view-box">
-                    <table id="route"></table>
+                <!-- the outline goes on the outer box, the inner one scrolls (so the outline stays put
+                     and can't make the box scroll) -->
+                <div class="view-box">
+                    <div class="overflow-auto">
+                        <table id="route"></table>
+                    </div>
                 </div>
             </article>
 

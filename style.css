@@ -894,6 +894,12 @@ input:not([type=checkbox]):focus, select:focus {
     background: var(--view);
 }
 
+/* Pico gives secondary buttons white text (invisible on a light theme), with a selector that
+   counts as two classes: this one beats it */
+.tree-zoom button.secondary {
+    color: var(--ink);
+}
+
 /* ---- more hand-drawn things (ui.js "clipped" boxes keep their own colours) ---- */
 
 /* the tree window: cut to a wobbly shape, its line drawn by the frame on top (same shape) */
