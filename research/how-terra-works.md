@@ -5,6 +5,7 @@ Everything about the Terra game that matters for the calculator, in one place: h
 **Sources** (each fact is tagged):
 - **[code]**: read from the game's own JavaScript (client bundle, 9 Oct 2026) (analyzed with claude)
 - **[server]**: a real reply from the game's API, captured 9 Oct 2026 (Prep 2) (analyzed with Claude)
+- **[dev]**: answered by a Terra dev (miggy) on Slack, 10 Oct 2026. Beats every other source, including the FAQ.
 - **[faq]**: the game's own FAQ / help text
 - **[notes]**: from my research notes or Slack, not confirmed by code
 - **[unknown]**: decided on the server, not visible anywhere yet
@@ -17,7 +18,7 @@ Prices are numbers the server sends. They can change at any time, and the Cidery
 
 1. You code. Coding time (tracked by Hackatime) becomes **water**.
 2. **1 water + 1 seed + 1 dirt plot = 1 crop.**
-3. In the main weeks, the first 10 crops each week are **rent** for Ratticus. Miss too much rent and you're out.
+3. In the main weeks, the first 10 crops each week are **rent** for Ratticus (they still pay 20 coins each). Miss too much rent and you're out.
 4. Every other crop is **sold** to the market for **coins**.
 5. Coins buy more **seeds and plots** (so you can grow more next time) and **upgrades** for your laptop/tablet in the Cidery.
 6. Survive all 12 main weeks and you get the device, plus whatever upgrades you bought.
@@ -54,6 +55,7 @@ Weeks run **Monday 00:00 → Sunday 23:59:59, US Eastern time** (`America/New_Yo
 - Up to **30%** of time can be art/assets. **[faq]**
 - You **devlog** your time on a project, then **ship** it. A reviewer approves it, and can **deflate** (cut) your hours. **[code]**
 - **Crops only grow once a ship is approved** for that week ("Approved ships grow your crops"). **[code]**
+- In regular weeks, crops grow once **10 h** are approved for the week ("Crops grow at 10h this week"). **[dev]** You can ship early and **reship** later to add more hours; each ship only counts its own new devlogs. **[code]**
 - Water from approved time is `floor((approved_seconds + 5) / 3600)`, so partial hours are dropped. **[code]** (The live estimate shows fractions, e.g. 13799 s = 3.83 water. **[server]**)
 - Time only counts toward **that week's** project. Once the week is over, new Hackatime time goes to a new project. **[code]**
 - Water **resets every week**. **[notes]**
@@ -68,13 +70,14 @@ Weeks run **Monday 00:00 → Sunday 23:59:59, US Eastern time** (`America/New_Yo
 ### Dirt plots
 
 - You start with **10 free plots**. **[notes]**
-- Each extra plot costs **`n − 9` coins**, where `n` = plots you already own (11th costs 1, 12th costs 2, … 45th costs 35). **[notes]** Price is **[server]**-side, not verified.
+- Plot price is **`min(1 + n, 10)`**, where `n` = plots you've bought so far. **[dev]** So the 11th plot costs 1, the 12th costs 2, … the 19th costs 9, and **every plot from the 20th on costs 10**. (My old notes had the price keep climbing to 35. That was wrong.) `n` counts plots *bought*, not owned: the 11th plot really costs 1 and the 12th costs 2 in game. **[notes]**
 - **Max 45 plots.** The farm's build area is a 7×7 square minus its 4 corners = 45 tiles. **[code]** (Matches the hand-counted map in [island-layout.md](island-layout.md).)
 - Plots stay between weeks.
+- All 35 extra plots (11 → 45) cost **305** in total.
 
-Cost to go from `n` plots to `w` plots:
+Price of the next plot when you own `p` plots (`p ≥ 10`) is `min(p − 9, 10)`, so the cost to go from `n` plots to `w` plots is:
 
-$$\text{plotCost}(w, n) = \max\left(0,\ \frac{(w-n)(w+n-19)}{2}\right)$$
+$$\text{plotCost}(w, n) = \sum_{p=n}^{w-1} \min(p - 9,\ 10)$$
 
 ### Seeds
 
@@ -83,7 +86,8 @@ $$\text{plotCost}(w, n) = \max\left(0,\ \frac{(w-n)(w+n-19)}{2}\right)$$
 | Carrot | Ratticus, free | 0 | 10 per week **[notes]**. In main weeks they're the rent crops. |
 | Apple | Heidi's shop | 5 **[notes]** | Under the shop's "Seeds" tab (`bonus_seeds`) **[code]** |
 
-- Items can be tied to a week (`weekNumber`, `usableUntil`), and ones outside the usable weeks are hidden. **[code]** Whether bought apple seeds expire is **[unknown]**. The calculator assumes leftover seeds carry over.
+- Items can be tied to a week (`weekNumber`, `usableUntil`), and ones outside the usable weeks are hidden. **[code]**
+- **Apple seeds are not limited stock, but they go away at the end of the week.** **[dev]** So only buy what you'll plant that week; leftovers are wasted.
 
 ### Crops
 
@@ -95,7 +99,8 @@ $$\text{plotCost}(w, n) = \max\left(0,\ \frac{(w-n)(w+n-19)}{2}\right)$$
 
 ## 5. Rent and debt (how you get knocked out)
 
-- **Main weeks:** the first **10 crops** you plant each week are rent. They earn no coins. **[faq]**
+- **Main weeks:** the first **10 crops** you plant each week are rent.
+- **Rent crops pay 20 coins × multiplier each** when you turn them in (so up to 200 × m a week). **[dev]** The FAQ says they earn nothing; the dev confirmed the FAQ is wrong. The "Rent paid" receipt shows these coins. **[code]**
 - **Prep weeks:** no rent, every crop can be sold. **[faq]**
 - Crops are held back for their week's rent ("N carrots from Week X are saved for its rent"). Only leftovers can be sold once that rent is paid. **[code]**
 
@@ -119,12 +124,14 @@ $$\text{plotCost}(w, n) = \max\left(0,\ \frac{(w-n)(w+n-19)}{2}\right)$$
 **[notes]** Prices come from the server.
 
 - Each week your sell prices get a **multiplier, 0.8–1.5**, based on vote score, project quality and "shipped"-ness. **[notes]** (Olive on Slack)
-- The market really does show a per-crop price that differs from base: "quality bonus from your project review (normally X)" or "adjusted by your project review (normally X)". **[code]** The range and any rounding are **[unknown]**.
+- The market really does show a per-crop price that differs from base: "quality bonus from your project review (normally X)" or "adjusted by your project review (normally X)". **[code]** Rounding is **[unknown]**.
+- **A crop uses the multiplier of the week it was planted**, not the week you sell it. **[dev]**
+- The rent receipt also has a slot for a "going viral" bonus that stacks on top of the review multiplier. **[code]** It's **not implemented yet**. **[dev]**
 
 Coins from a week:
 
 - **Prep:** `m × (25 × min(w, 10) + 30 × k)`
-- **Main:** `m × 30 × k` (the 10 carrots are rent)
+- **Main:** `m × (20 × 10 + 30 × k)` (the 10 rent carrots pay 20 each)
 
 where `k = max(0, w − 10)` = apples grown.
 
@@ -136,12 +143,13 @@ Tabs: **Seeds** (`bonus_seeds`), **Water and plots** (`water`, `dirt_plots`), **
 
 | Item | Price |
 | --- | --- |
-| Apple seed | 5 **[notes]** |
-| Dirt plot | `n − 9` **[notes]** |
-| Water | 50, and every water you buy in the same week costs more **[faq] [notes]** (curve **[unknown]**) |
+| Apple seed | 5 **[notes]**, not limited stock, expires at the end of the week **[dev]** |
+| Dirt plot | `min(1 + n, 10)`, `n` = plots bought so far **[dev]** |
+| Water | starts at 50, **+5 per water bought that week, up to 75** (50, 55, 60, 65, 70, 75, 75, …) **[dev]** |
 
-- Stock **refreshes every night at 00:00 Eastern**, and a tab can be empty ("nothing in this basket today — check back tomorrow!"). **[code]** If apple seeds have limited daily stock, the "buy as many as you need" assumption breaks. That's **[unknown]**.
-- Buying water lets you skip coding hours. "If you plan it out, you can skip some hours or even a full week!" **[faq]** Not modelled yet (price curve unknown).
+- Stock **refreshes every night at 00:00 Eastern**, and a tab can be empty ("nothing in this basket today — check back tomorrow!"). **[code]** Apple seeds aren't limited. **[dev]**
+- Buying water lets you skip coding hours. "If you plan it out, you can skip some hours or even a full week!" **[faq]**
+- Buying water **never pays for itself**: one water grows one crop worth at most 30 × m, and water costs 50+. It's only worth it to cover rent hours you can't code. A full skipped week (10 water) costs **675**.
 
 ---
 
@@ -288,10 +296,12 @@ Inputs: coins `B`, plots `n`, apple seeds on hand `a`, hours `w`, multiplier `m`
 
 $$k = \max(0,\ w - 10)$$
 $$C = 5\max(0,\ k - a) + \text{plotCost}(w, n)$$
-$$S = m\left(25 \cdot \min(w, 10) \cdot [\text{prep}] + 30k\right)$$
-$$B \leftarrow B - C + S \qquad n \leftarrow \max(n, w) \qquad a \leftarrow \max(0,\ a - k)$$
+$$S = \begin{cases} m\left(25 \cdot \min(w, 10) + 30k\right) & \text{prep week} \\ m\left(20 \cdot 10 + 30k\right) & \text{main week} \end{cases}$$
+$$B \leftarrow B - C + S \qquad n \leftarrow \max(n, w) \qquad a \leftarrow 0$$
 
-Coins are spent at the start of the week (seeds + plots) and come back when crops sell. So the coins you have *now* cap how many hours you can use this week: past `w_max`, extra hours have no seed or plot to go into. The closed form for `w_max` is in [math-stuff.md](math-stuff.md) and has been checked against brute force (B < 1500, every n, a < 40: no mismatches).
+(`a` resets to 0 because apple seeds expire at the end of the week.)
+
+Coins are spent during the week (seeds + plots) and only come back once the ship is approved and crops sell. So the coins you have *now* cap how many hours you can use this week: past `w_max`, extra hours have no seed or plot to go into. `w_max` is the biggest `w ≤ 45` with `C ≤ B`. With the capped plot price it's easiest to find with a loop over `w = 0…45` (46 checks, instant). The closed-form `w_max` in [math-stuff.md](math-stuff.md) was built for the old, uncapped plot price and no longer applies.
 
 ### Whole run
 
@@ -303,28 +313,29 @@ Starting from Prep 2 (4 coins, 13 plots, 3 apple seeds), same multiplier every w
 
 | Goal | Coins | m = 0.8 | m = 1.0 | m = 1.2 | m = 1.5 |
 | --- | --- | --- | --- | --- | --- |
-| Framework 13 path (DIY → … → FW13) | 3050 | 21 h | 18 h | 16 h | 15 h |
-| Galaxy, everything | 4400 | 27 h | 22 h | 20 h | 17 h |
-| iPad, everything | 7350 | 41 h | 32 h | 27 h | 23 h |
-| Max 12 (all FW12 nodes, USB ×1, Fancy ×4) | 10700 | no | 44 h | 36 h | 30 h |
-| Max 13 (Max 12 − stylus + FW13, 2.8K, Ryzen) | 13850 | no | no | no (needs m just over 1.2) | 36 h |
+| Framework 13 path (DIY → … → FW13) | 3050 | 13 h | 11 h | 10 h | 10 h |
+| Galaxy, everything | 4400 | 19 h | 15 h | 13 h | 11 h |
+| iPad, everything | 7350 | 31 h | 24 h | 20 h | 16 h |
+| Max 12 (all FW12 nodes, USB ×1, Fancy ×4) | 10700 | no | 35 h | 28 h | 23 h |
+| Max 13, no extra USB (Fancy ×4 only) | 13750 | no | 45 h | 36 h | 29 h |
+| Max 13 (Max 12 − stylus + FW13, 2.8K, Ryzen) | 13850 | no | no (5 coins short at 45 h) | 36 h | 29 h |
 
-The most coins possible at 45 h every week, m = 1, is **10995**. Doing only the 10 h minimum in main weeks ends with about **594** coins.
+The most coins possible at 45 h every week, m = 1, is **13845**. Doing only the 10 h minimum in main weeks ends with about **2904** coins (rent pay alone is 200 × 12 = 2400).
 
 ### Plots are the only thing that compounds
 
-- Coins → more plots → more hours you can use → more coins. Once you have 45 plots (Week 1 if you go hard), each extra 45 h week is a flat `1050 × m` coins.
-- So a high multiplier early (Prep 2/3) is worth a bit more than one late, and after plots are maxed every week's multiplier counts the same.
+- Coins → more plots → more hours you can use → more coins. Plots are cheap now (305 for all of them), so you hit 45 plots in **Week 1** at full hours.
+- After that, every 45 h main week is a flat `(200 + 1050) × m = 1250 × m` coins.
+- A crop gets the multiplier of the week it's planted in, so a high multiplier matters in the weeks you plant the most: every main week at 45 h counts the same.
 
 ---
 
 ## 11. Still unknown
 
-| Thing                                       | Why it matters                              | How to find out                                                    |
-| ------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------ |
-| Shop prices (apple seed, plot, water curve) | All the cost math                           | Save Heidi's `shop.requestStock` message (DevTools → Network → WS) |
-| Shop stock limits                           | Can you actually buy 35 apple seeds a week? | Same, or just look in the shop each day                            |
-| Multiplier range + rounding                 | Coin totals at m ≠ 1                        | Sell crops and compare `unitPriceCoins` to base                    |
-| Whether bought seeds expire                 | Carrying `a` between weeks                  | Check a seed's "usable until" in your inventory                    |
-| How long grace water lasts                  | Planning around the wiggle day              | Watch the purse after a week ends                                  |
-| Prices outside your country                 | Calculator defaults for other people        | Make tree costs editable                                           |
+Answered by the dev on 10 Oct: shop stock (not limited), seed expiry (end of week), plot price, water curve, rent pay, which week's multiplier applies, the growth goal, and the viral bonus (not implemented).
+
+| Thing | Why it matters | How to find out |
+| --- | --- | --- |
+| Multiplier rounding | Coin totals at m ≠ 1 | Sell crops and compare `unitPriceCoins` to base |
+| How long grace water lasts | Planning around the wiggle day | Watch the purse after a week ends |
+| Prices outside your country | Calculator defaults for other people | Make tree costs editable |

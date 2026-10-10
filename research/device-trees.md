@@ -101,20 +101,20 @@ There's no true "everything maxed" anymore: USB cards have no limit, and each on
 - RAM, SSD, and expansion cards carry over to the 13
 - Skipping the extra USB card (Fancy ×4 only, i.e. just your 4 slots upgraded) takes 100 off: **10600** / **13750**
 
-**Hours/week needed** (same multiplier every week, from Prep 2: 4 coins, 13 plots, 3 apple seeds)
+**Hours/week needed** (same multiplier every week, from Prep 2: 4 coins, 13 plots, 3 apple seeds). Uses the rules confirmed by the dev on 10 Oct: rent crops pay 20 × m, plots cost `min(1 + n, 10)`, apple seeds expire weekly. See [how-terra-works.md](how-terra-works.md#10-the-calculators-model).
 
 | $m$ | Max 12 | Max 13 | Max 13, no extra USB | FW13 path (3050) |
 | --- | --- | --- | --- | --- |
-| 0.8 | not possible | not possible | not possible | 21 |
-| 0.9 | not possible | not possible | not possible | 19 |
-| 1.0 | 44 | not possible | not possible | 18 |
-| 1.1 | 40 | not possible | not possible | 17 |
-| 1.2 | 36 | not possible | 45 | 16 |
-| 1.3 | 34 | 42 | 41 | 16 |
-| 1.4 | 31 | 39 | 38 | 15 |
-| 1.5 | 30 | 36 | 36 | 15 |
+| 0.8 | not possible | not possible | not possible | 13 |
+| 0.9 | 40 | not possible | not possible | 12 |
+| 1.0 | 35 | not possible (5 short) | 45 | 11 |
+| 1.1 | 31 | 40 | 40 | 10 |
+| 1.2 | 28 | 36 | 36 | 10 |
+| 1.3 | 26 | 33 | 33 | 10 |
+| 1.4 | 24 | 31 | 31 | 10 |
+| 1.5 | 23 | 29 | 29 | 10 |
 
-Best possible at 45 h every week, $m = 1$: 10995 coins. Max 13 needs $m$ just over 1.2 at 45 h/week (or just 1.2 without the extra USB card).
+Best possible at 45 h every week, $m = 1$: **13845** coins, so Max 13 misses by 5 coins at $m = 1$ but works if you skip the extra USB card. Just the 10 h minimum every main week still ends around 2900 coins.
 
 ## Samsung Tablet
 
@@ -171,11 +171,11 @@ Everything in the tree, same multiplier every week, from Prep 2 (4 coins, 13 plo
 
 | $m$ | Galaxy (4400) | iPad (7350) |
 | --- | --- | --- |
-| 0.8 | 27 | 41 |
-| 0.9 | 24 | 36 |
-| 1.0 | 22 | 32 |
-| 1.1 | 21 | 29 |
-| 1.2 | 20 | 27 |
-| 1.3 | 19 | 26 |
-| 1.4 | 18 | 24 |
-| 1.5 | 17 | 23 |
+| 0.8 | 19 | 31 |
+| 0.9 | 17 | 27 |
+| 1.0 | 15 | 24 |
+| 1.1 | 14 | 22 |
+| 1.2 | 13 | 20 |
+| 1.3 | 12 | 18 |
+| 1.4 | 11 | 17 |
+| 1.5 | 11 | 16 |

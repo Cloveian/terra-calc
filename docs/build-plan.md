@@ -2,13 +2,13 @@
 
 ## What it does
 
-A static site that takes your current Terra stats, what your goal(device) is, and how much time you are willing to put in,
+A static site that takes your current Terra stats, what your goal(device) is, and how much time you are willing to put in, and outputs what *you* need to do to accomplish that
 
 ## Stack
 
 - Plain HTML + CSS + JavaScript (ES modules), **no build step**
 - Tests with Node's built-in test runner (`node --test`, Node 20+), no dependencies
-- Hosted on GitHub Pages straight from the `main` branch
+- Hosted on GitHub Pages straight from the `master` branch
 
 No build step means: edit a file, refresh the browser, done. GitHub Pages serves the repo as-is.
 
@@ -125,12 +125,12 @@ isPrep(t) → boolean
 
 ### `farm.js`
 
-From `math-stuff.md`:
+From [how-terra-works.md](../research/how-terra-works.md#10-the-calculators-model) (rules confirmed by the dev on 10 Oct):
 
 ```js
-plotCost(w, n)          // max(0, (w-n)(w+n-19)/2), coins to go from n plots to w
+plotCost(w, n)          // sum of min(p-9, 10) for p = n … w-1, coins to go from n plots to w
 weekCost(w, n, a)       // 5*max(0, k-a) + plotCost(w, n), k = max(0, w-10)
-wMax(B, n, a)           // min(45, w_coins), the two-case formula with seeds on hand
+wMax(B, n, a)           // biggest w ≤ 45 with weekCost(w, n, a) ≤ B (loop w = 0…45)
 simulateWeek(state, w, m, prep) → newState
 ```
 
@@ -139,15 +139,15 @@ simulateWeek(state, w, m, prep) → newState
 ```
 k = max(0, w - 10)
 C = weekCost(w, n, a)
-S = m * (25 * min(w, 10) * (prep ? 1 : 0) + 30k)
+S = m * ((prep ? 25 * min(w, 10) : 200) + 30k)   // rent carrots pay 20 each
 coins ← coins - C + S
 plots ← max(plots, w)
-seeds ← max(0, seeds - k)
+seeds ← 0                // apple seeds expire at the end of the week
 ```
 
 Return `null` (or `{ out: true }`) if it's a main week and `w < 10`.
 
-Tip: write `wMax` as the closed-form formula **and** keep a tiny brute-force loop in the tests to check it against, like the scratch-pad check.
+The old closed-form `wMax` from `math-stuff.md` assumed plots kept getting pricier. With the price capped at 10 a loop is simpler and just as fast (46 checks).
 
 ### `route.js`
 
@@ -188,9 +188,11 @@ If these pass, the code matches the math.
 | `weekCost` | w=13, n=10, a=0 | 21 |
 | `weekCost` | w=13, n=12, a=0 | 18 |
 | `weekCost` | w=13, n=15, a=0 | 15 |
+| `plotCost` | w=21, n=19 | 20 (price capped at 10) |
+| `plotCost` | w=45, n=10 | 305 |
 | `wMax` | B=10, n=10, a=0 | 11 |
 | `wMax` | B=4, n=13, a=3 | 13 (current Prep 2 state) |
-| `wMax` | B=344, n=13, a=0 | 31 |
+| `wMax` | B=344, n=13, a=0 | 36 |
 | `wMax` | B=0, n=10, a=2 | 10 (seeds can't buy plots) |
 | `weekIndex` | 2026-10-09 | 1 (Prep 2) |
 | `weekIndex` | 2026-10-19 | 3 (Week 1) |
@@ -207,11 +209,11 @@ If these pass, the code matches the math.
 | `goalCost` | Galaxy, everything | 4400 |
 | `withPrereqs` | `{ ryzen: 1 }` | adds fw13, core5, i5, core3, diy |
 | `withPrereqs` | iPad `{ keyboard: 1 }` | adds folio, air11 |
-| `hoursNeeded` | Prep 2 state, goal 3050, m=1 | cap 18 |
-| `hoursNeeded` | Prep 2 state, goal 10700, m=1 | cap 44 |
-| `hoursNeeded` | Prep 2 state, goal 13850, m=1 | null (impossible) |
-| `hoursNeeded` | Prep 2 state, goal 13850, m=1.5 | cap 36 |
-| `simulateRoute` | Prep 3, B=344, n=13, cap 45, m=1 | ends at 10995 |
+| `hoursNeeded` | Prep 2 state, goal 3050, m=1 | cap 11 |
+| `hoursNeeded` | Prep 2 state, goal 10700, m=1 | cap 35 |
+| `hoursNeeded` | Prep 2 state, goal 13850, m=1 | null (5 coins short at 45 h) |
+| `hoursNeeded` | Prep 2 state, goal 13850, m=1.5 | cap 29 |
+| `simulateRoute` | Prep 3, B=344, n=13, cap 45, m=1 | ends at 13845 |
 
 "Prep 2 state" = `{ coins: 4, plots: 13, seeds: 3 }` at `t = 1`.
 
@@ -261,4 +263,7 @@ Steps 1-6 is a shippable first version.
 
 ## Unknowns to keep as settings
 
-- Water price escalation (only matters for a future "skip hours" feature)
+- Multiplier rounding (keep decimals until it's known)
+- Prices in other countries (make tree costs editable)
+
+Known but not modelled yet: water costs 50, +5 per water bought that week, up to 75 (for a future "skip hours" feature).

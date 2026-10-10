@@ -1,18 +1,21 @@
 # ~~Meth~~ Math n' Stuff
 
+> [!note] Updated 10 Oct 2026
+> Rewritten with the rules a Terra dev confirmed: plots cost `min(1 + n, 10)`, rent crops pay **20 × m** each, apple seeds expire at the end of the week, and a crop uses the multiplier of the week it was planted. Sources and details are in [how-terra-works.md](how-terra-works.md).
+
 ## Info
 
 ### Dirt plots
-You start with 10 free plots. Each plot after that costs 1 coin more than the last.
+You start with 10 free plots. Each plot after that costs 1 coin more than the last, **until it hits 10**.
 
-| Plot # | 1-10 | 11 | 12 | 13 | ... | 45 |
-| --- | --- | --- | --- | --- | --- | --- |
-| Cost | free | 1 | 2 | 3 | ... | 35 |
+| Plot # | 1-10 | 11 | 12 | 13 | ... | 19 | 20-45 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Cost | free | 1 | 2 | 3 | ... | 9 | 10 each |
 
-If you own *n* plots, the next one costs *n* - 9 coins. Max is 45 (build-able tiles on the island).
+If you own *n* plots, the next one costs $\min(n - 9,\ 10)$ coins. Max is 45 (build-able tiles on the island). All 35 extra plots cost **305** in total.
 
 ### Sell multiplier
-Sell prices get multiplied by 0.8-1.5 each week (vote score, project quality, "shipped"ness).
+Sell prices get multiplied by 0.8-1.5 each week (vote score, project quality, "shipped"ness). A crop uses the multiplier of the week it was **planted**, not the week you sell it.
 
 ## Ways to Get Coins
 
@@ -20,10 +23,12 @@ Sell prices get multiplied by 0.8-1.5 each week (vote score, project quality, "s
 
 | Item | Buy | Sell | Max/week |
 | --- | --- | --- | --- |
-| Carrot | N/A | 25 | 10 |
+| Carrot | N/A | 25 (prep), 20 (rent) | 10 |
 | Apple | 5 | 30 | N/A |
 
 ### Referrals
+
+Counts people you referred who **complete a week**.
 
 | Referrals | Coins |
 | --------- | ----- |
@@ -37,16 +42,17 @@ Sell prices get multiplied by 0.8-1.5 each week (vote score, project quality, "s
 ## Difrent 'methods' getting coins
 
 ### Givens
-- During 'real' weeks 10 plots and 10 carrots are deticated to rent.
+- During 'real' weeks 10 plots and 10 carrots are deticated to rent (they still pay 20 each).
 - To plant something you need a dirt plot 
 - Every crop needs 1 water (1 hour coded)
 - 10 carrots can be sold during prep weeks
+- Apple seeds go away at the end of the week, so only buy what you'll plant
 
 ### Apples
 
 **Cost**
 - Seed: 5 coins
-- Plot: $n - 9$ coins (only once)
+- Plot: $\min(n - 9,\ 10)$ coins (only once)
 - Water: 1 hour
 
 **What you get**
@@ -61,7 +67,7 @@ Sell prices get multiplied by 0.8-1.5 each week (vote score, project quality, "s
 
 **What you get**
 - Prep weeks: 25 \* (multiplier) coins
-- Real weeks: 0 coins
+- Real weeks: 20 \* (multiplier) coins (paid when you turn in rent)
 
 **Limit**
 - 10 per week
@@ -78,20 +84,20 @@ Sell prices get multiplied by 0.8-1.5 each week (vote score, project quality, "s
 
 **Prep week**
 
-| Hour | Carrots | Apples | Cost                                                | Profit         |
-| ---- | ------- | ------ | --------------------------------------------------- | -------------- |
-| 0-10 | $w$     | 0      | 0                                                   | $25w\cdot m$   |
-| 11+  | 10      | $k$    | $C=5k+\max\left(0,\ \frac{(w-n)(w+n-19)}{2}\right)$ | $m(30k+250)-C$ |
+| Hour | Carrots | Apples | Cost                         | Profit         |
+| ---- | ------- | ------ | ---------------------------- | -------------- |
+| 0-10 | $w$     | 0      | 0                            | $25w\cdot m$   |
+| 11+  | 10      | $k$    | $C=5k+\text{plotCost}(w, n)$ | $m(30k+250)-C$ |
 
 
 
 *Real Week*
 
-| Hour | Carrots | Apples | Cost                                                | Profit   |
-| ---- | ------- | ------ | --------------------------------------------------- | -------- |
-| 0-9  | DEATH   | DEATH  | DEATH                                               | DEATH    |
-| 10   | 10      | 0      | 0                                                   | 0        |
-| 11+  | 10      | $k$    | $C=5k+\max\left(0,\ \frac{(w-n)(w+n-19)}{2}\right)$ | $30km-C$ |
+| Hour | Carrots | Apples | Cost                         | Profit         |
+| ---- | ------- | ------ | ---------------------------- | -------------- |
+| 0-9  | DEATH   | DEATH  | DEATH                        | DEATH          |
+| 10   | 10      | 0      | 0                            | $200m$         |
+| 11+  | 10      | $k$    | $C=5k+\text{plotCost}(w, n)$ | $m(30k+200)-C$ |
 
 
 $w$=$\lfloor \text{week's hours} \rfloor$
@@ -99,13 +105,18 @@ $k$=hours over 10, aka $(w-10)$
 $n$= Total dirt plots owned
 $m$=project multiplier
 
+(DEATH = out after too much rent debt, see [how-terra-works.md](how-terra-works.md#5-rent-and-debt-how-you-get-knocked-out). Being a bit short isn't instant death, but don't plan on it.)
+
 
 > [!math]- Dirt Plot Cost ~~Meth~~ math scratch-pad
-> $$DirtPlotCost = \sum_{i=n}^{w-1} (i - 9)$$
-> $$\sum_{i=n}^{w-1}(i-9) = \sum_{i=10}^{w-1}(i-9) - \sum_{i=10}^{n-1}(i-9)$$
-> $$\sum_{i=10}^{w-1}(i-9) = 1 + 2 + \cdots + (w-10) = \frac{(w-10)(w-9)}{2}$$
-> $$DirtPlotCost = \frac{(w-10)(w-9)}{2} - \frac{(n-10)(n-9)}{2} = \frac{(w-n)(w+n-19)}{2}$$
-> $$DirtPlotCost=\max\left(0,\ \frac{(w-n)(w+n-19)}{2}\right)$$
+> $P(w)$ = coins to go from 10 plots to $w$ plots:
+> $$P(w) = \sum_{i=10}^{w-1} \min(i - 9,\ 10)$$
+> Up to 19 plots the price is still $1, 2, \ldots, 9$:
+> $$P(w) = 1 + 2 + \cdots + (w-10) = \frac{(w-10)(w-9)}{2} \qquad (w \le 19)$$
+> That's 45 at $w = 19$. Every plot after that is 10:
+> $$P(w) = 45 + 10(w - 19) \qquad (w > 19)$$
+> Check: $P(45) = 45 + 260 = 305$.
+> $$\text{plotCost}(w, n) = \max\left(0,\ P(w) - P(n)\right)$$
 
 
 ### Most useful hours in a week
@@ -121,22 +132,18 @@ Hours aren't an input, they're what the route decides. But each week there's a c
 1. Plots: $w \le 45$
 2. Coins: $C \le B$, so $w \le w_{coins}$
 
-$$w_{coins} = \begin{cases} 10 + \left\lfloor \frac{B}{5} \right\rfloor & \text{if } 10 + \left\lfloor \frac{B}{5} \right\rfloor \le n \text{ (enough plots already)} \\[6pt] \left\lfloor \frac{9 + \sqrt{4n^2 - 76n + 481 + 8B}}{2} \right\rfloor & \text{otherwise (buying plots)} \end{cases}$$
+$$w_{coins} = \text{the biggest } w \text{ with } 5\max(0,\ w - 10) + \text{plotCost}(w, n) \le B$$
 
 $$w_{max} = \min\left(45,\ w_{coins}\right)$$
+
+The cost only goes up as $w$ goes up, so just try $w = 0, 1, \ldots, 45$ and keep the last one you can afford. That's 46 checks, instant.
 
 The route picks a $w$ for each week:
 - Real weeks: $10 \le w \le w_{max}$ (under 10 = out)
 - Prep weeks: $0 \le w \le w_{max}$
 
-> [!math]- Coin limit ~~Meth~~ math scratch-pad
-> No new plots ($w \le n$), seeds cost coins:
-> $$5(w-10) \le B \implies w \le 10 + \frac{B}{5}$$
-> Buying plots ($w > n$):
-> $$5(w-10) + \frac{(w-n)(w+n-19)}{2} \le B$$
-> $$10w - 100 + w^2 - 19w - n^2 + 19n \le 2B$$
-> $$w^2 - 9w - (n^2 - 19n + 100 + 2B) \le 0$$
-> $$w \le \frac{9 + \sqrt{81 + 4(n^2 - 19n + 100 + 2B)}}{2} = \frac{9 + \sqrt{4n^2 - 76n + 481 + 8B}}{2}$$
+> [!math]- Why not a formula anymore
+> The old closed form solved $5(w-10) + \frac{(w-n)(w+n-19)}{2} \le B$ as a quadratic. With the price capped at 10, plot cost is quadratic up to 19 plots and a straight line after, so it'd need two cases (and two more for owned seeds). A loop over 46 values is simpler and can't be wrong.
 
 | $B$ | $n$ | $w_{coins}$ | Check: $C(w)$ |
 | --- | --- | ----------- | ------------- |
@@ -144,6 +151,7 @@ The route picks a $w$ for each week:
 | 21  | 10  | 13          | 21 ≤ 21       |
 | 18  | 12  | 13          | 18 ≤ 18       |
 | 15  | 15  | 13          | 15 ≤ 15       |
+| 344 | 13  | 36          | 339 ≤ 344     |
 
 **End of week**
 - Balance $= B + Profit$ (Profit already has $C$ taken out)
@@ -157,7 +165,7 @@ Plug in what you have right now, and the date picks which week you're in.
 **Inputs**
 - $B$ = coins (Balance)
 - $n$ = dirt plots owned
-- $a$ = apple seeds owned (not planted yet)
+- $a$ = apple seeds owned (not planted yet, only matters this week)
 - $d$ = today's date/time (US Eastern)
 - $m$ = multiplier (guess)
 - cap = most hours you're willing to do per week
@@ -175,31 +183,17 @@ $$t = \left\lfloor \frac{d - \text{2026-09-28}}{7 \text{ days}} \right\rfloor$$
 - Prep week if $t \le 2$
 - Weeks left (counting this one): $15 - t$
 - $t < 0$: Terra hasn't started, $t > 14$: it's over
-- Wiggle day: on a Monday you can still harvest last week's crops, but new hours are for week $t$
+- Wiggle day: after the week ends, leftover water can still go on last week's crops for a bit (how long is unknown), but new hours are for week $t$
 
 ### Most useful hours (with seeds on hand)
 
-Seeds you already own don't cost coins, but they can't pay for plots either, so there are two cases.
+Seeds you already own this week don't cost coins, but they can't pay for plots either. Same loop, just with the seed cost changed:
 
-$$w_{seeds} = \left\lfloor \frac{9 + \sqrt{4n^2 - 76n + 481 + 8(B + 5a)}}{2} \right\rfloor \quad \left(\text{or } 10 + a + \left\lfloor \tfrac{B}{5} \right\rfloor \text{ if that's} \le n\right)$$
+$$C = 5\max(0,\ k - a) + \text{plotCost}(w, n) \qquad k = \max(0,\ w - 10)$$
 
-$$w_{plots} = \max\left(n,\ \left\lfloor \frac{19 + \sqrt{1 + 4(n-10)(n-9) + 8B}}{2} \right\rfloor\right)$$
+$$w_{max} = \text{the biggest } w \le 45 \text{ with } C \le B$$
 
-$$w_{coins} = \begin{cases} w_{seeds} & \text{if } w_{seeds} > 10 + a \text{ (you'll run out of owned seeds and buy more)} \\[6pt] \min(10 + a,\ w_{plots}) & \text{otherwise (owned seeds are enough, only plots cost coins)} \end{cases}$$
-
-$$w_{max} = \min\left(45,\ w_{coins}\right)$$
-
-When $a = 0$ this is the same as the $w_{coins}$ above.
-
-> [!math]- Seeds on hand ~~Meth~~ math scratch-pad
-> Cost with $a$ seeds owned, $k = w - 10$ apples:
-> $$C = 5\max(0,\ k - a) + \max\left(0,\ \frac{(w-n)(w+n-19)}{2}\right)$$
-> If $k > a$: $5(k - a) = 5(w - 10) - 5a$, so it's the old formula with $B$ swapped for $B + 5a$ (each owned seed is worth 5 coins).
-> If $k \le a$: only plots cost coins:
-> $$\frac{(w-10)(w-9)}{2} - \frac{(n-10)(n-9)}{2} \le B$$
-> $$w^2 - 19w + 90 - (n-10)(n-9) - 2B \le 0$$
-> $$w \le \frac{19 + \sqrt{1 + 4(n-10)(n-9) + 8B}}{2}$$
-> Checked against brute force for $0 \le B < 1500$, $10 \le n \le 45$, $0 \le a < 40$: no mismatches.
+Seeds expire at the end of the week, so $a$ only matters for the current week. After that it's always 0.
 
 ### Each week after that
 
@@ -207,13 +201,13 @@ Start at week $t$ with $(B, n, a)$, then repeat until week 14:
 
 $$w = \min(\text{cap},\ w_{max}) \qquad k = \max(0,\ w - 10)$$
 
-$$C = 5\max(0,\ k - a) + \max\left(0,\ \frac{(w-n)(w+n-19)}{2}\right)$$
+$$C = 5\max(0,\ k - a) + \text{plotCost}(w, n)$$
 
-$$S = m\left(25 \cdot \min(w, 10) \cdot [\text{prep}] + 30k\right)$$
+$$S = \begin{cases} m\left(25 \cdot \min(w, 10) + 30k\right) & \text{prep week} \\ m\left(20 \cdot 10 + 30k\right) & \text{real week} \end{cases}$$
 
-$$B \leftarrow B - C + S \qquad n \leftarrow \max(n, w) \qquad a \leftarrow \max(0,\ a - k)$$
+$$B \leftarrow B - C + S \qquad n \leftarrow \max(n, w) \qquad a \leftarrow 0$$
 
-($[\text{prep}]$ = 1 in prep weeks, 0 in real weeks.) In real weeks, if $w < 10$ you're out.
+In real weeks, if $w < 10$ you're out.
 
 The final $B$ is what you can spend on the upgrade tree.
 
@@ -224,7 +218,7 @@ Example (my situation), simulated with a script. Starts from the end of Prep 2 i
 **Assumptions**
 - $m = 1$ every week
 - Plots stay between weeks, seeds get bought the week they're planted
-- Prep 3 sells all crops, real weeks give the 10 carrots to rent
+- Prep 3 sells all crops, real weeks turn in the 10 carrots as rent (20 each)
 - Coins are saved up and spent on upgrades at the end
 - Each week: $w = \min(w_{max}, \text{cap})$, cap = hours you're willing to do per week
 
@@ -234,13 +228,14 @@ From right now (Prep 2: 4 coins, 13 plots, 3 apple seeds), $m = 1$. Costs are in
 
 | Goal | Coins | Flat cap needed | Total hours (Prep 2 → Week 12) |
 | --- | --- | --- | --- |
-| Framework 13 path | 3050 | 18 h/week | 247 |
-| Galaxy, everything | 4400 | 22 h/week | 299 |
-| iPad, everything | 7350 | 32 h/week | 428 |
-| Max 12 | 10700 | 44 h/week | 572 |
-| Max 13 | 13850 | not possible at $m = 1$ | - |
+| Framework 13 path | 3050 | 11 h/week | 154 |
+| Galaxy, everything | 4400 | 15 h/week | 208 |
+| iPad, everything | 7350 | 24 h/week | 325 |
+| Max 12 | 10700 | 35 h/week | 468 |
+| Max 13 | 13850 | not possible at $m = 1$ (5 coins short at 45 h) | - |
+| Max 13, no extra USB | 13750 | 45 h/week | 589 |
 
-Best possible at 45 h every week, $m = 1$: 10995 coins. Doing only the 10 h minimum ends with about 504.
+Best possible at 45 h every week, $m = 1$: 13845 coins. Doing only the 10 h minimum ends with about 2904, almost the Framework 13 path just from rent pay.
 
 ## Multiplier vs hours
 
@@ -248,38 +243,39 @@ The full table (every goal, $m$ = 0.8 to 1.5) is in [device-trees.md](device-tre
 
 | $m$ | Max 12 (10700) | Max 13 (13850) |
 | --- | --- | --- |
-| 1.0 | 44 h/week | not possible |
-| 1.2 | 36 h/week | needs $m$ just over 1.2 at 45 h |
-| 1.5 | 30 h/week | 36 h/week |
+| 1.0 | 35 h/week | not possible (45 h without the extra USB) |
+| 1.2 | 28 h/week | 36 h/week |
+| 1.5 | 23 h/week | 29 h/week |
 
 ### Frontloading
 
 - Plots are the only thing that compounds. A high multiplier early means more coins early, so more plots sooner.
-- At 1.5 in Prep 2, Prep 3 can do 37 useful hours instead of 31.
-- Plots hit 45 in Week 1 either way, so after that there's nothing left to unlock.
-- After plots are maxed, every week at 45 h sells the same $1050m$, so a point of multiplier is worth the same in Week 2 as in Week 12.
+- Plots are cheap now (305 for all of them). At 1.5 in Prep 2, Prep 3 can do 45 useful hours instead of 36.
+- Plots hit 45 in Prep 3 at 1.5 and Week 1 at 1.0, so after that there's nothing left to unlock.
+- After plots are maxed, every real week at 45 h makes the same $1250m$ (200 rent + 1050 apples), so a point of multiplier is worth the same in Week 2 as in Week 12.
 
 **So**
 - Prep 3 is where quality pays off extra (unlocks plots + it's a big prep week).
 - Weeks with more crops are worth more multiplier. Prep 2 (13 crops) is the smallest week, Week 1+ (45 crops) the biggest.
+- A crop uses the multiplier of the week it was planted, so it's the multiplier from the week you did the hours that counts.
 
 ## Pay per hour
 
 How much real money an hour of (credited) coding gets you. Real values are from [real-prices.md](real-prices.md): $699 base laptop + each upgrade's real price difference.
 
-**The laptop:** 12 weeks × 10 h rent = 120 h for a $699 laptop, **≈ $5.80/h**. That's the best rate, every hour past rent earns less.
+**The laptop:** 12 weeks × 10 h rent = 120 h for a $699 laptop, and those rent crops also pay 2400 coins at $m = 1$ (≈ $300 of upgrades at 8 coins per \$1). So ≈ **\$8.30/h**. That's the best rate, every hour past rent earns less.
 
-**Extra hours:** 1 extra hour = 1 apple ≈ $30m - 5$ coins, and the tree is priced at ≈ 8 coins per real \$1, so an extra hour ≈ **\$3/h** at $m = 1$, **≈ \$4.60/h** at $m = 1.5$.
+**Extra hours:** 1 extra hour = 1 apple ≈ $30m - 5$ coins (plus at most 10 for its plot, only once), and the tree is priced at ≈ 8 coins per real \$1, so an extra hour ≈ **\$3/h** at $m = 1$, **≈ \$5/h** at $m = 1.5$.
 
 | Goal | $m$ | h/week | Total hours | Real value | $/h overall |
 | --- | --- | --- | --- | --- | --- |
-| Laptop only | any | 10 | 120 | $699 | 5.83 |
-| Framework 13 path | 1.0 | 18 | 247 | $1049 | 4.25 |
-| Framework 13 path | 1.5 | 15 | 208 | $1049 | 5.04 |
-| Max 12 | 1.0 | 44 | 572 | $1943 | 3.40 |
-| Max 12 | 1.5 | 30 | 403 | $1943 | 4.82 |
-| Max 13 | 1.5 | 36 | 481 | $2324 | 4.83 |
+| Laptop only | 1.0 | 10 | 120 | $699 + ~2400 coins | ≈ 8.30 |
+| Framework 13 path | 1.0 | 11 | 154 | $1049 | 6.81 |
+| Framework 13 path | 1.5 | 10 | 140 | $1049 | 7.49 |
+| Max 12 | 1.0 | 35 | 468 | $1943 | 4.15 |
+| Max 12 | 1.5 | 23 | 312 | $1943 | 6.23 |
+| Max 13 | 1.5 | 29 | 390 | $2324 | 5.96 |
 
-- The multiplier matters most: Max 12 is \$4.82/h at 1.5 but \$3.40/h at 1.0.
+- The multiplier matters most: Max 12 is \$6.23/h at 1.5 but \$4.15/h at 1.0.
 - Real rate is lower: AI time counts 1/3, partial hours get dropped, reviewers can cut hours, and thinking/reading away from the editor isn't tracked.
-- Hack Club's YSWS guideline caps rewards at about \$5/h, which lines up.
+- Hack Club's YSWS guideline is about \$5/h. With rent paying coins, small goals come out above that, and the big builds come out close to it.

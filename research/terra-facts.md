@@ -25,22 +25,25 @@
 - 1 hour coded (devlogged) = 1 water; 1 water + 1 seed (+ 1 plot) = 1 crop
 - AI coding counts at 1/3 (3h AI = 1h)
 - 10 free base seeds per week from Ratticus
-- Main weeks: first 10 crops are rent, earn no coins; miss rent once out
+- Main weeks: first 10 crops are rent, but still pay 20 coins × multiplier each (dev; the FAQ is wrong). Over 10 crops of rent debt = out
+- Main weeks: crops grow once 10 h are approved for the week (ship early, reship to add more)
 - Prep weeks: every crop earns coins (no rent)
 - Water resets every week
 - Extra crops are sold to Heidi for coins
 - One project per week; ship needs to be experienceable (firmware: demo video)
 - Up to 30% of time can be art/assets (track with 
 - Water can be bought to skip hours; price rises with each purchase in the same week
+- All seeds expire at the end of the week, so only buy apple seeds you'll plant that week
+- A crop gets the multiplier of the week it's planted
 - Code 15 hours during prep weeks = free Terra t-shirt (from the game's text)
 - Buying, planting and watering are instant and can wait until the last day, but crops only grow once the ship is approved, so ship early enough to fix a reviewer cut
 
 ## Heidi's shop
 | Item       | Price                         |
 | ---------- | ----------------------------- |
-| Apple Seed | 5                             |
-| Dirt Plot  | n-9 (n=num plots you have)    |
-| Water      | 50 (escalates, curve unknown) |
+| Apple Seed | 5 (not limited stock, expires end of week) |
+| Dirt Plot  | min(1 + n, 10) (n = plots bought so far), so 11th = 1 … 19th = 9, then 10 each |
+| Water      | 50, +5 per water bought that week, max 75 |
 
 ### Sell price
 | Item | Base Value |
@@ -62,10 +65,9 @@ Every week you get a multiplyer from 0.8-1.5 based on a few things:
 [Moved](real-prices.md)
 
 ## To find out
-- Water price curve (every water bought in the same week costs more)
-- Shop stock limits (can you buy 35 apple seeds a week?)
-- Multiplier range + rounding
-- Whether bought seeds expire
+- Multiplier rounding
 - How long grace water (wiggle day) lasts
+
+Answered by the dev (10 Oct): water curve, stock limits, seed expiry, plot price, rent pay. Details in [how-terra-works.md](how-terra-works.md).
 
 Found: max dirt plots = 45 (7×7 minus corners), RAM/SSD price steps (see [device-trees.md](device-trees.md)). Full list in [how-terra-works.md](how-terra-works.md#11-still-unknown).
