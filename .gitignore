@@ -1,1 +1,4 @@
 .obsidian
+# Downloaded Terra game files and HAR captures (third-party code, personal data/tokens)
+research/terra-js/
+*.har

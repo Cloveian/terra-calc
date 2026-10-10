@@ -230,31 +230,27 @@ Example (my situation), simulated with a script. Starts from the end of Prep 2 i
 
 ### Goals
 
-| Goal              | Coins | Flat cap needed                                   | Total hours (Prep 3 + 12 weeks) |
-| ----------------- | ----- | ------------------------------------------------- | ------------------------------- |
-| Framework 13 path | 3050  | 18 h/week                                         | 234                             |
-| Everything once   | 8650  | 37 h/week                                         | 475                             |
-| Everything maxed, no stylus | 10950 | 45 h/week (ends at 10995, just barely) | 584 (Prep 2 + Prep 3 + 12 weeks) |
-| Everything maxed  | 11450 | not possible at $m=1$ (45 h/week ends at 10995) | -                               |
+From right now (Prep 2: 4 coins, 13 plots, 3 apple seeds), $m = 1$. Costs are in [device-trees.md](device-trees.md).
 
-## Multiplier vs hours for max (no stylus)
-
-Goal: **10950** coins (everything maxed minus the stylus, it doesn't work on the 13").
-Starts from right now (Prep 2: 4 coins, 13 plots, 3 apple seeds, 13 hours). Same multiplier every week.
-
-At $m = 1$ and 45 h every week you end at 10995, only 45 coins of slack. A better multiplier buys you fewer hours:
-
-| $m$ | Hours/week needed | Total hours | End coins |
+| Goal | Coins | Flat cap needed | Total hours (Prep 2 → Week 12) |
 | --- | --- | --- | --- |
-| 0.9 | not possible (45 h ends at 9591) | - | - |
-| 1.0 | 45 | 584 | 10995 |
-| 1.1 | 41 | 537 | 11195 |
-| 1.2 | 37 | 490 | 11097 |
-| 1.3 | 34 | 455 | 11085 |
-| 1.4 | 32 | 429 | 11165 |
-| 1.5 | 30 | 403 | 11085 |
+| Framework 13 path | 3050 | 18 h/week | 247 |
+| Galaxy, everything | 4400 | 22 h/week | 299 |
+| iPad, everything | 7350 | 32 h/week | 428 |
+| Max 12 | 10700 | 44 h/week | 572 |
+| Max 13 | 13850 | not possible at $m = 1$ | - |
 
-With the stylus (11450): needs $m \ge 1.033$ at 45 h/week, or e.g. 39 h/week at $m = 1.2$.
+Best possible at 45 h every week, $m = 1$: 10995 coins. Doing only the 10 h minimum ends with about 504.
+
+## Multiplier vs hours
+
+The full table (every goal, $m$ = 0.8 to 1.5) is in [device-trees.md](device-trees.md#max-builds). The short version:
+
+| $m$ | Max 12 (10700) | Max 13 (13850) |
+| --- | --- | --- |
+| 1.0 | 44 h/week | not possible |
+| 1.2 | 36 h/week | needs $m$ just over 1.2 at 45 h |
+| 1.5 | 30 h/week | 36 h/week |
 
 ### Frontloading
 
@@ -266,3 +262,24 @@ With the stylus (11450): needs $m \ge 1.033$ at 45 h/week, or e.g. 39 h/week at 
 **So**
 - Prep 3 is where quality pays off extra (unlocks plots + it's a big prep week).
 - Weeks with more crops are worth more multiplier. Prep 2 (13 crops) is the smallest week, Week 1+ (45 crops) the biggest.
+
+## Pay per hour
+
+How much real money an hour of (credited) coding gets you. Real values are from [real-prices.md](real-prices.md): $699 base laptop + each upgrade's real price difference.
+
+**The laptop:** 12 weeks × 10 h rent = 120 h for a $699 laptop, **≈ $5.80/h**. That's the best rate, every hour past rent earns less.
+
+**Extra hours:** 1 extra hour = 1 apple ≈ $30m - 5$ coins, and the tree is priced at ≈ 8 coins per real \$1, so an extra hour ≈ **\$3/h** at $m = 1$, **≈ \$4.60/h** at $m = 1.5$.
+
+| Goal | $m$ | h/week | Total hours | Real value | $/h overall |
+| --- | --- | --- | --- | --- | --- |
+| Laptop only | any | 10 | 120 | $699 | 5.83 |
+| Framework 13 path | 1.0 | 18 | 247 | $1049 | 4.25 |
+| Framework 13 path | 1.5 | 15 | 208 | $1049 | 5.04 |
+| Max 12 | 1.0 | 44 | 572 | $1943 | 3.40 |
+| Max 12 | 1.5 | 30 | 403 | $1943 | 4.82 |
+| Max 13 | 1.5 | 36 | 481 | $2324 | 4.83 |
+
+- The multiplier matters most: Max 12 is \$4.82/h at 1.5 but \$3.40/h at 1.0.
+- Real rate is lower: AI time counts 1/3, partial hours get dropped, reviewers can cut hours, and thinking/reading away from the editor isn't tracked.
+- Hack Club's YSWS guideline caps rewards at about \$5/h, which lines up.

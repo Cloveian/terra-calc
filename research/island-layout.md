@@ -5,7 +5,7 @@ uhh... walk around in build mode and count the squares ┐(≖‿≖)┌
 
 ## Grid
 
-Origin (0,0) is the 'bottom left' (though (0,0) isn't reachable by walking
+Origin (0,0) is the 'bottom left' (though (0,0) isn't reachable by walking)
 
 **Key:** W=walk-able B=build-able *blank*=not walk-able E=Island exit
 

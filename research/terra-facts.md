@@ -32,6 +32,8 @@
 - One project per week; ship needs to be experienceable (firmware: demo video)
 - Up to 30% of time can be art/assets (track with 
 - Water can be bought to skip hours; price rises with each purchase in the same week
+- Code 15 hours during prep weeks = free Terra t-shirt (from the game's text)
+- Buying, planting and watering are instant and can wait until the last day, but crops only grow once the ship is approved, so ship early enough to fix a reviewer cut
 
 ## Heidi's shop
 | Item       | Price                         |
@@ -57,23 +59,13 @@ Every week you get a multiplyer from 0.8-1.5 based on a few things:
 [Moved](device-trees.md)
 
 ## Real USD prices
-| Node | USD | Notes |
-| --- | --- | --- |
-| Framework 12 | 549 DIY / 699 prebuilt | grant alternative: $700 |
-| DIY Edition | 499-549 | |
-| Stylus | 59 | |
-| USB-C card | 10 | |
-| Fancy card | 19-39 | HDMI 22, Ethernet 39 |
-| +8GB RAM | 160 | FW12 has 1 SO-DIMM slot |
-| +500GB SSD | ~99 | last listed, page gone |
-| Core 3 304 | 299 | mainboard |
-| i5-1334U | 369 sale / 449 | mainboard |
-| Core 5 320 | 449 | mainboard |
-| Framework 13 | ~899 | DIY, Ryzen AI 5 340 |
-| 2.8K Display | 249 sale / 269 | |
-| Ryzen AI 7 350 | 599 sale / 699 | mainboard |
+[Moved](real-prices.md)
 
 ## To find out
-- Price increase 'fomulas'
-- Max dirt plots
+- Water price curve (every water bought in the same week costs more)
+- Shop stock limits (can you buy 35 apple seeds a week?)
+- Multiplier range + rounding
+- Whether bought seeds expire
+- How long grace water (wiggle day) lasts
 
+Found: max dirt plots = 45 (7×7 minus corners), RAM/SSD price steps (see [device-trees.md](device-trees.md)). Full list in [how-terra-works.md](how-terra-works.md#11-still-unknown).
