@@ -62,6 +62,7 @@ How much more each upgrade costs in real money than whatever it replaces. Chips 
 | **Max 13** | 13850 | base laptop | **+$1,625** | 8.5 |
 
 - **Most of the tree is priced at about 8 coins per $ of difference, so 1 coin ≈ $0.12.** The RAM and SSD steps are almost exactly 8⅓ (25 coins per $3).
+- Asked whether the prices were specced at $1 = 8 coins, miggy said "perchance (about that)" (10 Oct). So 8 coins per $ looks like the design, and the off-pattern nodes are probably rounding or older prices.
 - Off-pattern nodes: Ethernet as a Fancy card (3.4) and the Framework 13 (7.1) are good deals. The $19 Fancy cards (11.1), USB card (10.0) and 2.8K display (10.0) are bad ones.
 - The 2.8K number uses the replacement-kit difference because the configurator option is out of stock. With its +$130 launch price it would be 6.9.
 - Comparing standalone board prices instead of configurator prices gives Core 3 +$30, i5 +$70, Core 5 +$80, Ryzen +$200. That's noisier (13.3, 5.7, 18.8, 11.3) because the 13th Gen boards are on sale.

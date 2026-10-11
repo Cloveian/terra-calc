@@ -1062,6 +1062,18 @@ addEventListener("scroll", onFirstScroll, { passive: true });
 pageLeft.addEventListener("scroll", onFirstScroll, { passive: true });
 onFirstScroll(); // a reload can start part-way down the page
 
+// Two columns: the header only needs the left column's width, so the Goal panel moves up beside it
+// and gets the whole height. CSS needs the header's height and the left column's width for that.
+const header = document.querySelector("body > header");
+new ResizeObserver(() => {
+    const root = document.documentElement.style;
+    root.setProperty("--header-h", `${header.offsetHeight}px`);
+    root.setProperty("--left-w", `${pageLeft.offsetWidth}px`);
+}).observe(header);
+new ResizeObserver(() => {
+    document.documentElement.style.setProperty("--left-w", `${pageLeft.offsetWidth}px`);
+}).observe(pageLeft);
+
 // switching between one and two columns changes the tree window's size a lot: fit the tree again
 splitView.addEventListener("change", () => setView(fitTree()));
 $("goal").addEventListener("blur", () => showPicksGoal(goalCost(tree(), state.want, state.own)));

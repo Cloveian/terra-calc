@@ -31,6 +31,7 @@
 - Water resets every week
 - Extra crops are sold to Heidi for coins
 - One project per week; ship needs to be experienceable (firmware: demo video)
+- Continuing last week's code is fine, just make a new Terra project for it (FAQ)
 - Up to 30% of time can be art/assets (track with 
 - Water can be bought to skip hours; price rises with each purchase in the same week
 - All seeds expire at the end of the week, so only buy apple seeds you'll plant that week

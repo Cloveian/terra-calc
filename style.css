@@ -759,6 +759,7 @@ input[type="checkbox"]:checked {
 .select-wrap {
     position: relative;
     display: block;
+    max-width: 22rem; /* three device names don't need the whole panel */
     margin-bottom: var(--pico-spacing);
 }
 
@@ -1004,9 +1005,9 @@ button.outline, button.secondary {
     --sketch-opacity: 0.7;
 }
 
-/* the preset toolbar: flat buttons, only the pressed one has a line */
+/* the preset toolbar: a faint line on each button so they look clickable, the pressed one in accent */
 .buttons button {
-    --sketch-color: transparent;
+    --sketch-color: var(--line);
 }
 
 .buttons button[aria-pressed="true"] {
@@ -1183,6 +1184,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .intro {
+    width: fit-content; /* just around its one sentence, not the whole page width */
     margin-top: 0.5rem;
 }
 
@@ -1286,6 +1288,27 @@ input[type="number"]::-webkit-outer-spin-button {
         display: flex;
         flex-direction: column;
         min-height: 0;
+        /* up beside the header: it only takes the left column's width (below) (ui.js measures both) */
+        position: relative;
+        z-index: 1;
+        margin-top: calc(-1 * var(--header-h, 0px));
+    }
+
+    /* the logo and the intro stay over the left column, out from under the Goal panel */
+    header.container > h1 {
+        max-width: var(--left-w, 100%);
+    }
+
+    header.container .logo {
+        max-width: 100%;
+    }
+
+    .intro {
+        max-width: var(--left-w, 100%);
+    }
+
+    body.scrolled .intro {
+        max-width: calc(var(--left-w, 100%) - 13rem); /* next to the small logo */
     }
 
     /* the Goal panel fills its column, and the tree fills what the rest of the panel leaves */

@@ -59,7 +59,7 @@ Weeks run **Monday 00:00 → Sunday 23:59:59, US Eastern time** (`America/New_Yo
 - **Crops only grow once a ship is approved** for that week ("Approved ships grow your crops"). **[code]**
 - In regular weeks, crops grow once **10 h** are approved for the week ("Crops grow at 10h this week"). **[dev]** You can ship early and **reship** later to add more hours; each ship only counts its own new devlogs. **[code]**
 - Water from approved time is `floor((approved_seconds + 5) / 3600)`, so partial hours are dropped. **[code]** (The live estimate shows fractions, e.g. 13799 s = 3.83 water. **[server]**)
-- Time only counts toward **that week's** project. Once the week is over, new Hackatime time goes to a new project. **[code]**
+- Time only counts toward **that week's** project. Once the week is over, new Hackatime time goes to a new project. **[code]** You can keep working on the same code: just make a new project on Terra for the new week. **[faq]**
 - Water **resets every week**. **[notes]**
 - When you ship, you also have to **vote** on a few other projects (1–7 stars + Accept/Reject + a written reason). **[code]**
 
