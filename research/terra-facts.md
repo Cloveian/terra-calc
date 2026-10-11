@@ -25,7 +25,7 @@
 - 1 hour coded (devlogged) = 1 water; 1 water + 1 seed (+ 1 plot) = 1 crop
 - AI coding counts at 1/3 (3h AI = 1h)
 - 10 free base seeds per week from Ratticus
-- Main weeks: first 10 crops are rent, but still pay 20 coins × multiplier each (dev; the FAQ is wrong). Over 10 crops of rent debt = out
+- Main weeks: first 10 crops are rent, but the week's rent still pays 20 coins × multiplier in total, all 10 together (dev, 10 Oct: "20 * multiplier" when asked if it's 20 total or 20×10; the FAQ is wrong, and so was my first reading of 20 each). Over 10 crops of rent debt = out
 - Main weeks: crops grow once 10 h are approved for the week (ship early, reship to add more)
 - Prep weeks: every crop earns coins (no rent)
 - Water resets every week

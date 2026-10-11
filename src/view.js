@@ -27,15 +27,16 @@ export function clampView(view, canvas, viewport, keep = 80) {
 }
 
 // Starting view: as big as fits (never above 1:1, never below `smallest`, so cards stay readable),
-// centred sideways; if it's taller than the viewport, the bottom (the device) is the part in view
-export function fitView(canvas, viewport, smallest = 0.5) {
+// centred sideways; if it's taller than the viewport, the bottom (the device) is the part in view.
+// If it's wider than the viewport, the point `focusX` (in tree px, e.g. the device card) is centred.
+export function fitView(canvas, viewport, smallest = 0.5, focusX = canvas.w / 2) {
     const fit = Math.min(1, viewport.w / canvas.w, viewport.h / canvas.h);
     const scale = Math.max(Math.min(smallest, 1), fit);
     const w = canvas.w * scale;
     const h = canvas.h * scale;
     return {
         scale,
-        x: (viewport.w - w) / 2,
+        x: w <= viewport.w ? (viewport.w - w) / 2 : viewport.w / 2 - focusX * scale,
         y: h <= viewport.h ? (viewport.h - h) / 2 : viewport.h - h,
     };
 }

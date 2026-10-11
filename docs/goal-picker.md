@@ -22,7 +22,7 @@ What exists in `data.js` now:
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------ |
 | What "optimal max" means                     | Everything that still makes sense on that device: Max 12 keeps the stylus, Max 13 drops it (doesn't work on the 13) | y                        |
 | iPad / Galaxy presets                        | One "Everything" preset each (7350 / 4400). Their trees are small, so more presets aren't worth it                  | y                        |
-| Extra USB card in Max presets                | Keep it, add "no extra USB" variants (10600 / 13750). At m = 1, Max 13 is only reachable *without* it               | y                        |
+| Extra USB card in Max presets                | Keep it, add "no extra USB" variants (10600 / 13750). Saves 100 coins; Max 13 needs m ≥ 1.2 either way              | y                        |
 | Other presets                                | None for now. Candidates: "Max 12 without stylus", "FW13 + 2.8K", "RAM + SSD only"                                  | later, leave east adding |
 | Preset button when things are already picked | Replaces `want` (doesn't add to it). "Clear" empties `want`                                                         | y                        |
 

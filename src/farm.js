@@ -34,7 +34,7 @@ export function wMax(B, n, a) {
 // coins from selling a week's crops
 export function weekSales(w, m, prep) {
     const k = applesFor(w);
-    const carrots = prep ? CROPS.carrot.sell * Math.min(w, BASE_SEEDS) : RENT_PAY * RENT;
+    const carrots = prep ? CROPS.carrot.sell * Math.min(w, BASE_SEEDS) : RENT_PAY; // rent pays 20 for all 10
     return m * (carrots + CROPS.apple.sell * k);
 }
 

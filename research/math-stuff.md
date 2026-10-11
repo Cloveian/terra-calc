@@ -1,7 +1,7 @@
 # ~~Meth~~ Math n' Stuff
 
 > [!note] Updated 10 Oct 2026
-> Rewritten with the rules a Terra dev confirmed: plots cost `min(1 + n, 10)`, rent crops pay **20 × m** each, apple seeds expire at the end of the week, and a crop uses the multiplier of the week it was planted. Sources and details are in [how-terra-works.md](how-terra-works.md).
+> Rewritten with the rules a Terra dev confirmed: plots cost `min(1 + n, 10)`, the week's rent pays **20 × m in total** (all 10 crops together, not 20 each like I first read it), apple seeds expire at the end of the week, and a crop uses the multiplier of the week it was planted. Sources and details are in [how-terra-works.md](how-terra-works.md).
 
 ## Info
 
@@ -23,7 +23,7 @@ Sell prices get multiplied by 0.8-1.5 each week (vote score, project quality, "s
 
 | Item | Buy | Sell | Max/week |
 | --- | --- | --- | --- |
-| Carrot | N/A | 25 (prep), 20 (rent) | 10 |
+| Carrot | N/A | 25 (prep), 2 (rent: 20 for all 10) | 10 |
 | Apple | 5 | 30 | N/A |
 | New seeds | ? | ? | ? |
 
@@ -45,7 +45,7 @@ Counts people you referred who **complete a week**.
 ## Difrent 'methods' getting coins
 
 ### Givens
-- During 'real' weeks 10 plots and 10 carrots are deticated to rent (they still pay 20 each).
+- During 'real' weeks 10 plots and 10 carrots are deticated to rent (they still pay 20 in total, for all 10).
 - To plant something you need a dirt plot 
 - Every crop needs 1 water (1 hour coded)
 - 10 carrots can be sold during prep weeks
@@ -71,7 +71,7 @@ Counts people you referred who **complete a week**.
 
 **What you get**
 - Prep weeks: 25 \* (multiplier) coins
-- Real weeks: 20 \* (multiplier) coins (paid when you turn in rent)
+- Real weeks: 20 \* (multiplier) coins for the whole week's rent, all 10 carrots together (paid when you turn in rent), so 2 \* (multiplier) a carrot
 
 **Limit**
 - 10 per week
@@ -118,8 +118,8 @@ Assumes 1 water per crop, grows in the week, not limited stock, in the shop ever
 | Hour | Carrots | Apples | Cost                         | Profit         |
 | ---- | ------- | ------ | ---------------------------- | -------------- |
 | 0-9  | DEATH   | DEATH  | DEATH                        | DEATH          |
-| 10   | 10      | 0      | 0                            | $200m$         |
-| 11+  | 10      | $k$    | $C=5k+\text{plotCost}(w, n)$ | $m(30k+200)-C$ |
+| 10   | 10      | 0      | 0                            | $20m$          |
+| 11+  | 10      | $k$    | $C=5k+\text{plotCost}(w, n)$ | $m(30k+20)-C$  |
 
 
 $w$=$\lfloor \text{week's hours} \rfloor$
@@ -227,7 +227,7 @@ $$w = \min(\text{cap},\ w_{max}) \qquad k = \max(0,\ w - 10)$$
 
 $$C = 5\max(0,\ k - a) + \text{plotCost}(w, n)$$
 
-$$S = \begin{cases} m\left(25 \cdot \min(w, 10) + 30k\right) & \text{prep week} \\ m\left(20 \cdot 10 + 30k\right) & \text{real week} \end{cases}$$
+$$S = \begin{cases} m\left(25 \cdot \min(w, 10) + 30k\right) & \text{prep week} \\ m\left(20 + 30k\right) & \text{real week} \end{cases}$$
 
 $$B \leftarrow B - C + S \qquad n \leftarrow \max(n, w) \qquad a \leftarrow 0$$
 
@@ -242,7 +242,7 @@ Example (my situation), simulated with a script. Starts from the end of Prep 2 i
 **Assumptions**
 - $m = 1$ every week
 - Plots stay between weeks, seeds get bought the week they're planted
-- Prep 3 sells all crops, real weeks turn in the 10 carrots as rent (20 each)
+- Prep 3 sells all crops, real weeks turn in the 10 carrots as rent (20 total)
 - Coins are saved up and spent on upgrades at the end
 - Each week: $w = \min(w_{max}, \text{cap})$, cap = hours you're willing to do per week
 
@@ -252,14 +252,14 @@ From right now (Prep 2: 4 coins, 13 plots, 3 apple seeds), $m = 1$. Costs are in
 
 | Goal | Coins | Flat cap needed | Total hours (Prep 2 → Week 12) |
 | --- | --- | --- | --- |
-| Framework 13 path | 3050 | 11 h/week | 154 |
-| Galaxy, everything | 4400 | 15 h/week | 208 |
-| iPad, everything | 7350 | 24 h/week | 325 |
-| Max 12 | 10700 | 35 h/week | 468 |
-| Max 13 | 13850 | not possible at $m = 1$ (5 coins short at 45 h) | - |
-| Max 13, no extra USB | 13750 | 45 h/week | 589 |
+| Framework 13 path | 3050 | 17 h/week | 234 |
+| Galaxy, everything | 4400 | 22 h/week | 299 |
+| iPad, everything | 7350 | 31 h/week | 416 |
+| Max 12 | 10700 | 42 h/week | 553 |
+| Max 13 | 13850 | not possible at $m = 1$ (2165 coins short at 45 h) | - |
+| Max 13, no extra USB | 13750 | not possible at $m = 1$ either (needs $m \ge 1.2$) | - |
 
-Best possible at 45 h every week, $m = 1$: 13845 coins. Doing only the 10 h minimum ends with about 2904, almost the Framework 13 path just from rent pay.
+Best possible at 45 h every week, $m = 1$: 11685 coins. Doing only the 10 h minimum ends with about 744, most of that from the two prep weeks (rent pay alone is 20 × 12 = 240).
 
 ## Multiplier vs hours
 
@@ -267,16 +267,16 @@ The full table (every goal, $m$ = 0.8 to 1.5) is in [device-trees.md](device-tre
 
 | $m$ | Max 12 (10700) | Max 13 (13850) |
 | --- | --- | --- |
-| 1.0 | 35 h/week | not possible (45 h without the extra USB) |
-| 1.2 | 28 h/week | 36 h/week |
-| 1.5 | 23 h/week | 29 h/week |
+| 1.0 | 42 h/week | not possible (not even without the extra USB) |
+| 1.2 | 35 h/week | 43 h/week |
+| 1.5 | 29 h/week | 35 h/week |
 
 ### Frontloading
 
 - Plots are the only thing that compounds. A high multiplier early means more coins early, so more plots sooner.
 - Plots are cheap now (305 for all of them). At 1.5 in Prep 2, Prep 3 can do 45 useful hours instead of 36.
 - Plots hit 45 in Prep 3 at 1.5 and Week 1 at 1.0, so after that there's nothing left to unlock.
-- After plots are maxed, every real week at 45 h makes the same $1250m$ (200 rent + 1050 apples, apples-only), so a point of multiplier is worth the same in Week 2 as in Week 12.
+- After plots are maxed, every real week at 45 h makes the same $1070m$ (20 rent + 1050 apples, apples-only), so a point of multiplier is worth the same in Week 2 as in Week 12.
 
 **So**
 - Prep 3 is where quality pays off extra (unlocks plots + it's a big prep week).
@@ -287,19 +287,19 @@ The full table (every goal, $m$ = 0.8 to 1.5) is in [device-trees.md](device-tre
 
 How much real money an hour of (credited) coding gets you. Real values are from [real-prices.md](real-prices.md): $699 base laptop + each upgrade's real price difference.
 
-**The laptop:** 12 weeks × 10 h rent = 120 h for a $699 laptop, and those rent crops also pay 2400 coins at $m = 1$ (≈ $300 of upgrades at 8 coins per \$1). So ≈ **\$8.30/h**. That's the best rate, every hour past rent earns less.
+**The laptop:** 12 weeks × 10 h rent = 120 h for a $699 laptop, and those rent crops also pay 240 coins at $m = 1$ (≈ $30 of upgrades at 8 coins per \$1). So ≈ **\$6.10/h**. That's still the best rate, every hour past rent earns less.
 
 **Extra hours:** 1 extra hour = 1 apple ≈ $30m - 5$ coins (plus at most 10 for its plot, only once), and the tree is priced at ≈ 8 coins per real \$1, so an extra hour ≈ **\$3/h** at $m = 1$, **≈ \$5/h** at $m = 1.5$. With new seeds the $30m - 5$ becomes the best $p_i$ you can afford, so these rates are the apples-only floor.
 
 | Goal | $m$ | h/week | Total hours | Real value | $/h overall |
 | --- | --- | --- | --- | --- | --- |
-| Laptop only | 1.0 | 10 | 120 | $699 + ~2400 coins | ≈ 8.30 |
-| Framework 13 path | 1.0 | 11 | 154 | $1049 | 6.81 |
-| Framework 13 path | 1.5 | 10 | 140 | $1049 | 7.49 |
-| Max 12 | 1.0 | 35 | 468 | $1943 | 4.15 |
-| Max 12 | 1.5 | 23 | 312 | $1943 | 6.23 |
-| Max 13 | 1.5 | 29 | 390 | $2324 | 5.96 |
+| Laptop only | 1.0 | 10 | 120 | $699 + ~240 coins | ≈ 6.10 |
+| Framework 13 path | 1.0 | 17 | 234 | $1049 | 4.48 |
+| Framework 13 path | 1.5 | 14 | 195 | $1049 | 5.38 |
+| Max 12 | 1.0 | 42 | 553 | $1943 | 3.51 |
+| Max 12 | 1.5 | 29 | 390 | $1943 | 4.98 |
+| Max 13 | 1.5 | 35 | 468 | $2324 | 4.97 |
 
-- The multiplier matters most: Max 12 is \$6.23/h at 1.5 but \$4.15/h at 1.0.
+- The multiplier matters most: Max 12 is \$4.98/h at 1.5 but \$3.51/h at 1.0.
 - Real rate is lower: AI time counts 1/3, partial hours get dropped, reviewers can cut hours, and thinking/reading away from the editor isn't tracked.
-- Hack Club's YSWS guideline is about \$5/h. With rent paying coins, small goals come out above that, and the big builds come out close to it.
+- Hack Club's YSWS guideline is about \$5/h. Only the laptop by itself (rent hours) clears that. With rent paying just 20 × m a week, every upgrade is basically bought with apples at ≈ \$3/h, so the Framework 13 path is a bit under \$5/h at $m = 1$ and a bit over at 1.5, and the big builds only get close to it at 1.5.

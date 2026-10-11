@@ -13,7 +13,7 @@ export const FREE_PLOTS = 10;
 export const PLOT_PRICE_MAX = 10; // plot price is min(1 + bought, 10)
 export const BASE_SEEDS = 10;     // carrots from Ratticus each week
 export const RENT = 10;           // crops, main weeks only
-export const RENT_PAY = 20;       // coins per rent crop (dev, 10 Oct)
+export const RENT_PAY = 20;       // coins for a whole week's rent (all 10 crops together), × m (dev, 10 Oct)
 
 export const CROPS = {
     carrot: { buy: null, sell: 25 },
@@ -114,5 +114,5 @@ export const PRESETS = {
 
 // Red notes when all the `when` nodes are wanted together
 export const PICK_WARNINGS = [
-    { device: "framework_12", when: ["stylus_12", "framework_13_upgrade"], text: "The stylus doesn't work on the Framework 13." },
+    { device: "framework_12", when: ["stylus_12", "framework_13_upgrade"], text: "The stylus only works on the Framework 12." },
 ];

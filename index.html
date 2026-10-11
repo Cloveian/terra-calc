@@ -46,7 +46,7 @@
                 <h2>Something in that link was off</h2>
                 <p>I fixed what I could:</p>
                 <ul id="error-list"></ul>
-                <button type="button" id="errors-ok">ok</button>
+                <button type="button" id="errors-ok" class="secondary outline">ok</button>
             </article>
 
             <form id="form">
@@ -82,7 +82,8 @@
                     <button type="button" id="reset-order" class="secondary outline" hidden>Reset order</button>
                 </div>
 
-                <p class="note">Week by week. Coins in this table are before any upgrades are bought.</p>
+                <h2>Week by week</h2>
+                <p class="note">Coins in this table are before any upgrades are bought.</p>
                 <!-- the outline goes on the outer box, the inner one scrolls (so the outline stays put
                      and can't make the box scroll) -->
                 <div class="view-box">
@@ -97,7 +98,7 @@
                 <div class="footnotes">
                     <p>Ship before the last day of the week: if a reviewer cuts your hours after the week ends, your crops dry out and you end up short on rent.</p>
                     <p>Next week's coins only arrive once this week's ship is approved and sold. This plan assumes that happens in time.</p>
-                    <p>Hours are approved Hackatime hours (AI time counts a third). In the main weeks your 10 rent carrots pay 20 coins each instead of 25.</p>
+                    <p>Hours are approved Hackatime hours (AI time counts a third). In the main weeks your 10 carrots are rent: together they pay just 20 coins (× your multiplier), not 25 each.</p>
                     <p>Your numbers are saved in this page's link: copy it to share them or come back later.</p>
                     <p>Prices as of <span id="prices-as-of"></span>, and they may differ in your country. Not made by the Terra team. Terra is a <a href="https://hackclub.com">Hack Club</a> event.</p>
                     <div class="footer-row">
@@ -146,7 +147,7 @@
 
                 <footer>
                     <label><span class="icon icon-coin" aria-hidden="true"></span> Goal in coins (your picks' total, or type your own) <input id="goal" type="number" min="0" step="any"></label>
-                    <button type="button" id="use-picks" class="secondary" hidden>Use my picks instead</button>
+                    <button type="button" id="use-picks" class="secondary outline" hidden>Use my picks instead</button>
                 </footer>
             </article>
         </div>

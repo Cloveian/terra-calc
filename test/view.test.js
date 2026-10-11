@@ -47,3 +47,12 @@ test("fitView: big trees shrink to fit, but not below the smallest readable size
     // too tall at 0.5: the bottom (the device) is what's in view
     assert.equal(phone.y, 600 - 1271 * 0.5);
 });
+
+test("fitView: a tree wider than the viewport is centred on the focus point (the device)", () => {
+    const view = fitView({ w: 1058, h: 1271 }, { w: 340, h: 600 }, 0.5, 700);
+    assert.equal(view.scale, 0.5);
+    assert.equal(view.x, 340 / 2 - 700 * 0.5); // x = 700 in the tree is in the middle of the viewport
+    // when it fits sideways, the focus point doesn't matter: it's centred as usual
+    const fits = fitView({ w: 494, h: 500 }, { w: 1100, h: 700 }, 0.5, 10);
+    assert.equal(fits.x, (1100 - 494) / 2);
+});

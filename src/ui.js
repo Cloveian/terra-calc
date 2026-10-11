@@ -165,7 +165,7 @@ function drawDevicePicker() {
         return node;
     });
     const clear = button("Clear", () => applyPreset({}));
-    clear.className = "secondary outline";
+    clear.className = "secondary outline preset-clear";
     presets.push(clear);
     const label = el("span", "Quick picks:");
     label.className = "presets-label";
@@ -264,9 +264,11 @@ function drawTree() {
         const wanted = state.want[node.id] ?? 0;
         const price = nextPrice(node, wanted);
         // "750 coins", or "next: 1300 coins" when the price goes up with each buy
+        // (RAM / SSD say what the next one gets you: "next: 48 GB · 2100 coins")
+        const nextTotal = node.totals?.[wanted + 1];
         const cost = price === null
             ? `all ${node.tiers.length} picked`
-            : `${node.tiers ? "next: " : ""}${price} coins · ≈${Math.round(nodeHours(price, state.m))} h`;
+            : `${node.tiers ? "next: " : ""}${nextTotal ? `${nextTotal} · ` : ""}${price} coins · ≈${Math.round(nodeHours(price, state.m))} h`;
         const card = el("div",
             el("strong", node.name),
             ...(node.totals ? [total(node, wanted)] : []),
@@ -292,7 +294,7 @@ function drawTree() {
     if (viewDevice !== state.device) {
         viewDevice = state.device;
         viewMoved = false;
-        setView(fitView(treeSize(), viewportSize()));
+        setView(fitTree());
     } else {
         setView(view);
     }
@@ -304,7 +306,7 @@ const COLUMNS = [
     ["Start coins", (row) => coins(row.startCoins)],
     ["Plots", (row) => row.plots, "dirt-plot"],
     ["Can use (h)", (row) => row.wMax], // the most hours you can afford seeds and plots for
-    ["Planned h", (row) => (row.out ? `${row.hours} (under 10 h: out)` : row.hours), "water-drop"],
+    ["Planned (h)", (row) => (row.out ? `${row.hours} (under 10 h: out)` : row.hours), "water-drop"],
     ["New plots", (row) => row.newPlots],
     ["Spent", (row) => coins(row.spent)],
     ["Sold", (row) => coins(row.sold)],
@@ -384,9 +386,10 @@ function drawMilestones(route, cap) {
         const arrows = el("span", sooner, later);
         arrows.className = "priority";
         const name = el("span", `${item.name}${qty}`);
-        name.style.paddingLeft = `${(depth[item.id] ?? 0) * 1.5}rem`;
         name.dataset.node = item.id; // for the tree lines
-        group.rows.push(el("li", name, cost, arrows));
+        const row = el("li", name, cost, arrows);
+        row.style.setProperty("--depth", depth[item.id] ?? 0); // the tree indent (style.css)
+        group.rows.push(row);
     });
 
     const head = el("li", el("span"), el("span", "cost (so far)"), el("span", "priority")); // the arrows' tooltips say "Buy … sooner / later"
@@ -556,6 +559,13 @@ function treeSize() {
     return { w: parseFloat($("tree").style.width), h: parseFloat($("tree").style.height) };
 }
 
+// fitted to the window; if it's too wide for that, centred on the device card
+function fitTree() {
+    const root = $("tree").querySelector(".tree-root");
+    const focusX = root ? root.offsetLeft + root.offsetWidth / 2 : undefined;
+    return fitView(treeSize(), viewportSize(), undefined, focusX);
+}
+
 function setView(next) {
     view = clampView(next, treeSize(), viewportSize());
     $("tree").style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
@@ -649,20 +659,9 @@ function drawOutline(box) {
     if (clipped) box.style.clipPath = `path("${d}")`;
 }
 
-// RAM/SSD: what your picks come to → what one more would make it ("32 → 48 GB", like the
-// "next: … coins" price under it), or just "48 GB" when there's no more to buy
+// RAM/SSD: what your picks come to ("32 GB"); the next step is in the price line under it
 function total(node, wanted) {
-    const now = node.totals[wanted];
-    const next = node.totals[wanted + 1];
-    const line = el("span");
-    if (next === undefined) {
-        line.append(el("b", now));
-    } else {
-        const [nowNumber, nowUnit] = now.split(" ");
-        const [nextNumber, nextUnit] = next.split(" ");
-        // "32 → 48 GB" when the unit is the same, "500 GB → 1 TB" when it isn't
-        line.append(el("b", nowUnit === nextUnit ? nowNumber : now), " → ", el("b", `${nextNumber} ${nextUnit}`));
-    }
+    const line = el("span", el("b", node.totals[wanted]));
     line.className = "tree-total";
     return line;
 }
@@ -888,7 +887,7 @@ treeView.addEventListener("focusin", (event) => {
 
 $("zoom-in").addEventListener("click", () => zoomBy(1.25));
 $("zoom-out").addEventListener("click", () => zoomBy(1 / 1.25));
-$("zoom-fit").addEventListener("click", () => setView(fitView(treeSize(), viewportSize())));
+$("zoom-fit").addEventListener("click", () => setView(fitTree()));
 // The handwritten font usually arrives after the first draw, and text gets narrower with it.
 // Boxes that are redrawn on changes (pills, buttons, the tree) would keep outlines made for the
 // wider fallback font (the pills' fill no longer filled their outline), so draw everything again.
@@ -949,7 +948,7 @@ function drawDivider() {
 
 // after a resize the tree window is a new size: fit the tree again, unless you've moved it yourself
 function afterResize() {
-    if (!viewMoved) setView(fitView(treeSize(), viewportSize()));
+    if (!viewMoved) setView(fitTree());
 }
 
 divider.addEventListener("pointerdown", (event) => {
@@ -1056,7 +1055,7 @@ function onFirstScroll() {
     removeEventListener("scroll", onFirstScroll);
     pageLeft.removeEventListener("scroll", onFirstScroll);
     setTimeout(() => {
-        if (!viewMoved) setView(fitView(treeSize(), viewportSize()));
+        if (!viewMoved) setView(fitTree());
     }, 300); // after the header has finished shrinking (style.css)
 }
 addEventListener("scroll", onFirstScroll, { passive: true });
@@ -1064,7 +1063,7 @@ pageLeft.addEventListener("scroll", onFirstScroll, { passive: true });
 onFirstScroll(); // a reload can start part-way down the page
 
 // switching between one and two columns changes the tree window's size a lot: fit the tree again
-splitView.addEventListener("change", () => setView(fitView(treeSize(), viewportSize())));
+splitView.addEventListener("change", () => setView(fitTree()));
 $("goal").addEventListener("blur", () => showPicksGoal(goalCost(tree(), state.want, state.own)));
 $("device").addEventListener("change", (event) => setDevice(event.target.value));
 $("use-picks").addEventListener("click", () => {

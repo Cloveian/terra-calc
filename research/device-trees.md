@@ -48,7 +48,7 @@ Source: the game's `/device-upgrades` data (captured 9 Oct 2026, Prep 2). Prices
 
 - Base laptop: 8GB RAM, 500GB SSD, 4 USB cards. Maxed: 48GB RAM, 2TB SSD.
 - A Fancy card **replaces** one of your 4 cards. For a 5th card (fancy or not), buy a USB card first.
-- The stylus doesn't work on the 13.
+- The stylus only works on the 12 (the "fw 13 pro" in its text was never added as an upgrade, miggy 10 Oct).
 
 ### Incremental costs
 
@@ -101,20 +101,20 @@ There's no true "everything maxed" anymore: USB cards have no limit, and each on
 - RAM, SSD, and expansion cards carry over to the 13
 - Skipping the extra USB card (Fancy ×4 only, i.e. just your 4 slots upgraded) takes 100 off: **10600** / **13750**
 
-**Hours/week needed** (same multiplier every week, from Prep 2: 4 coins, 13 plots, 3 apple seeds). Uses the rules confirmed by the dev on 10 Oct: rent crops pay 20 × m, plots cost `min(1 + n, 10)`, apple seeds expire weekly. See [how-terra-works.md](how-terra-works.md#10-the-calculators-model). **Apples-only baseline**: new seeds are coming (dev, 10 Oct), and one that earns more than `30m − 5` per crop can only lower these numbers. Not recomputed until the numbers are known.
+**Hours/week needed** (same multiplier every week, from Prep 2: 4 coins, 13 plots, 3 apple seeds). Uses the rules confirmed by the dev on 10 Oct: the week's rent pays 20 × m in total (all 10 crops together), plots cost `min(1 + n, 10)`, apple seeds expire weekly. See [how-terra-works.md](how-terra-works.md#10-the-calculators-model). **Apples-only baseline**: new seeds are coming (dev, 10 Oct), and one that earns more than `30m − 5` per crop can only lower these numbers. Not recomputed until the numbers are known.
 
 | $m$ | Max 12 | Max 13 | Max 13, no extra USB | FW13 path (3050) |
 | --- | --- | --- | --- | --- |
-| 0.8 | not possible | not possible | not possible | 13 |
-| 0.9 | 40 | not possible | not possible | 12 |
-| 1.0 | 35 | not possible (5 short) | 45 | 11 |
-| 1.1 | 31 | 40 | 40 | 10 |
-| 1.2 | 28 | 36 | 36 | 10 |
-| 1.3 | 26 | 33 | 33 | 10 |
-| 1.4 | 24 | 31 | 31 | 10 |
-| 1.5 | 23 | 29 | 29 | 10 |
+| 0.8 | not possible | not possible | not possible | 20 |
+| 0.9 | not possible | not possible | not possible | 19 |
+| 1.0 | 42 | not possible (2165 short) | not possible | 17 |
+| 1.1 | 38 | not possible | not possible | 16 |
+| 1.2 | 35 | 43 | 43 | 16 |
+| 1.3 | 33 | 40 | 40 | 15 |
+| 1.4 | 31 | 37 | 37 | 14 |
+| 1.5 | 29 | 35 | 35 | 14 |
 
-Best possible at 45 h every week, $m = 1$: **13845** coins, so Max 13 misses by 5 coins at $m = 1$ but works if you skip the extra USB card. Just the 10 h minimum every main week still ends around 2900 coins.
+Best possible at 45 h every week, $m = 1$: **11685** coins, so Max 13 is out of reach at $m = 1$ (2165 short) even if you skip the extra USB card; it needs $m \ge 1.2$. Just the 10 h minimum every main week ends around 750 coins.
 
 ## Samsung Tablet
 

@@ -155,7 +155,9 @@ form > fieldset > legend {
     width: 100%;
     font-size: 1.35rem;
     color: var(--outline);
-    margin-bottom: 0.3rem;
+    border-bottom: 1px solid var(--line); /* like the Goal / Your plan headers */
+    padding-bottom: 0.4rem;
+    margin-bottom: var(--pico-spacing);
 }
 
 form > fieldset > legend + * {
@@ -202,6 +204,7 @@ fieldset {
 /* inputs: as many per row as fit (Pico's .grid goes to one per row on phones, which gets very tall) */
 form .grid {
     grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    align-items: end; /* a label that wraps to two lines doesn't push its input out of line */
 }
 
 label {
@@ -328,7 +331,7 @@ button {
 
 .tree-lines path {
     fill: none;
-    stroke: var(--line);
+    stroke: color-mix(in srgb, var(--ink-muted) 40%, var(--line));
     stroke-width: 3;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -482,6 +485,41 @@ button {
     margin-bottom: 0.25rem;
 }
 
+/* indented under what it needs first (ui.js sets --depth) */
+.milestone-items li > :first-child {
+    padding-left: calc(var(--depth, 0) * 1.5rem);
+}
+
+/* phones: name and arrows on one row, the cost under the name (indented the same) */
+@media (max-width: 575px) {
+    ol.milestone-items li { /* "ol": beats the touch-screen columns further down */
+        grid-template-columns: 1fr auto;
+        gap: 0 0.5rem;
+    }
+
+    .milestone-items li > .priority {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .milestone-items li > .milestone-cost {
+        grid-column: 1;
+        grid-row: 2;
+        text-align: left;
+        font-size: 0.85rem;
+        padding-left: calc(var(--depth, 0) * 1.5rem);
+    }
+
+    /* the cost column's label has no column to sit over */
+    li.milestone-head {
+        grid-template-columns: 1fr auto;
+    }
+
+    .milestone-head span:nth-child(2) {
+        display: none;
+    }
+}
+
 /* the column labels, over the cost and arrow columns */
 .milestone-head {
     font-size: 0.8rem;
@@ -507,6 +545,29 @@ button {
 .priority .icon {
     width: 0.8rem;
     height: 0.8rem;
+}
+
+/* touch screens: arrows big enough for a finger (and a wider column to fit them) */
+@media (pointer: coarse) {
+    .milestone-items li, .milestone-head {
+        grid-template-columns: 1fr auto 5.5rem;
+    }
+
+    .priority button {
+        padding: 0.4rem 0.6rem;
+    }
+
+    .priority .icon {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
+/* the headings inside "Your plan": sub-headings, like "Upgrades" in the Goal panel */
+#result h2 {
+    font-size: 1.15rem;
+    color: var(--ink-muted);
+    margin: var(--pico-spacing) 0 0.2rem;
 }
 
 .milestone-cost {
@@ -538,11 +599,22 @@ button {
 }
 
 .error-art {
-    font-size: 3rem;
+    font-size: 2.2rem;
+    line-height: 1;
 }
 
+#errors ul {
+    padding-left: 1rem;
+}
+
+#errors li {
+    list-style: "✗  ";
+}
+
+/* quieter than the plan above it */
 .page-footer {
     color: var(--ink-muted);
+    font-size: 0.9rem;
 }
 
 /* ---- hand-drawn icons (assets/icons) ----
@@ -1070,6 +1142,10 @@ input[type="number"]::-webkit-outer-spin-button {
     --sketch-color: transparent;
 }
 
+.number-buttons button:disabled {
+    opacity: 0.4;
+}
+
 .number-buttons button:hover {
     background: var(--accent-soft);
     color: var(--outline);
@@ -1412,6 +1488,11 @@ body.resizing {
 }
 
 /* ---- usability bits ---- */
+
+/* Clear isn't a preset: it goes at the far end of the toolbar */
+.preset-clear {
+    margin-left: auto !important;
+}
 
 /* "Quick picks:" in front of the preset buttons */
 .presets-label {

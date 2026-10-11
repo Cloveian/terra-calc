@@ -20,7 +20,7 @@ Prices are numbers the server sends. They can change at any time, and the Cidery
 
 1. You code. Coding time (tracked by Hackatime) becomes **water**.
 2. **1 water + 1 seed + 1 dirt plot = 1 crop.**
-3. In the main weeks, the first 10 crops each week are **rent** for Ratticus (they still pay 20 coins each). Miss too much rent and you're out.
+3. In the main weeks, the first 10 crops each week are **rent** for Ratticus (they still pay 20 coins × m, for all 10 together). Miss too much rent and you're out.
 4. Every other crop is **sold** to the market for **coins**.
 5. Coins buy more **seeds and plots** (so you can grow more next time) and **upgrades** for your laptop/tablet in the Cidery.
 6. Survive all 12 main weeks and you get the device, plus whatever upgrades you bought.
@@ -104,7 +104,7 @@ $$\text{plotCost}(w, n) = \sum_{p=n}^{w-1} \min(p - 9,\ 10)$$
 ## 5. Rent and debt (how you get knocked out)
 
 - **Main weeks:** the first **10 crops** you plant each week are rent.
-- **Rent crops pay 20 coins × multiplier each** when you turn them in (so up to 200 × m a week). **[dev]** The FAQ says they earn nothing; the dev confirmed the FAQ is wrong. The "Rent paid" receipt shows these coins. **[code]**
+- **The week's rent pays 20 coins × multiplier in total** (all 10 crops together, so 2 × m a crop) when you turn it in. **[dev]** The FAQ says rent earns nothing; the dev confirmed the FAQ is wrong. Asked "is the rent 20 total coins or 20*10?", miggy said "20 * multiplier", meaning the weekly total (10 Oct). My earlier reading (20 each, 200 × m a week) was a misunderstanding. The "Rent paid" receipt shows these coins. **[code]**
 - **Prep weeks:** no rent, every crop can be sold. **[faq]**
 - Crops are held back for their week's rent ("N carrots from Week X are saved for its rent"). Only leftovers can be sold once that rent is paid. **[code]**
 
@@ -136,7 +136,7 @@ $$\text{plotCost}(w, n) = \sum_{p=n}^{w-1} \min(p - 9,\ 10)$$
 Coins from a week (apples only, the version with any seed list is in §10):
 
 - **Prep:** `m × (25 × min(w, 10) + 30 × k)`
-- **Main:** `m × (20 × 10 + 30 × k)` (the 10 rent carrots pay 20 each)
+- **Main:** `m × (20 + 30 × k)` (the 10 rent carrots pay 20 in total)
 
 where `k = max(0, w − 10)` = apples grown.
 
@@ -218,7 +218,7 @@ Device description: *"The most basic of fw12's"*
 | 2.8K Display | "can you call it a macbook if they rounded the corners?" |
 
 **What the notes tell us**
-- **The stylus doesn't work on the Framework 13.** The game says so itself, so leaving it out of Max 13 is right.
+- **The stylus only works on the Framework 12.** The game's text says "not on the fw 13 pro", but there is no 13 Pro upgrade (it was planned, never added: miggy, 10 Oct). The 13 the game does have doesn't take the stylus either, so leaving it out of Max 13 is right.
 - **The base laptop has 8GB RAM, 500GB SSD and 4 USB cards.** Maxed out it's 48GB RAM and 2TB SSD.
 - **Why the Fancy card limit is "4 + USB cards":** a Fancy card *replaces* one of your 4 cards. Want more than 4 Fancy? Buy an extra USB card first, then upgrade that one too. So "USB ×1 + Fancy ×4" (the Max presets) means 5 cards: 4 fancy and 1 plain extra. If you only want your 4 slots upgraded, Fancy ×4 alone (400) is enough. That saves 100 off each preset.
 
@@ -305,7 +305,7 @@ Inputs: coins `B`, plots `n`, apple seeds on hand `a`, hours `w`, multiplier `m`
 
 $$k = \max(0,\ w - 10)$$
 $$C = 5\max(0,\ k - a) + \text{plotCost}(w, n)$$
-$$S = \begin{cases} m\left(25 \cdot \min(w, 10) + 30k\right) & \text{prep week} \\ m\left(20 \cdot 10 + 30k\right) & \text{main week} \end{cases}$$
+$$S = \begin{cases} m\left(25 \cdot \min(w, 10) + 30k\right) & \text{prep week} \\ m\left(20 + 30k\right) & \text{main week} \end{cases}$$
 $$B \leftarrow B - C + S \qquad n \leftarrow \max(n, w) \qquad a \leftarrow 0$$
 
 (`a` resets to 0 because apple seeds expire at the end of the week.)
@@ -324,7 +324,7 @@ New seeds are coming **[dev]** (10 Oct), numbers unknown. This is the one-week m
 
 $$p_i = m s_i - b_i$$
 
-more coins than you started with. Apple: $p = 30m - 5$. The free carrots are $b = 0$, $s = 25$ (20 as rent), 10 a week.
+more coins than you started with. Apple: $p = 30m - 5$. The free carrots are $b = 0$, $s = 25$ (as rent, all 10 together pay 20), 10 a week.
 
 | Seed | $b_i$ | $s_i$ | $p_i$ at $m = 1$ | Water per crop | Weeks to grow | Stock per week | Which weeks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -346,7 +346,7 @@ Seeds are bought with this week's coins and sales only come in after the ship is
 
 $$C = \text{plotCost}(w, n) + \sum_i b_i x_i$$
 
-$$S = \begin{cases} m\left(25 \cdot \min(w, 10) + \sum_i s_i x_i\right) & \text{prep week} \\ m\left(20 \cdot 10 + \sum_i s_i x_i\right) & \text{main week} \end{cases}$$
+$$S = \begin{cases} m\left(25 \cdot \min(w, 10) + \sum_i s_i x_i\right) & \text{prep week} \\ m\left(20 + \sum_i s_i x_i\right) & \text{main week} \end{cases}$$
 
 $$B \leftarrow B - C + S \qquad n \leftarrow \max(n, w) \qquad a_i \leftarrow 0$$
 
@@ -391,7 +391,7 @@ $b_{min}$ = cheapest buyable seed (5 while that's apples), $a_i$ = seeds of type
 - *Takes more than a week to grow.* Coins arrive $g_i - 1$ weeks later, so the week's $S$ splits into "now" and "later" and the state needs a queue of pending sales. The plot stays occupied, so next week has fewer free plots. The crop keeps the multiplier of the week it was planted **[dev]**, which already fits. Whether the planted crop survives the week end (seeds don't) is **[unknown]**. Needs: `weeks` per seed, plus `pending: [{ week, coins }]` and `busyPlots` in the state.
 - *Only in some weeks.* Items carry `weekNumber` / `usableUntil` and are hidden outside them **[code]**. The seed list becomes a function of $t$: in week $t$ only seeds with $\text{from}_i \le t \le \text{until}_i$ are buyable, so $b_{min}$, the best $p_i$ and $w_{max}$ can differ week to week. Needs: `from` / `until` per seed (in `t`), default "always".
 
-**Rent.** The 10 rent crops are the 10 free carrots. Whether a new crop can pay rent, and what it'd pay, is **[unknown]**. Until then, rent = 10 carrots at 20 × m and new seeds only go in the extra hours. One side effect of the general model: in prep weeks nothing forces carrots into the first 10 hours, and at $m > 1$ an apple ($30m - 5$) already beats a free carrot ($25m$) by $5m - 5$ a crop, at most 25 coins a week. The calculator keeps carrots first. If a new seed has $p_i$ far above $25m$, that choice is worth revisiting (see the design spec).
+**Rent.** The 10 rent crops are the 10 free carrots. Whether a new crop can pay rent, and what it'd pay, is **[unknown]**. Until then, rent = 10 carrots paying 20 × m in total and new seeds only go in the extra hours. One side effect of the general model: in prep weeks nothing forces carrots into the first 10 hours, and at $m > 1$ an apple ($30m - 5$) already beats a free carrot ($25m$) by $5m - 5$ a crop, at most 25 coins a week. The calculator keeps carrots first. If a new seed has $p_i$ far above $25m$, that choice is worth revisiting (see the design spec).
 
 **Effort estimate.** `nodeHours(coins, m) = coins / (30m − 5)` becomes
 
@@ -399,7 +399,7 @@ $$\text{nodeHours}(coins, m) = \frac{coins}{\max_i p_i(m)}$$
 
 over the seeds buyable that week. It's rough either way: ignores plots, the budget cap and rent pay.
 
-**Numbers in this doc.** Every table (hours per goal at each $m$, 13845 best possible at 45 h, 2904 at the 10 h minimum, 1250 × m per full main week) is the **apples-only baseline**. A new seed with $p_i > 30m - 5$ can only lower the hours needed; a new seed with $p_i \le 30m - 5$ changes nothing. They're not recomputed until real numbers exist.
+**Numbers in this doc.** Every table (hours per goal at each $m$, 11685 best possible at 45 h, 744 at the 10 h minimum, 1070 × m per full main week) is the **apples-only baseline**. A new seed with $p_i > 30m - 5$ can only lower the hours needed; a new seed with $p_i \le 30m - 5$ changes nothing. They're not recomputed until real numbers exist.
 
 ### What it means with the real prices (apples-only baseline)
 
@@ -407,19 +407,19 @@ Starting from Prep 2 (4 coins, 13 plots, 3 apple seeds), same multiplier every w
 
 | Goal | Coins | m = 0.8 | m = 1.0 | m = 1.2 | m = 1.5 |
 | --- | --- | --- | --- | --- | --- |
-| Framework 13 path (DIY → … → FW13) | 3050 | 13 h | 11 h | 10 h | 10 h |
-| Galaxy, everything | 4400 | 19 h | 15 h | 13 h | 11 h |
-| iPad, everything | 7350 | 31 h | 24 h | 20 h | 16 h |
-| Max 12 (all FW12 nodes, USB ×1, Fancy ×4) | 10700 | no | 35 h | 28 h | 23 h |
-| Max 13, no extra USB (Fancy ×4 only) | 13750 | no | 45 h | 36 h | 29 h |
-| Max 13 (Max 12 − stylus + FW13, 2.8K, Ryzen) | 13850 | no | no (5 coins short at 45 h) | 36 h | 29 h |
+| Framework 13 path (DIY → … → FW13) | 3050 | 20 h | 17 h | 16 h | 14 h |
+| Galaxy, everything | 4400 | 26 h | 22 h | 19 h | 17 h |
+| iPad, everything | 7350 | 39 h | 31 h | 27 h | 22 h |
+| Max 12 (all FW12 nodes, USB ×1, Fancy ×4) | 10700 | no | 42 h | 35 h | 29 h |
+| Max 13, no extra USB (Fancy ×4 only) | 13750 | no | no | 43 h | 35 h |
+| Max 13 (Max 12 − stylus + FW13, 2.8K, Ryzen) | 13850 | no | no (2165 coins short at 45 h) | 43 h | 35 h |
 
-The most coins possible at 45 h every week, m = 1, is **13845**. Doing only the 10 h minimum in main weeks ends with about **2904** coins (rent pay alone is 200 × 12 = 2400).
+The most coins possible at 45 h every week, m = 1, is **11685**. Doing only the 10 h minimum in main weeks ends with about **744** coins (rent pay alone is 20 × 12 = 240, the rest is the two prep weeks).
 
 ### Plots are the only thing that compounds
 
 - Coins → more plots → more hours you can use → more coins. Plots are cheap now (305 for all of them), so you hit 45 plots in **Week 1** at full hours.
-- After that, every 45 h main week is a flat `(200 + 1050) × m = 1250 × m` coins (apples only; a better seed raises the 1050).
+- After that, every 45 h main week is a flat `(20 + 1050) × m = 1070 × m` coins (apples only; a better seed raises the 1050).
 - A crop gets the multiplier of the week it's planted in, so a high multiplier matters in the weeks you plant the most: every main week at 45 h counts the same.
 
 ---
@@ -436,5 +436,5 @@ Answered by the dev on 10 Oct: shop stock (not limited), seed expiry (end of wee
 | New seeds: buy price, sell price | $p_i = m s_i - b_i$, the whole §10 mix | Shop + market once they're released |
 | New seeds: water per crop, weeks to grow | Whether the simple case holds (hours = crops, coins same week) | Plant one and watch |
 | New seeds: stock per week, which weeks | Caps on $x_i$, seed list per week (`weekNumber`, `usableUntil`) | Shop tab over a few days / weeks |
-| Can other crops pay rent, and what do they pay | The `20 × 10` rent term | Try it in Week 1, or ask |
+| Can other crops pay rent, and what do they pay | The `20 × m` rent term | Try it in Week 1, or ask |
 | Re-check all prices when Week 1 starts (19 Oct) | Dev: small adjustments possible before then | `/device-upgrades` + shop on 19 Oct, update `data.js` and `PRICES_AS_OF` |

@@ -150,7 +150,7 @@ simulateWeek(state, w, m, prep) → newState
 ```
 k = max(0, w - 10)
 C = weekCost(w, n, a)
-S = m * ((prep ? 25 * min(w, 10) : 200) + 30k)   // rent carrots pay 20 each
+S = m * ((prep ? 25 * min(w, 10) : 20) + 30k)    // the week's rent pays 20 in total (RENT_PAY)
 coins ← coins - C + S
 plots ← max(plots, w)
 seeds ← 0                // apple seeds expire at the end of the week
@@ -196,7 +196,7 @@ k = max(0, w − 10)
 plots = plotCost(w, n)
 mix = seedMix(k, coins − plots, m, onHand, seeds)
 C = plots + mix.cost
-S = m * ((prep ? 25 * min(w, 10) : 200) + mix.sales)
+S = m * ((prep ? 25 * min(w, 10) : 20) + mix.sales)
 coins ← coins − C + S
 plots ← max(plots, w)
 seeds ← {}               // all seeds expire at the end of the week (dev)
@@ -269,11 +269,11 @@ If these pass, the code matches the math.
 | `goalCost` | Galaxy, everything | 4400 |
 | `withPrereqs` | `{ ryzen: 1 }` | adds fw13, core5, i5, core3, diy |
 | `withPrereqs` | iPad `{ keyboard: 1 }` | adds folio, air11 |
-| `hoursNeeded` | Prep 2 state, goal 3050, m=1 | cap 11 |
-| `hoursNeeded` | Prep 2 state, goal 10700, m=1 | cap 35 |
-| `hoursNeeded` | Prep 2 state, goal 13850, m=1 | null (5 coins short at 45 h) |
-| `hoursNeeded` | Prep 2 state, goal 13850, m=1.5 | cap 29 |
-| `simulateRoute` | Prep 3, B=344, n=13, cap 45, m=1 | ends at 13845 |
+| `hoursNeeded` | Prep 2 state, goal 3050, m=1 | cap 17 |
+| `hoursNeeded` | Prep 2 state, goal 10700, m=1 | cap 42 |
+| `hoursNeeded` | Prep 2 state, goal 13850, m=1 | null (best at 45 h is 11685) |
+| `hoursNeeded` | Prep 2 state, goal 13850, m=1.5 | cap 35 |
+| `simulateRoute` | Prep 3, B=344, n=13, cap 45, m=1 | ends at 11685 |
 
 "Prep 2 state" = `{ coins: 4, plots: 13, seeds: 3 }` at `t = 1`.
 
