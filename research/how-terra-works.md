@@ -46,7 +46,7 @@ Weeks run **Monday 00:00 → Sunday 23:59:59, US Eastern time** (`America/New_Yo
 - Prep weeks are optional, for building up coins. All 12 main weeks are required. **[faq]**
 - `t = floor((date_ET − 2026-09-28) / 7 days)`. `t < 0` = not started, `t > 14` = over.
 - The server has its own week numbers (Prep 2 is `number: 7`). Don't use those as `t`. **[server]**
-- **Grace water:** water left over from last week can still go on *last week's* crops until a server-set time ("+N last week" in the purse). That's the "wiggle day". It can't be used on the new week's crops. **[code]** How long it lasts is **[unknown]** (notes say ~1 day).
+- **Grace water:** water left over from last week can still go on *last week's* crops until a server-set time ("+N last week" in the purse). That's the "wiggle day". It can't be used on the new week's crops. **[code]** It lasts **until the end of Monday**: you can still devlog, ship, and use last week's water then, and unwatered crops die at the end of Monday. **[faq]** (the #terra-help FAQ)
 
 ---
 
@@ -431,7 +431,6 @@ Answered by the dev on 10 Oct: shop stock (not limited), seed expiry (end of wee
 | Thing | Why it matters | How to find out |
 | --- | --- | --- |
 | Multiplier rounding | Coin totals at m ≠ 1 | Sell crops and compare `unitPriceCoins` to base |
-| How long grace water lasts | Planning around the wiggle day | Watch the purse after a week ends |
 | Prices outside your country | Calculator defaults for other people | Make tree costs editable |
 | New seeds: buy price, sell price | $p_i = m s_i - b_i$, the whole §10 mix | Shop + market once they're released |
 | New seeds: water per crop, weeks to grow | Whether the simple case holds (hours = crops, coins same week) | Plant one and watch |
