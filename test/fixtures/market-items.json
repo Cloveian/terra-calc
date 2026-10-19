@@ -1,0 +1,29 @@
+{
+  "items": [
+    {
+      "itemId": "item-apple",
+      "itemName": "Apple",
+      "quantity": 12,
+      "unitPriceCoins": 36,
+      "baseUnitCoins": 30,
+      "expiresAt": null,
+      "sprite": ""
+    },
+    {
+      "itemId": "item-carrot",
+      "itemName": "Carrot",
+      "quantity": 10,
+      "unitPriceCoins": 30,
+      "baseUnitCoins": 25,
+      "expiresAt": null,
+      "sprite": ""
+    }
+  ],
+  "locked": [
+    {
+      "quantity": 10,
+      "itemName": "Carrot",
+      "weekLabel": "Week 1"
+    }
+  ]
+}

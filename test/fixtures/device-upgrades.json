@@ -1,0 +1,312 @@
+{
+  "devices": [
+    {
+      "id": "framework_12",
+      "title": "Framework 12",
+      "description": "",
+      "category": "Laptop",
+      "root": {
+        "x": -20,
+        "y": 180
+      },
+      "nodes": [
+        {
+          "id": "stylus_12",
+          "title": "Framework Stylus",
+          "description": "",
+          "price": 500,
+          "x": -230,
+          "y": 385
+        },
+        {
+          "id": "expansion_card_12",
+          "title": "USB Expansion Card",
+          "description": "",
+          "price": 100,
+          "maxPurchases": null,
+          "x": 55,
+          "y": 420
+        },
+        {
+          "id": "fancy_expansion_card_12",
+          "title": "Fancy Expansion Card",
+          "description": "",
+          "price": 100,
+          "dynamicMaxPurchases": {
+            "baseNodeId": "expansion_card_12",
+            "plus": 4
+          },
+          "x": 195,
+          "y": 355
+        },
+        {
+          "id": "framework_12_diy",
+          "title": "Framework 12 DIY Edition",
+          "description": "",
+          "price": 250,
+          "x": -20,
+          "y": -165
+        },
+        {
+          "id": "ram_12",
+          "title": "RAM",
+          "description": "",
+          "price": 750,
+          "requires": [
+            "framework_12_diy"
+          ],
+          "tiers": [
+            {
+              "title": "RAM",
+              "description": "(16 GB total)",
+              "price": 750
+            },
+            {
+              "title": "RAM",
+              "description": "(32 GB total)",
+              "price": 1300
+            },
+            {
+              "title": "RAM",
+              "description": "(48 GB total)",
+              "price": 2100
+            }
+          ],
+          "x": -315,
+          "y": -170
+        },
+        {
+          "id": "ssd_12",
+          "title": "SSD",
+          "description": "",
+          "price": 1000,
+          "requires": [
+            "framework_12_diy"
+          ],
+          "tiers": [
+            {
+              "title": "SSD",
+              "description": "(1 TB total)",
+              "price": 1000
+            },
+            {
+              "title": "SSD",
+              "description": "(2 TB total)",
+              "price": 2000
+            }
+          ],
+          "x": 280,
+          "y": -190
+        },
+        {
+          "id": "cpu_12",
+          "title": "Core 3 304",
+          "description": "",
+          "price": 400,
+          "requires": [
+            "framework_12_diy"
+          ],
+          "x": -55,
+          "y": -405
+        },
+        {
+          "id": "cpu_i5_1334u",
+          "title": "i5-1334U",
+          "description": "",
+          "price": 400,
+          "requires": [
+            "cpu_12"
+          ],
+          "x": -335,
+          "y": -565
+        },
+        {
+          "id": "cpu_core5_320",
+          "title": "Core 5 320",
+          "description": "",
+          "price": 1500,
+          "requires": [
+            "cpu_i5_1334u"
+          ],
+          "x": -360,
+          "y": -770
+        },
+        {
+          "id": "framework_13_upgrade",
+          "title": "Framework 13",
+          "description": "",
+          "price": 500,
+          "requires": [
+            "cpu_core5_320"
+          ],
+          "x": 100,
+          "y": -890
+        },
+        {
+          "id": "display_2k8_12",
+          "title": "2.8K Display",
+          "description": "",
+          "price": 900,
+          "requires": [
+            "framework_13_upgrade"
+          ],
+          "x": -150,
+          "y": -945
+        },
+        {
+          "id": "cpu_ryzen_ai7_350",
+          "title": "Ryzen AI 7 350",
+          "description": "",
+          "price": 2250,
+          "requires": [
+            "framework_13_upgrade"
+          ],
+          "x": 305,
+          "y": -605
+        }
+      ]
+    },
+    {
+      "id": "ipad_mini",
+      "title": "iPad Mini",
+      "description": "",
+      "category": "Tablet",
+      "root": {
+        "x": 5,
+        "y": 245
+      },
+      "nodes": [
+        {
+          "id": "apple_pencil",
+          "title": "Apple Pencil",
+          "description": "",
+          "price": 750,
+          "x": -265,
+          "y": -215
+        },
+        {
+          "id": "ipad_air_11",
+          "title": "iPad Air 11",
+          "description": "",
+          "price": 400,
+          "x": -65,
+          "y": -50
+        },
+        {
+          "id": "smart_folio",
+          "title": "Smart Folio",
+          "description": "",
+          "price": 600,
+          "x": 300,
+          "y": 5
+        },
+        {
+          "id": "apple_pencil_pro",
+          "title": "Apple Pencil Pro",
+          "description": "",
+          "price": 400,
+          "requires": [
+            "apple_pencil"
+          ],
+          "x": -450,
+          "y": -690
+        },
+        {
+          "id": "ipad_air_13",
+          "title": "iPad Air 13",
+          "description": "",
+          "price": 1600,
+          "requires": [
+            "ipad_air_11"
+          ],
+          "x": 50,
+          "y": -430
+        },
+        {
+          "id": "ipad_pro_11",
+          "title": "iPad Pro 11",
+          "description": "",
+          "price": 2000,
+          "requires": [
+            "ipad_air_13"
+          ],
+          "x": -105,
+          "y": -820
+        },
+        {
+          "id": "magic_keyboard_folio",
+          "title": "Magic Keyboard Folio",
+          "description": "",
+          "price": 1600,
+          "requires": [
+            "smart_folio",
+            "ipad_air_11"
+          ],
+          "x": 445,
+          "y": -200
+        }
+      ]
+    },
+    {
+      "id": "galaxy_tab_s10_fe",
+      "title": "Galaxy Tab S10 FE+",
+      "description": "",
+      "category": "Tablet",
+      "root": {
+        "x": 10,
+        "y": 255
+      },
+      "nodes": [
+        {
+          "id": "galaxy_tab_s11",
+          "title": "Galaxy Tab S11",
+          "description": "",
+          "price": 2400,
+          "x": 50,
+          "y": -430
+        },
+        {
+          "id": "smart_book_cover",
+          "title": "Smart Book Cover",
+          "description": "",
+          "price": 800,
+          "x": -250,
+          "y": -220
+        },
+        {
+          "id": "galaxy_tab_s10_plus",
+          "title": "Galaxy Tab S10+",
+          "description": "",
+          "price": 800,
+          "requires": [
+            "galaxy_tab_s11"
+          ],
+          "x": -105,
+          "y": -825
+        },
+        {
+          "id": "book_cover_keyboard",
+          "title": "Book Cover Keyboard Slim",
+          "description": "",
+          "price": 400,
+          "requires": [
+            "smart_book_cover"
+          ],
+          "x": -455,
+          "y": -690
+        }
+      ]
+    }
+  ],
+  "mainDevice": "framework_12",
+  "owned": {
+    "framework_12_diy": 1
+  },
+  "purchases": [],
+  "coins": 4,
+  "address": {
+    "linked": false,
+    "country": "US",
+    "supportedRegion": true
+  }
+}

@@ -1,7 +1,5 @@
 .obsidian
-# Downloaded Terra game files and HAR captures (third-party code, personal data/tokens)
 research/terra-js/
 *.har
-
-# screenshots from browser testing
 .playwright-mcp/
+.claude/
