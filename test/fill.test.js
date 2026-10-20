@@ -200,7 +200,7 @@ test("shopProblems: nothing when the shop matches the model", () => {
 
 test("shopProblems: says what changed", () => {
     assert.deepEqual(shopProblems(shopFrom(stock(5, 6)), 12), [
-        "apple seeds cost 6 now, the plan thinks 5",
-        "the next plot costs 5, the plan thinks 3 at 12 plots",
+        { kind: "apple", text: "apple seeds cost 6 now, the plan thinks 5" },
+        { kind: "plot", text: "the next plot costs 5, the plan thinks 3 at 12 plots" },
     ]);
 });

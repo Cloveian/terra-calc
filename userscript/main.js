@@ -59,7 +59,8 @@ onGameMessage(IN.hours, (body) => {
 });
 
 onGameMessage(IN.shopStock, (body) => {
-    game.shop = shopFrom(body) ?? game.shop;
+    const shop = shopFrom(body);
+    if (shop) game.shop = { ...shop, seenAt: Date.now() };
     checkShop();
     drawPanel(plan());
 });
@@ -131,11 +132,20 @@ function readFarm() {
     drawPanel(plan());
 }
 
-// shop prices vs model, again on every new plot count
+// shop prices vs model, again on every new plot count. notice for apples only, off plot price just as likley old farm so logged only
 function checkShop() {
     const problems = shopProblems(game.shop, game.farm?.plots ?? null);
     if (problems.length > 0) debug("shop doesn't match the plan", problems);
-    for (const problem of problems) showNotice(`Terra's prices changed: ${problem}. The plan's off till Terra Calc catches up.`);
+    for (const { kind, text } of problems) {
+        if(kind === "apple") showNotice(`Terra's prices changed: ${text}. The plan's off till Terra Calc catches up.`);
+    }
+}
+
+// farm or shop, whichever seen last. shop only knows under 19
+function plotsNow() {
+    const { farm, shop } = game;
+    if (shop?.plots != null && !(farm?.seenAt > shop.seenAt)) return shop.plots;
+    return farm?.plots ?? null;
 }
 
 // saved with owner id, other acounts on this browser get nothing
@@ -163,7 +173,7 @@ function plan() {
         trees: treesFrom(game.deviceUpgrades),
         owned: ownedFrom(game.deviceUpgrades),
         t: weekFrom(game.currentWeek),
-        inventory: inventory && { ...inventory, plots: game.farm?.plots ?? game.shop?.plots ?? null },
+        inventory: inventory && { ...inventory, plots: plotsNow() },
         m: multiplyerFrom(game.marketItems),
         farm: game.farm,
         stuck: game.farm && stuckFrom(game.farm, game.hours?.weekKey),

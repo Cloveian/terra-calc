@@ -142,15 +142,17 @@ export function shopFrom(shopStock) {
     };
 }
 
-// shop vs model mismatchs. terra price change = plan wrong till data.js catches up, main.js shows notice
+// shop vs model mismatchs. terra price change = plan wrong till data.js catches up. plot one might just be old plot count (bought since farm visit or not placed yet), cant tell wich
 export function shopProblems(shop, plots) {
     const problems = [];
     if (shop?.applePrice != null && shop.applePrice !== CROPS.apple.buy) {
-        problems.push(`apple seeds cost ${shop.applePrice} now, the plan thinks ${CROPS.apple.buy}`);
+        problems.push({ kind: "apple", text: `apple seeds cost ${shop.applePrice} now, the plan thinks ${CROPS.apple.buy}` });
     }
     if (shop?.plotPrice != null && plots != null) {
         const expected = plotCost(plots + 1, plots);
-        if(shop.plotPrice !== expected) problems.push(`the next plot costs ${shop.plotPrice}, the plan thinks ${expected} at ${plots} plots`);
+        if (shop.plotPrice !== expected) {
+            problems.push({ kind: "plot", text: `the next plot costs ${shop.plotPrice}, the plan thinks ${expected} at ${plots} plots` });
+        }
     }
     return problems;
 }
