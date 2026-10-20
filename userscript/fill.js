@@ -1,24 +1,56 @@
 // game messages into terra calc shapes. null = couldnt tell
+import { PREP_WEEKS } from "../src/data.js";
+import { withoutZeros } from "../src/tree.js";
 
-// GET /device-upgrades -> { [deviceId]: tree } in TREES shape:
-//   title -> name, price/tiers -> cost or tiers: [price...], tier "(16GB total)" -> totals,
-//   maxPurchases null -> limit null, dynamicMaxPurchases { baseNodeId, plus } -> limit { base: plus, per: baseNodeId },
-//   no requires -> [], x/y + device root copied
-// TODO totals need both "16GB" and "16 GB" (fixture has spaced one)
-// totals[0] (none bought) missing from response, maybe in device description
+// GET /device-upgrades -> trees like TREES
+// totals[0] (none bought) not in response so null, site fills it from data.js
+// TODO: real tiered nodes titled per tier ("+8GB RAM") so name has the amount in it
 export function treesFrom(deviceUpgrades) {
-    return null;
+    if (!Array.isArray(deviceUpgrades?.devices)) return null;
+    const trees = {};
+    for (const d of deviceUpgrades.devices) {
+        trees[d.id] = { device: d.title, root: d.root, nodes: d.nodes.map(nodeFrom) };
+    }
+    return trees;
 }
 
-// GET /device-upgrades -> { device, own } for state.js (own = `owned` as is)
+function nodeFrom(n) {
+    const node = { id: n.id, name: n.title };
+    if (n.tiers?.length) {
+        node.tiers = n.tiers.map((tier) => tier.price);
+        const totals = n.tiers.map((tier) => totalIn(tier.description));
+        if (totals.every((total) => total !== null)) node.totals = [null, ...totals];
+    } else {
+        node.cost = n.price;
+    }
+    node.requires = n.requires ?? [];
+    // TODO numeric maxPurchases (none seen yet, limitOf has nowhere to put it)
+    if (n.maxPurchases === null) node.limit = null;
+    if (n.dynamicMaxPurchases) node.limit = { base: n.dynamicMaxPurchases.plus, per: n.dynamicMaxPurchases.baseNodeId };
+    node.x = n.x;
+    node.y = n.y;
+    return node;
+}
+
+// "... (16GB total)" -> "16 GB" spaced like data.js
+function totalIn(description) {
+    const match = /\(([^()]+?)\s*total\)\s*$/.exec(description ?? "");
+    return match ? match[1].replace(/(\d)\s*([A-Za-z])/, "$1 $2") : null;
+}
+
+// owned part of GET /device-upgrades for state.js
 // todo: check owned skips refunded ones (purchases list)
 export function ownedFrom(deviceUpgrades) {
-    return null;
+    if (typeof deviceUpgrades?.mainDevice !== "string" || !deviceUpgrades.owned) return null;
+    return { device: deviceUpgrades.mainDevice, own: withoutZeros(deviceUpgrades.owned) };
 }
 
-// GET /ysws/current-week -> t (0-2 prep, 3-14 main like week.js). prep 2 was number 7 so t = number - 6 if numbered in order. week 1 unchecked
+// GET /ysws/current-week -> t (0-2 prep, 3-14 main like week.js). by label, `number` past prep 2 unchecked
 export function weekFrom(currentWeek) {
-    return null;
+    const match = /^(Prep )?Week (\d+)$/.exec(currentWeek?.label ?? "");
+    if (!match) return null;
+    const n = Number(match[2]);
+    return match[1] ? n - 1 : PREP_WEEKS + n - 1;
 }
 
 // coins, plots and seeds from player.currency + inventory.sync
@@ -27,9 +59,12 @@ export function inventoryFrom(currency, inventory) {
     return null;
 }
 
-// this weeks multiplier off market.items (unitPriceCoins / baseUnitCoins), null if nothing to read. apple only for now (two crops can round dihfrent)
+// unit prices rounded, biggest base price (apples) least off
 export function multiplyerFrom(marketItems) {
-    return null;
+    const priced = (marketItems?.items ?? []).filter((item) => item.baseUnitCoins > 0);
+    if (priced.length === 0) return null;
+    const best = priced.reduce((a, b) => (b.baseUnitCoins > a.baseUnitCoins ? b : a));
+    return best.unitPriceCoins / best.baseUnitCoins;
 }
 
 // TODO: seedsFrom(shopStock) from bonus_seeds entries once data.js has SEEDS, plus plot prices from dirt_plots entries with a warning if they dont match plotCost

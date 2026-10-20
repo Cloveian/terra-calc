@@ -80,7 +80,7 @@ export function clampToLimits(tree, selection) {
     return result;
 }
 
-function withoutZeros(selection) {
+export function withoutZeros(selection) {
     return Object.fromEntries(Object.entries(selection).filter(([, qty]) => qty > 0));
 }
 
