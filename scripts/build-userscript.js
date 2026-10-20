@@ -47,10 +47,12 @@ function checkNames(files) {
 const files = collect(ENTRY);
 checkNames(files);
 const body = files.map(strip).join("\n");
-const out = `${readFileSync(META, "utf8")}\n(() => {\n"use strict";\n\n${body}\n})();\n`;
+// @version from package.json whatever meta.js says, one place to bump
+const { version } = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+const meta = readFileSync(META, "utf8").replace(/^(\/\/ @version\s+).*$/m, `$1${version}`);
+const out = `${meta}\n(() => {\n"use strict";\n\n${body}\n})();\n`;
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, out);
 console.log(`${relative(ROOT, OUT)}: ${files.length} files, ${(out.length / 1024).toFixed(1)} KB`);
 
-// TODO: package.json version into @version
 // not sure if dist/ gets committed (pages needs it for install link)

@@ -100,7 +100,6 @@ function dispatch(type, payload) {
 }
 
 // message frames only (ROOM_DATA byte then type and payload, both msgpack), null for anything else or bad decodes
-// TODO: check against chrome capture with WS messages (firefox doesnt save them in HARs). framing off = try game room.onMessage
 export function decodeFrame(data) {
     const bytes = asBytes(data);
     if (!bytes || bytes[0] !== ROOM_DATA) return null;
