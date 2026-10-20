@@ -1,5 +1,5 @@
 // userscript entry point
-import { REST, IN, KNOWN_BUILD } from "./endpoints.js";
+import { REST, IN } from "./endpoints.js";
 import { apiGet, liveBuild } from "./api.js";
 import { hookWebSocket, onGameMessage } from "./socket.js";
 import { loadSettings, saveSettings } from "./settings.js";
@@ -52,14 +52,8 @@ async function start() {
         console.warn("[terra-calc]", err);
         showNotice(`Couldn't read Terra (${err.message}), type the numbers in for now.`);
     }
-    try {
-        const build = await liveBuild();
-        debug("live build", build, build === KNOWN_BUILD ? "(known)" : `(last checked against ${KNOWN_BUILD})`);
-        if (build !== KNOWN_BUILD) {
-            showNotice("Terra has updated since Terra Calc was last checked, so some numbers might be off.");
-        }
-    } catch (err) {
-        debug("no live build", err); // no version.json, skip
+    if (settings.debug) {
+        liveBuild().then((build) => debug("live build", build), (err) => debug("no live build", err));
     }
 }
 

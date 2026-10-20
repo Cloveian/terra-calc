@@ -5,9 +5,6 @@ export const VERSION_URL = "https://terra.hackclub.com/version.json";
 export const GAME_HOST = "game.terra.hackclub.com";
 export const TOKEN_KEY = "terra_auth_token"; // in localStorage
 
-// last build checked against
-export const KNOWN_BUILD = "9ba8a7125ac0f415";
-
 export const REST = {
     deviceUpgrades: "/device-upgrades",
     buyUpgrade: "/device-upgrades/purchase", // POST { nodeId }

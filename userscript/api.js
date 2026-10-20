@@ -26,7 +26,7 @@ async function request(path, opts) {
     return body;
 }
 
-// for "Terra updated" notice
+// debug log only (changes every few hours, no use as an update signal)
 export async function liveBuild() {
     const res = await fetch(VERSION_URL, { cache: "no-store" });
     return (await res.json()).buildId;
