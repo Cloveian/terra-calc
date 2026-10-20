@@ -11,12 +11,12 @@ export const MAIN_WEEKS = 12;
 export const MAX_PLOTS = 45;
 export const FREE_PLOTS = 10;
 export const PLOT_PRICE_MAX = 10; // plot price is min(1 + bought, 10)
-export const BASE_SEEDS = 10;     // carrots from Ratticus each week
+export const BASE_SEEDS = 10;     // free from ratticus weekly. carrots in prep, strawberries from week 1, same numbers
 export const RENT = 10;           // crops, main weeks only
 export const RENT_PAY = 20;       // coins for a whole week's rent (all 10 crops together), × m (dev, 10 Oct)
 
 export const CROPS = {
-    carrot: { buy: null, sell: 25 },
+    carrot: { buy: null, sell: 25 }, // base seed, strawberries since week 1 (same numbers)
     apple:  { buy: 5,    sell: 30 },
 };
 
