@@ -2,7 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { TREES } from "../src/data.js";
-import { treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom } from "../userscript/fill.js";
+import {
+    treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
+} from "../userscript/fill.js";
 
 // hand made from data.js
 // TODO: swap in real (cleaned) capture once i deal with chromeium
@@ -88,4 +90,61 @@ test("inventoryFrom: missing either message -> null", () => {
     assert.equal(inventoryFrom(null, fixture("inventory-sync")), null);
     assert.equal(inventoryFrom(fixture("player-currency"), null), null);
     assert.equal(inventoryFrom({ water: 2 }, fixture("inventory-sync")), null);
+});
+
+// farm like schema.js gives it back, real FarmItem fields. p1-p6 plots, five with crops
+const plot = (id) => ({ id, itemId: "dirt_plot", name: "Dirt Plot", isCrop: false, fedAt: 0, shippedAt: 0, grownAt: 0, witheredAt: 0, plantWeek: "", plotId: "", reviewState: "" });
+const crop = (plotId, more) => ({ id: `c-${plotId}`, itemId: "apple_seed", name: "Apple", isCrop: true, fedAt: 0, shippedAt: 0, grownAt: 0, witheredAt: 0, plantWeek: "2026-W43", plotId, reviewState: "", ...more });
+const farmState = {
+    levelId: "farm-island",
+    farmItems: new Map([
+        ...["p1", "p2", "p3", "p4", "p5", "p6"].map((id) => [id, plot(id)]),
+        ["c1", crop("p1", {})],
+        ["c2", crop("p2", { fedAt: 1, itemId: "strawberry_seed", name: "Strawberry" })],
+        ["c3", crop("p3", { fedAt: 1, shippedAt: 2, plantWeek: "2026-W42", reviewState: "review" })],
+        ["c4", crop("p4", { fedAt: 1, shippedAt: 2, plantWeek: "2026-W42", reviewState: "changes" })],
+        ["c5", crop("p5", { fedAt: 1, shippedAt: 2, grownAt: 3, plantWeek: "2026-W42", reviewState: "review" })],
+    ]),
+};
+
+test("farmFrom: plots, empty ones, and each crop's stage the way the game works it out", () => {
+    const farm = farmFrom(farmState, "me", "me");
+    assert.equal(farm.plots, 6);
+    assert.equal(farm.empty, 1);
+    assert.deepEqual(farm.crops.map((c) => [c.seed, c.stage, c.review]), [
+        ["apple_seed", "dry", null],
+        ["strawberry_seed", "watered", null],
+        ["apple_seed", "review", "review"],
+        ["apple_seed", "review", "changes"],
+        ["apple_seed", "ready", "review"],
+    ]);
+});
+
+test("farmFrom: withered beats everything", () => {
+    const state = { farmItems: new Map([["p", plot("p")], ["c", crop("p", { fedAt: 1, grownAt: 3, witheredAt: 4 })]]) };
+    assert.equal(farmFrom(state, "me", "me").crops[0].stage, "withered");
+});
+
+test("farmFrom: not a farm, or someone else's -> null", () => {
+    assert.equal(farmFrom({ levelId: "town-square", farmItems: new Map() }, null, "me"), null);
+    assert.equal(farmFrom(farmState, "a-friend", "me"), null);
+    assert.equal(farmFrom(farmState, "me", null), null);
+    assert.equal(farmFrom(null, "me", "me"), null);
+});
+
+test("stuckFrom: waiting on review from before this week, and why", () => {
+    const farm = farmFrom(farmState, "me", "me");
+    assert.deepEqual(stuckFrom(farm, "2026-W43"), { count: 2, why: { review: 1, changes: 1 } });
+    assert.deepEqual(stuckFrom(farm, "2026-W42"), { count: 0, why: {} }, "shipped this week isn't stuck yet");
+    assert.deepEqual(stuckFrom(farm, null), { count: 2, why: { review: 1, changes: 1 } });
+    assert.deepEqual(stuckFrom(null, "2026-W43"), { count: 0, why: {} });
+});
+
+test("userIdFromToken: the userId out of the JWT", () => {
+    const part = (json) => Buffer.from(JSON.stringify(json)).toString("base64url");
+    const token = `${part({ alg: "HS256" })}.${part({ userId: "u-1234", username: "someone", exp: 1 })}.sig`;
+    assert.equal(userIdFromToken(token), "u-1234");
+    assert.equal(userIdFromToken("not-a-jwt"), null);
+    assert.equal(userIdFromToken("a.%%%.c"), null);
+    assert.equal(userIdFromToken(null), null);
 });

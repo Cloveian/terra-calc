@@ -56,7 +56,6 @@ export function weekFrom(currentWeek) {
 }
 
 // coins and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with), baseSeeds = free ones from ratticus
-// TODO: plots from schema state or shop plot price (only under 19 plots)
 export function inventoryFrom(currency, inventory) {
     if (typeof currency?.coins !== "number" || !Array.isArray(inventory?.items)) return null;
     // game expiry rule, counts while weekNumber is in usableWeeks
@@ -65,12 +64,60 @@ export function inventoryFrom(currency, inventory) {
     const count = (keep) => usable.filter(keep).reduce((sum, item) => sum + item.quantity, 0);
     return {
         coins: currency.coins,
-        // only in room state (colyseus schema), panel asks for them
+        // only in the farm room state, main.js fills it from farmFrom once ive been there
         plots: null,
         seeds: count((item) => item.itemId === APPLE_SEED),
         // subtype "base", carrots in prep and strawberries from week 1. model assumes 10, steps need real count
         baseSeeds: count((item) => item.type === "seed" && item.subtype === "base"),
     };
+}
+
+// room state (schema.js) -> my farm, null off farm or on freinds farm. owner from joinComplete, me from userIdFromToken. plots and crops both farmItems, crops point at plotId
+export function farmFrom(state, farmOwnerId, myId) {
+    if (!(state?.farmItems instanceof Map) || !farmOwnerId || farmOwnerId !== myId) return null;
+    const items = [...state.farmItems.values()];
+    const plots = items.filter((item) => !item.isCrop);
+    const crops = items.filter((item) => item.isCrop);
+    const used = new Set(crops.map((crop) => crop.plotId));
+    return {
+        plots: plots.length,
+        empty: plots.filter((plot) => !used.has(plot.id)).length,
+        crops: crops.map((crop) => ({
+            seed: crop.itemId,
+            name: crop.name,
+            stage: stageOf(crop),
+            review: crop.reviewState || null,
+            week: crop.plantWeek,
+        })),
+    };
+}
+
+// same order as game hints (cropStage-*.js)
+function stageOf(crop) {
+    if (crop.witheredAt > 0) return "withered";
+    if (crop.grownAt > 0) return "ready";
+    if (!crop.fedAt) return "dry";
+    if (crop.shippedAt > 0) return "review";
+    return "watered";
+}
+
+// crops stuck in review from before weekKey (hours.update, like "2026-W43"), all of them without one. week keys compare fine as strings, always 2 digit weeks
+export function stuckFrom(farm, weekKey) {
+    const stuck = (farm?.crops ?? []).filter((crop) => crop.stage === "review" && (!weekKey || crop.week < weekKey));
+    const why = {};
+    for (const crop of stuck) why[crop.review ?? "review"] = (why[crop.review ?? "review"] ?? 0) + 1;
+    return { count: stuck.length, why };
+}
+
+// auth token = JWT, userId in middle part = me for farmOwnerId
+export function userIdFromToken(token) {
+    const middle = typeof token === "string" ? token.split(".")[1] : null;
+    if (!middle) return null;
+    try {
+        return JSON.parse(atob(middle.replace(/-/g, "+").replace(/_/g, "/"))).userId ?? null;
+    } catch {
+        return null;
+    }
 }
 
 // unit prices rounded, biggest base price (apples) least off
