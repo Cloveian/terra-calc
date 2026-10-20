@@ -9,6 +9,7 @@ export const FEATURES = {
     treeLabels: { name: "\"Affordable in Week N\" on the tree", on: false },
     seedBadges: { name: "Profit per hour on shop seeds", on: false },
     buttons: { name: "Buy and sell buttons", on: false },
+    debug: { name: "Log everything to the console", on: false },
 };
 
 export function loadSettings() {

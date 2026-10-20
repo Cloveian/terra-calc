@@ -2,7 +2,8 @@
 import { REST, IN, KNOWN_BUILD } from "./endpoints.js";
 import { apiGet, liveBuild } from "./api.js";
 import { hookWebSocket, onGameMessage } from "./socket.js";
-import { loadSettings } from "./settings.js";
+import { loadSettings, saveSettings } from "./settings.js";
+import { setDebug, debug } from "./debug.js";
 import { mountPanel, drawPanel, showNotice } from "./panel.js";
 import { treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom } from "./fill.js";
 
@@ -16,6 +17,21 @@ const game = {
 };
 
 const settings = loadSettings();
+setDebug(settings.debug);
+debug("settings", settings);
+
+// console handle. terraCalc.debug(true) is saved, reload logs socket opening too
+window.terraCalc = {
+    game,
+    settings,
+    plan,
+    debug(on = true) {
+        settings.debug = on;
+        saveSettings(settings);
+        setDebug(on);
+        return on ? "debug logging on, reload to see the socket from the start" : "debug logging off";
+    },
+};
 
 // hooked at document-start
 hookWebSocket();
@@ -37,11 +53,13 @@ async function start() {
         showNotice(`Couldn't read Terra (${err.message}), type the numbers in for now.`);
     }
     try {
-        if ((await liveBuild()) !== KNOWN_BUILD) {
+        const build = await liveBuild();
+        debug("live build", build, build === KNOWN_BUILD ? "(known)" : `(last checked against ${KNOWN_BUILD})`);
+        if (build !== KNOWN_BUILD) {
             showNotice("Terra has updated since Terra Calc was last checked, so some numbers might be off.");
         }
-    } catch {
-        // no version.json, skip
+    } catch (err) {
+        debug("no live build", err); // no version.json, skip
     }
 }
 
@@ -53,11 +71,15 @@ function changed(key, body) {
 
 // fill.js output only for now. todo: fill.js state + my goal (saved like site link) -> hoursNeeded + milestones (src/route.js) + goalCost (src/tree.js). reward-estimate water = hours done this week
 function plan() {
-    const trees = treesFrom(game.deviceUpgrades);
-    const owned = ownedFrom(game.deviceUpgrades);
-    const t = weekFrom(game.currentWeek);
-    const inventory = inventoryFrom(game.currency, game.inventory);
-    const m = multiplyerFrom(game.marketItems);
-    if (!trees || !owned || t === null || !inventory) return null;
-    return { trees, owned, t, inventory, m };
+    const parts = {
+        trees: treesFrom(game.deviceUpgrades),
+        owned: ownedFrom(game.deviceUpgrades),
+        t: weekFrom(game.currentWeek),
+        inventory: inventoryFrom(game.currency, game.inventory),
+        m: multiplyerFrom(game.marketItems), // can stay null (panel asks for it)
+    };
+    const missing = Object.keys(parts).filter((key) => parts[key] === null);
+    debug("plan", missing.length > 0 ? `missing ${missing.join(", ")}` : "has everything", parts);
+    if (missing.some((key) => key !== "m")) return null;
+    return parts;
 }

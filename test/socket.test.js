@@ -15,6 +15,11 @@ test("a message with no payload", () => {
     assert.deepEqual(decodeFrame(frame([13, 0xa4, ...text("ping")])), { type: "ping", payload: undefined });
 });
 
+test("takes a Uint8Array too, what the game sends", () => {
+    const bytes = Uint8Array.from([0xff, 13, 0xa4, ...text("move"), 0x80]).subarray(1);
+    assert.deepEqual(decodeFrame(bytes), { type: "move", payload: {} });
+});
+
 test("number types come through as numbers", () => {
     assert.deepEqual(decodeFrame(frame([13, 0x07, 0xc3])), { type: 7, payload: true });
 });

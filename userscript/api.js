@@ -1,5 +1,6 @@
 // REST calls like game fetch helper (api-*.js)
 import { API_BASE, VERSION_URL, TOKEN_KEY, CHECKS } from "./endpoints.js";
+import { debug } from "./debug.js";
 
 export async function apiGet(path) {
     return request(path, { method: "GET" });
@@ -17,6 +18,7 @@ async function request(path, opts) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     });
     const body = await res.json().catch(() => null);
+    debug(`${opts.method} ${path}`, res.status, body);
     if (!res.ok) throw new Error(body?.error ?? `${path} failed (${res.status})`);
     // TODO: rewardEstimate(id) paths unchecked (CHECKS keyed by plain path)
     const problems = CHECKS[path]?.(body) ?? [];
