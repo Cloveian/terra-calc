@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { TREES } from "../src/data.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
+    shopFrom, shopProblems,
 } from "../userscript/fill.js";
 
 // most fixtures hand made from capture shapes. device-upgrades-real is a real response, owned + purchases emptied, coins and address swapped for made up ones
@@ -164,4 +165,42 @@ test("userIdFromToken: the userId out of the JWT", () => {
     assert.equal(userIdFromToken("not-a-jwt"), null);
     assert.equal(userIdFromToken("a.%%%.c"), null);
     assert.equal(userIdFromToken(null), null);
+});
+
+// shop.stock like the capture minus sprites n decriptions
+const stock = (plotPrice, applePrice = 5) => ({
+    status: "available",
+    dateKey: "2026-10-19",
+    entries: [
+        { id: "apple", category: "bonus_seeds", itemId: "apple_seed", name: "Apple Seed", quantity: 1, priceCoins: applePrice },
+        { id: "water", category: "water", itemId: null, name: "Water", quantity: 1, priceCoins: 50 },
+        { id: "dirt", category: "dirt_plots", itemId: "dirt_plot", name: "Dirt Plot", quantity: 1, priceCoins: plotPrice },
+    ],
+});
+
+test("shopFrom: prices, and plots when the price says", () => {
+    assert.deepEqual(shopFrom(stock(10)), { applePrice: 5, plotPrice: 10, plots: null }, "10 is anything from 19 up");
+    assert.deepEqual(shopFrom(stock(1)).plots, 10);
+    assert.deepEqual(shopFrom(stock(3)).plots, 12);
+    assert.deepEqual(shopFrom(stock(9)).plots, 18);
+});
+
+test("shopFrom: closed or missing bits", () => {
+    assert.equal(shopFrom({ status: "closed", entries: [] }), null);
+    assert.equal(shopFrom(null), null);
+    assert.deepEqual(shopFrom({ status: "available", entries: [] }), { applePrice: null, plotPrice: null, plots: null });
+});
+
+test("shopProblems: nothing when the shop matches the model", () => {
+    assert.deepEqual(shopProblems(shopFrom(stock(10)), 36), []);
+    assert.deepEqual(shopProblems(shopFrom(stock(3)), 12), []);
+    assert.deepEqual(shopProblems(shopFrom(stock(3)), null), [], "can't check the plot price without plots");
+    assert.deepEqual(shopProblems(null, 12), []);
+});
+
+test("shopProblems: says what changed", () => {
+    assert.deepEqual(shopProblems(shopFrom(stock(5, 6)), 12), [
+        "apple seeds cost 6 now, the plan thinks 5",
+        "the next plot costs 5, the plan thinks 3 at 12 plots",
+    ]);
 });

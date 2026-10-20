@@ -7,6 +7,7 @@ import { setDebug, debug } from "./debug.js";
 import { mountPanel, drawPanel, showNotice } from "./panel.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
+    shopFrom, shopProblems,
 } from "./fill.js";
 
 const FARM_KEY = "terra-calc-farm";
@@ -22,6 +23,7 @@ const game = {
     inventory: null,
     marketItems: null,
     hours: null,
+    shop: null, // shopFrom, last time heidi's shop was open
     farmOwnerId: null, // whose farm this room is (joinComplete)
     roomState: null,
     farm: loadFarm(),
@@ -54,6 +56,12 @@ onGameMessage(IN.hours, (body) => {
     changed("hours", body);
     // new week = new label, maybe new upgrade prices
     if (settings.fill && before && body?.weekKey && body.weekKey !== before) readRest();
+});
+
+onGameMessage(IN.shopStock, (body) => {
+    game.shop = shopFrom(body) ?? game.shop;
+    checkShop();
+    drawPanel(plan());
 });
 
 // room state and owner come in either order, both try readFarm. new room forgets owner first or friend's farm passes for mine till their joinComplete
@@ -119,7 +127,15 @@ function readFarm() {
     game.farm = { ...farm, seenAt: Date.now() };
     saveFarm(game.farm);
     debug("farm", { plots: farm.plots, empty: farm.empty, stuck: stuckFrom(farm, game.hours?.weekKey) });
+    checkShop();
     drawPanel(plan());
+}
+
+// shop prices vs model, again on every new plot count
+function checkShop() {
+    const problems = shopProblems(game.shop, game.farm?.plots ?? null);
+    if (problems.length > 0) debug("shop doesn't match the plan", problems);
+    for (const problem of problems) showNotice(`Terra's prices changed: ${problem}. The plan's off till Terra Calc catches up.`);
 }
 
 // saved with owner id, other acounts on this browser get nothing
@@ -147,7 +163,7 @@ function plan() {
         trees: treesFrom(game.deviceUpgrades),
         owned: ownedFrom(game.deviceUpgrades),
         t: weekFrom(game.currentWeek),
-        inventory: inventory && { ...inventory, plots: game.farm?.plots ?? null },
+        inventory: inventory && { ...inventory, plots: game.farm?.plots ?? game.shop?.plots ?? null },
         m: multiplyerFrom(game.marketItems),
         farm: game.farm,
         stuck: game.farm && stuckFrom(game.farm, game.hours?.weekKey),

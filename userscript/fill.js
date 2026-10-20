@@ -1,8 +1,10 @@
 // game messages into terra calc shapes. null = couldnt tell
-import { PREP_WEEKS } from "../src/data.js";
+import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX, CROPS } from "../src/data.js";
 import { withoutZeros } from "../src/tree.js";
+import { plotCost } from "../src/farm.js";
 
-const APPLE_SEED = "apple_seed"; // terra's item id
+const APPLE_SEED = "apple_seed"; // terra's item ids
+const DIRT_PLOT = "dirt_plot";
 
 // GET /device-upgrades -> trees like TREES
 // totals[0] (none bought) not in response so null, site fills it from data.js
@@ -56,7 +58,6 @@ export function weekFrom(currentWeek) {
 }
 
 // coins and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with), baseSeeds = free ones from ratticus
-// TODO: plots before the farm is seen, from shop plot price (only under 19, caps at 10)
 export function inventoryFrom(currency, inventory) {
     if (typeof currency?.coins !== "number" || !Array.isArray(inventory?.items)) return null;
     // game expiry rule, counts while weekNumber is in usableWeeks
@@ -65,7 +66,7 @@ export function inventoryFrom(currency, inventory) {
     const count = (keep) => usable.filter(keep).reduce((sum, item) => sum + item.quantity, 0);
     return {
         coins: currency.coins,
-        // only in the farm room state, main.js fills it from farmFrom once ive been there
+        // only in farm room state. main.js fills it from farmFrom after farm visit or shopFrom before (under 19 plots)
         plots: null,
         seeds: count((item) => item.itemId === APPLE_SEED),
         // subtype "base", carrots in prep and strawberries from week 1. model assumes 10, steps need real count
@@ -129,4 +130,29 @@ export function multiplyerFrom(marketItems) {
     return best.unitPriceCoins / best.baseUnitCoins;
 }
 
-// TODO: seedsFrom(shopStock) from bonus_seeds entries once data.js has SEEDS, plus plot prices from dirt_plots entries with a warning if they dont match plotCost
+// shop.stock, null when heidi's shop is closed. next plot costs min(plots - 9, 10) so under 10 = exact plot count, 10 = 19+
+export function shopFrom(shopStock) {
+    if (shopStock?.status !== "available" || !Array.isArray(shopStock.entries)) return null;
+    const price = (itemId) => shopStock.entries.find((entry) => entry.itemId === itemId)?.priceCoins ?? null;
+    const plotPrice = price(DIRT_PLOT);
+    return {
+        applePrice: price(APPLE_SEED),
+        plotPrice,
+        plots: plotPrice !== null && plotPrice < PLOT_PRICE_MAX ? plotPrice + FREE_PLOTS - 1 : null,
+    };
+}
+
+// shop vs model mismatchs. terra price change = plan wrong till data.js catches up, main.js shows notice
+export function shopProblems(shop, plots) {
+    const problems = [];
+    if (shop?.applePrice != null && shop.applePrice !== CROPS.apple.buy) {
+        problems.push(`apple seeds cost ${shop.applePrice} now, the plan thinks ${CROPS.apple.buy}`);
+    }
+    if (shop?.plotPrice != null && plots != null) {
+        const expected = plotCost(plots + 1, plots);
+        if(shop.plotPrice !== expected) problems.push(`the next plot costs ${shop.plotPrice}, the plan thinks ${expected} at ${plots} plots`);
+    }
+    return problems;
+}
+
+// TODO: seedsFrom(shopStock) from bonus_seeds once data.js has SEEDS
