@@ -135,7 +135,7 @@ test("farmFrom: not a farm, or someone else's -> null", () => {
 test("stuckFrom: waiting on review from before this week, and why", () => {
     const farm = farmFrom(farmState, "me", "me");
     assert.deepEqual(stuckFrom(farm, "2026-W43"), { count: 2, why: { review: 1, changes: 1 } });
-    assert.deepEqual(stuckFrom(farm, "2026-W42"), { count: 0, why: {} }, "shipped this week isn't stuck yet");
+    assert.deepEqual(stuckFrom(farm, "2026-W42"), { count: 0, why: {} }, "planted this week isn't stuck yet");
     assert.deepEqual(stuckFrom(farm, null), { count: 2, why: { review: 1, changes: 1 } });
     assert.deepEqual(stuckFrom(null, "2026-W43"), { count: 0, why: {} });
 });

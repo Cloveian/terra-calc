@@ -1,7 +1,21 @@
 // game websocket reader
 import { GAME_HOST, CHECKS } from "./endpoints.js";
 import { decodeMsgpack } from "./msgpack.js";
+import { decoderFromJoin } from "./schema.js";
 import { debug, debugOn, hex } from "./debug.js";
+
+// colyseus protocol codes read here, rest skipped (leave, errors, raw bytes)
+const JOIN_ROOM = 10;
+const ROOM_DATA = 13;
+const ROOM_STATE = 14;
+const ROOM_STATE_PATCH = 15;
+
+// made up types for room state, handled like real game messages
+export const ROOM = {
+    joined: "room.joined", // { sessionId }, new room, always before its state + joinComplete
+    state: "room.state", // { state, touched, sessionId } after every state or patch
+    broken: "room.broken", // { sessionId }, undecodable frame, state gone till next room
+};
 
 const handlers = new Map(); // message type -> [fn]
 let gameSocket = null;
@@ -21,10 +35,14 @@ export function hookWebSocket() {
             debug("socket opening", String(url).replace(/\?.*/, "?...")); // query has session + reconnection token
             ws.addEventListener("open", () => debug("socket open"));
             ws.addEventListener("close", (event) => debug("socket closed", event.code, event.reason));
+            const sessionId = new URL(String(url)).searchParams.get("sessionId");
+            // state decoder for this socket, null till join frame (or no handshake, or broke)
+            let room = null;
             ws.addEventListener("message", (event) => {
                 const msg = decodeFrame(event.data);
                 logFrame("in", event.data, msg);
                 if (msg) dispatch(msg.type, msg.payload);
+                else room = roomFrame(room, asBytes(event.data), sessionId);
             });
             // log only, sent untouched
             const send = ws.send;
@@ -38,6 +56,26 @@ export function hookWebSocket() {
     // for instanceof and WebSocket.OPEN etc in game code
     window.WebSocket.prototype = Real.prototype;
     Object.assign(window.WebSocket, { CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3 });
+}
+
+// JOIN_ROOM starts room decoder (schema.js), full state + patches go through it out as ROOM.state. undecodable frame = state dropped till next join (next room)
+function roomFrame(room, bytes, sessionId) {
+    if (!bytes) return room;
+    try {
+        if (bytes[0] === JOIN_ROOM) {
+            room = decoderFromJoin(bytes);
+            debug("room joined", room ? `${room.types.size} types` : "no handshake");
+            dispatch(ROOM.joined, { sessionId });
+        } else if ((bytes[0] === ROOM_STATE || bytes[0] === ROOM_STATE_PATCH) && room) {
+            const touched = room.apply(bytes, 1);
+            dispatch(ROOM.state, { state: room.root, touched, sessionId });
+        }
+        return room;
+    } catch (err) {
+        debug("room state didn't decode, ignoring it till the next room", err);
+        dispatch(ROOM.broken, { sessionId });
+        return null;
+    }
 }
 
 // both ways when debug is on. state patches arent msgpack, hex for those
@@ -60,8 +98,6 @@ function dispatch(type, payload) {
         }
     }
 }
-
-const ROOM_DATA = 13; // colyseus code for a message, state patches etc skipped
 
 // message frames only (ROOM_DATA byte then type and payload, both msgpack), null for anything else or bad decodes
 // TODO: check against chrome capture with WS messages (firefox doesnt save them in HARs). framing off = try game room.onMessage

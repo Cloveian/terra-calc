@@ -21,6 +21,8 @@ export const IN = {
     purchaseResult: "shop.purchaseResult",
     marketItems: "market.items",
     saleResult: "market.saleResult",
+    hours: "hours.update",
+    joinComplete: "joinComplete", // { farmOwnerId, tutorialStep }, farmOwnerId null off farms
 };
 
 // sent on game socket

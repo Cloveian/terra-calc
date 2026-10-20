@@ -56,6 +56,7 @@ export function weekFrom(currentWeek) {
 }
 
 // coins and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with), baseSeeds = free ones from ratticus
+// TODO: plots before the farm is seen, from shop plot price (only under 19, caps at 10)
 export function inventoryFrom(currency, inventory) {
     if (typeof currency?.coins !== "number" || !Array.isArray(inventory?.items)) return null;
     // game expiry rule, counts while weekNumber is in usableWeeks
