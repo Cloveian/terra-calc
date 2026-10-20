@@ -12,7 +12,8 @@ const ROOM_STATE_PATCH = 15;
 
 // made up types for room state, handled like real game messages
 export const ROOM = {
-    joined: "room.joined", // { sessionId, decoder }, new room, always before its state + joinComplete
+    // { sessionId, decoder }, new room, allways before its state + joinComplete. decoder null if join had no handshake
+    joined: "room.joined",
     state: "room.state", // { state, touched, sessionId } after every state or patch
     broken: "room.broken", // { sessionId }, undecodable frame, state gone till next room
 };
