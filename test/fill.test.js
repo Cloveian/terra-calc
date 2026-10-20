@@ -6,8 +6,7 @@ import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
 } from "../userscript/fill.js";
 
-// hand made from data.js
-// TODO: swap in real (cleaned) capture once i deal with chromeium
+// most fixtures hand made from capture shapes. device-upgrades-real is a real response, owned + purchases emptied, coins and address swapped for made up ones
 function fixture(name) {
     return JSON.parse(readFileSync(new URL(`fixtures/${name}.json`, import.meta.url), "utf8"));
 }
@@ -19,6 +18,24 @@ test("treesFrom gives back TREES", () => {
         for (const node of tree.nodes) if (node.totals) node.totals[0] = null;
     }
     assert.deepEqual(treesFrom(fixture("device-upgrades")), expected);
+});
+
+test("treesFrom on the real response is data.js, node order aside", () => {
+    const byId = (tree) => ({ ...tree, nodes: [...tree.nodes].sort((a, b) => a.id.localeCompare(b.id)) });
+    const trees = treesFrom(fixture("device-upgrades-real"));
+    for (const [id, tree] of Object.entries(TREES)) {
+        const expected = byId(structuredClone(tree));
+        for (const node of expected.nodes) if (node.totals) node.totals[0] = null;
+        assert.deepEqual(byId(trees[id]), expected, id);
+    }
+    assert.deepEqual(Object.keys(trees), Object.keys(TREES));
+});
+
+test("treesFrom: tiered nodes lose the first tier's amount, plain ones keep their whole title", () => {
+    const tiers = [{ price: 1, description: "(16GB total)" }];
+    const node = (title, more) => ({ id: "n", title, x: 0, y: 0, price: 1, ...more });
+    const body = { devices: [{ id: "d", title: "D", root: { x: 0, y: 0 }, nodes: [node("+8GB RAM", { tiers }), node("+1 Fancy Card")] }] };
+    assert.deepEqual(treesFrom(body).d.nodes.map((n) => n.name), ["RAM", "+1 Fancy Card"]);
 });
 
 test("treesFrom: unspaced totals like the real API", () => {

@@ -6,7 +6,7 @@ const APPLE_SEED = "apple_seed"; // terra's item id
 
 // GET /device-upgrades -> trees like TREES
 // totals[0] (none bought) not in response so null, site fills it from data.js
-// TODO: real tiered nodes titled per tier ("+8GB RAM") so name has the amount in it
+// tiered nodes titled like their first tier ("+8GB RAM"), amount cut off -> "RAM"
 export function treesFrom(deviceUpgrades) {
     if (!Array.isArray(deviceUpgrades?.devices)) return null;
     const trees = {};
@@ -17,7 +17,7 @@ export function treesFrom(deviceUpgrades) {
 }
 
 function nodeFrom(n) {
-    const node = { id: n.id, name: n.title };
+    const node = { id: n.id, name: n.tiers?.length ? n.title.replace(/^\+\S+\s+/, "") : n.title };
     if (n.tiers?.length) {
         node.tiers = n.tiers.map((tier) => tier.price);
         const totals = n.tiers.map((tier) => totalIn(tier.description));
