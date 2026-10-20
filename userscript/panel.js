@@ -1,5 +1,5 @@
 // what to do next panel in terra's page
-import { weekName } from "../src/week.js";
+import { weekName, isPrep } from "../src/week.js";
 
 // stages n review reasons, worded like game hints (cropStage-*.js, GameCanvas)
 const STAGE_LINES = {
@@ -59,7 +59,7 @@ export function drawPanel(plan) {
 export function linesFor(plan, now = Date.now()) {
     const { t, inventory, m, farm, stuck } = plan;
     const lines = [weekName(t)];
-    lines.push(`${some(Math.floor(inventory.coins), "coin")}, ${some(inventory.seeds, "apple seed")}, ${some(inventory.baseSeeds, "free seed")}`);
+    lines.push(`${some(Math.floor(inventory.coins), "coin")}, ${some(inventory.seeds, "apple seed")}, ${baseSeedsLine(inventory, t)}`);
     lines.push(inventory.plots === null ? "plots: go to your farm or open Heidi's shop" : some(inventory.plots, "plot"));
     lines.push(m === null ? "multiplier: open the market with crops to sell" : `multiplier ${Math.round(m * 100) / 100}`);
     if(!farm) return lines;
@@ -76,6 +76,13 @@ export function linesFor(plan, now = Date.now()) {
     if (waiting > 0) lines.push(`${waiting} waiting on this week's review`);
     if (farm.seenAt) lines.push(`(farm as of ${ago(now - farm.seenAt)})`);
     return lines;
+}
+
+// free seeds by name. none left = named by week, carrots in prep
+function baseSeedsLine({ baseKinds }, t) {
+    const kinds = Object.entries(baseKinds);
+    if(kinds.length === 0) return some(0, isPrep(t) ? "carrot seed" : "strawberry seed");
+    return kinds.map(([kind, n]) => some(n, `${kind} seed`)).join(", ");
 }
 
 function some(n, word) {

@@ -91,17 +91,18 @@ test("multiplyerFrom: nothing to sell -> null", () => {
 test("inventoryFrom: coins, and apple seeds from the usable weeks only", () => {
     // 3 this week + 2 from week 8 (still usable), 4 from week 7 expired, the 10 strawberrys are base seeds
     const inventory = inventoryFrom(fixture("player-currency"), fixture("inventory-sync"));
-    assert.deepEqual(inventory, { coins: 42, plots: null, seeds: 5, baseSeeds: 10 });
+    assert.deepEqual(inventory, { coins: 42, plots: null, seeds: 5, baseSeeds: 10, baseKinds: { strawberry: 10 } });
 });
 
 test("inventoryFrom: no seeds -> 0s", () => {
-    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, seeds: 0, baseSeeds: 0 });
+    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, seeds: 0, baseSeeds: 0, baseKinds: {} });
 });
 
 test("inventoryFrom: base seeds by subtype, so prep carrots count too, and expire like the rest", () => {
     const carrots = (quantity, weekNumber) => ({ itemId: "carrot_seed", type: "seed", subtype: "base", quantity, weekNumber });
     const inventory = { usableWeeks: [8], items: [carrots(6, 8), carrots(10, 7)] };
     assert.equal(inventoryFrom({ coins: 0 }, inventory).baseSeeds, 6);
+    assert.deepEqual(inventoryFrom({ coins: 0 }, inventory).baseKinds, { carrot: 6 });
 });
 
 test("inventoryFrom: missing either message -> null", () => {

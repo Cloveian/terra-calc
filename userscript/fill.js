@@ -57,20 +57,28 @@ export function weekFrom(currentWeek) {
     return match[1] ? n - 1 : PREP_WEEKS + n - 1;
 }
 
-// coins and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with), baseSeeds = free ones from ratticus
+// coins and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with, always bought), baseSeeds = free ones from ratticus, baseKinds = same by seed
 export function inventoryFrom(currency, inventory) {
     if (typeof currency?.coins !== "number" || !Array.isArray(inventory?.items)) return null;
     // game expiry rule, counts while weekNumber is in usableWeeks
     const weeks = new Set(inventory.usableWeeks ?? []);
     const usable = inventory.items.filter((item) => weeks.has(item.weekNumber));
     const count = (keep) => usable.filter(keep).reduce((sum, item) => sum + item.quantity, 0);
+    // subtype "base", carrots in prep and strawberries from week 1. model assumes 10, steps need real count
+    const isBase = (item) => item.type === "seed" && item.subtype === "base";
+    // per kind for panel, prep 3 carrots still usuable in week 1 so can be both
+    const baseKinds = {};
+    for (const item of usable.filter(isBase)) {
+        const kind = item.itemId.replace(/_seed$/, "");
+        baseKinds[kind] = (baseKinds[kind] ?? 0) + item.quantity;
+    }
     return {
         coins: currency.coins,
         // only in farm room state. main.js fills it from farmFrom after farm visit or shopFrom before (under 19 plots)
         plots: null,
         seeds: count((item) => item.itemId === APPLE_SEED),
-        // subtype "base", carrots in prep and strawberries from week 1. model assumes 10, steps need real count
-        baseSeeds: count((item) => item.type === "seed" && item.subtype === "base"),
+        baseSeeds: count(isBase),
+        baseKinds,
     };
 }
 
