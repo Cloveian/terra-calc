@@ -92,6 +92,11 @@ export class SchemaDecoder {
         return this.refs.get(0).value;
     }
 
+    // root type fields from handshake
+    get rootFields() {
+        return this.refs.get(0).fields;
+    }
+
     // parent fields first, child indexes continue from parent
     fieldsOf(typeId) {
         const type = this.types.get(typeId);

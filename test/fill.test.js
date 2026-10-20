@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { TREES } from "../src/data.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
-    shopFrom, shopProblems,
+    shopFrom, shopProblems, farmSchemaProblems,
 } from "../userscript/fill.js";
 
 // most fixtures hand made from capture shapes. device-upgrades-real is a real response, owned + purchases emptied, coins and address swapped for made up ones
@@ -148,6 +148,24 @@ test("farmFrom: not a farm, or someone else's -> null", () => {
     assert.equal(farmFrom(farmState, "a-friend", "me"), null);
     assert.equal(farmFrom(farmState, "me", null), null);
     assert.equal(farmFrom(null, "me", "me"), null);
+});
+
+// fake decoder, FarmItem fields from a real handshake
+const REAL_FARM_ITEM = ["id", "itemId", "name", "spriteId", "x", "z", "plantedAtMs", "isCrop", "waterApplied", "waterRequired", "fedAt", "shippedAt", "reviewState", "grownAt", "witheredAt", "plantWeek", "plotId"];
+const decoderWith = (itemFields, root = ["serverTime", "levelId", "players", "npcs", "farmItems"]) => ({
+    rootFields: root.map((name) => ({ name, ref: name === "farmItems" ? 4 : undefined })),
+    fieldsOf: (id) => (id === 4 ? itemFields.map((name) => ({ name })) : []),
+});
+
+test("farmSchemaProblems: the real FarmItem has everything", () => {
+    assert.deepEqual(farmSchemaProblems(decoderWith(REAL_FARM_ITEM)), []);
+});
+
+test("farmSchemaProblems: renamed fields show up, no farmItems or no decoder is fine", () => {
+    const renamed = REAL_FARM_ITEM.map((name) => (name === "grownAt" ? "grownAtMs" : name)).filter((name) => name !== "plotId");
+    assert.deepEqual(farmSchemaProblems(decoderWith(renamed)), ["plotId", "grownAt"]);
+    assert.deepEqual(farmSchemaProblems(decoderWith([], ["serverTime", "levelId"])), []);
+    assert.deepEqual(farmSchemaProblems(null), []);
 });
 
 test("stuckFrom: waiting on review from before this week, and why", () => {

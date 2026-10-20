@@ -7,7 +7,7 @@ import { setDebug, debug } from "./debug.js";
 import { mountPanel, drawPanel, showNotice } from "./panel.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
-    shopFrom, shopProblems,
+    shopFrom, shopProblems, farmSchemaProblems,
 } from "./fill.js";
 
 const FARM_KEY = "terra-calc-farm";
@@ -26,6 +26,7 @@ const game = {
     shop: null, // shopFrom, last time heidi's shop was open
     farmOwnerId: null, // whose farm this room is (joinComplete)
     roomState: null,
+    farmReadable: true, // false = room FarmItem missing fields farmFrom needs
     farm: loadFarm(),
 };
 
@@ -66,9 +67,16 @@ onGameMessage(IN.shopStock, (body) => {
 });
 
 // room state and owner come in either order, both try readFarm. new room forgets owner first or friend's farm passes for mine till their joinComplete
-onGameMessage(ROOM.joined, () => {
+onGameMessage(ROOM.joined, ({ decoder }) => {
     game.farmOwnerId = null;
     game.roomState = null;
+    // renamed farm fields = made up stages, so this room's farm gets skipped completly
+    const missing = farmSchemaProblems(decoder);
+    game.farmReadable = missing.length === 0;
+    if (!game.farmReadable) {
+        debug("farm items look different, missing", missing);
+        showNotice(`Terra's farm changed (no ${missing.join(", ")}), so Terra Calc can't read your crops or plots till it catches up.`);
+    }
 });
 onGameMessage(IN.joinComplete, (body) => {
     game.farmOwnerId = body?.farmOwnerId ?? null;
@@ -123,6 +131,7 @@ function myId() {
 
 // my farm out of this room, kept and saved only if its really mine
 function readFarm() {
+    if (!game.farmReadable) return;
     const farm = farmFrom(game.roomState, game.farmOwnerId, myId());
     if (!farm) return;
     game.farm = { ...farm, seenAt: Date.now() };

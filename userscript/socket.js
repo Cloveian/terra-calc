@@ -12,7 +12,7 @@ const ROOM_STATE_PATCH = 15;
 
 // made up types for room state, handled like real game messages
 export const ROOM = {
-    joined: "room.joined", // { sessionId }, new room, always before its state + joinComplete
+    joined: "room.joined", // { sessionId, decoder }, new room, always before its state + joinComplete
     state: "room.state", // { state, touched, sessionId } after every state or patch
     broken: "room.broken", // { sessionId }, undecodable frame, state gone till next room
 };
@@ -65,7 +65,7 @@ function roomFrame(room, bytes, sessionId) {
         if (bytes[0] === JOIN_ROOM) {
             room = decoderFromJoin(bytes);
             debug("room joined", room ? `${room.types.size} types` : "no handshake");
-            dispatch(ROOM.joined, { sessionId });
+            dispatch(ROOM.joined, { sessionId, decoder: room });
         } else if ((bytes[0] === ROOM_STATE || bytes[0] === ROOM_STATE_PATCH) && room) {
             const touched = room.apply(bytes, 1);
             dispatch(ROOM.state, { state: room.root, touched, sessionId });

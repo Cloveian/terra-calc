@@ -94,6 +94,17 @@ export function farmFrom(state, farmOwnerId, myId) {
     };
 }
 
+// every FarmItem field farmFrom + stageOf read. renamed one looks unset, stages n plot counts go wrong silenty. room handshake checked first
+const FARM_FIELDS = ["id", "itemId", "name", "isCrop", "plotId", "fedAt", "shippedAt", "grownAt", "witheredAt", "reviewState", "plantWeek"];
+
+// FarmItem fields missing from room handshake. no farmItems or no decoder (join without handshake) = nothing to flag
+export function farmSchemaProblems(decoder) {
+    const farmItems = decoder?.rootFields.find((field) => field.name === "farmItems");
+    if(!farmItems) return [];
+    const names = new Set(decoder.fieldsOf(farmItems.ref).map((field) => field.name));
+    return FARM_FIELDS.filter((name) => !names.has(name));
+}
+
 // same order as game hints (cropStage-*.js)
 function stageOf(crop) {
     if (crop.witheredAt > 0) return "withered";
