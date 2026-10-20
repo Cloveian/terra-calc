@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { decodeFrame } from "../userscript/socket.js";
 
-// hand built frames per colyseus framing (no capture yet)
+// hand built frames like colyseus sends, real captured ones decode the same
 const text = (s) => [...new TextEncoder().encode(s)];
 const frame = (bytes) => Uint8Array.from(bytes).buffer;
 
