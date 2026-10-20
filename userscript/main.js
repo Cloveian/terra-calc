@@ -1,9 +1,9 @@
 // userscript entry point
-import { REST, IN } from "./endpoints.js";
-import { apiGet } from "./api.js";
+import { REST, IN, KNOWN_BUILD } from "./endpoints.js";
+import { apiGet, liveBuild } from "./api.js";
 import { hookWebSocket, onGameMessage } from "./socket.js";
 import { loadSettings } from "./settings.js";
-import { mountPanel, drawPanel } from "./panel.js";
+import { mountPanel, drawPanel, showNotice } from "./panel.js";
 import { treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom } from "./fill.js";
 
 // latest from game
@@ -33,9 +33,16 @@ async function start() {
         changed("deviceUpgrades", await apiGet(REST.deviceUpgrades));
         changed("currentWeek", await apiGet(REST.currentWeek));
     } catch (err) {
-        console.warn("[terra-calc]", err); // todo: show in panel too
+        console.warn("[terra-calc]", err);
+        showNotice(`Couldn't read Terra (${err.message}), type the numbers in for now.`);
     }
-    // TODO: liveBuild() vs KNOWN_BUILD check
+    try {
+        if ((await liveBuild()) !== KNOWN_BUILD) {
+            showNotice("Terra has updated since Terra Calc was last checked, so some numbers might be off.");
+        }
+    } catch {
+        // no version.json, skip
+    }
 }
 
 // plan rerun every change, same src/ as site. panel only gets plan
