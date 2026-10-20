@@ -55,17 +55,22 @@ export function weekFrom(currentWeek) {
     return match[1] ? n - 1 : PREP_WEEKS + n - 1;
 }
 
-// coins and still plantable apple seeds from player.currency + inventory.sync. free base seeds skipped (model has BASE_SEEDS)
+// coins and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with), baseSeeds = free ones from ratticus
 // TODO: plots from schema state or shop plot price (only under 19 plots)
 export function inventoryFrom(currency, inventory) {
     if (typeof currency?.coins !== "number" || !Array.isArray(inventory?.items)) return null;
     // game expiry rule, counts while weekNumber is in usableWeeks
-    const usable = new Set(inventory.usableWeeks ?? []);
-    const seeds = inventory.items
-        .filter((item) => item.itemId === APPLE_SEED && usable.has(item.weekNumber))
-        .reduce((sum, item) => sum + item.quantity, 0);
-    // plots only in room state (colyseus schema), panel asks for them
-    return { coins: currency.coins, plots: null, seeds };
+    const weeks = new Set(inventory.usableWeeks ?? []);
+    const usable = inventory.items.filter((item) => weeks.has(item.weekNumber));
+    const count = (keep) => usable.filter(keep).reduce((sum, item) => sum + item.quantity, 0);
+    return {
+        coins: currency.coins,
+        // only in room state (colyseus schema), panel asks for them
+        plots: null,
+        seeds: count((item) => item.itemId === APPLE_SEED),
+        // subtype "base", carrots in prep and strawberries from week 1. model assumes 10, steps need real count
+        baseSeeds: count((item) => item.type === "seed" && item.subtype === "base"),
+    };
 }
 
 // unit prices rounded, biggest base price (apples) least off
