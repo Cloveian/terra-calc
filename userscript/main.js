@@ -49,7 +49,12 @@ hookWebSocket();
 onGameMessage(IN.currency, (body) => changed("currency", body));
 onGameMessage(IN.inventory, (body) => changed("inventory", body));
 onGameMessage(IN.marketItems, (body) => changed("marketItems", body));
-onGameMessage(IN.hours, (body) => changed("hours", body));
+onGameMessage(IN.hours, (body) => {
+    const before = game.hours?.weekKey;
+    changed("hours", body);
+    // new week = new label, maybe new upgrade prices
+    if (settings.fill && before && body?.weekKey && body.weekKey !== before) readRest();
+});
 
 // room state and owner come in either order, both try readFarm. new room forgets owner first or friend's farm passes for mine till their joinComplete
 onGameMessage(ROOM.joined, () => {
@@ -62,9 +67,7 @@ onGameMessage(IN.joinComplete, (body) => {
 });
 onGameMessage(ROOM.state, ({ state, touched }) => {
     game.roomState = state;
-    // most patches = players walking, reread only on farm item changes
-    const items = state.farmItems;
-    if (items instanceof Map && (touched.has(items) || [...items.values()].some((item) => touched.has(item)))) readFarm();
+    if (farmTouched(state, touched)) readFarm();
 });
 onGameMessage(ROOM.broken, () => {
     game.roomState = null;
@@ -75,7 +78,15 @@ document.addEventListener("DOMContentLoaded", start);
 async function start() {
     if (settings.panel) mountPanel();
     if (!settings.fill) return drawPanel(null);
-    // TODO: refetch on new week + after upgrade buy
+    await readRest();
+    if (settings.debug) {
+        liveBuild().then((build) => debug("live build", build), (err) => debug("no live build", err));
+    }
+}
+
+// REST bits, at start + on new week
+// TODO: after upgrade buys too, game uses fetch we dont see. maybe when coins drop?
+async function readRest() {
     try {
         changed("deviceUpgrades", await apiGet(REST.deviceUpgrades));
         changed("currentWeek", await apiGet(REST.currentWeek));
@@ -83,9 +94,12 @@ async function start() {
         console.warn("[terra-calc]", err);
         showNotice(`Couldn't read Terra (${err.message}), type the numbers in for now.`);
     }
-    if (settings.debug) {
-        liveBuild().then((build) => debug("live build", build), (err) => debug("no live build", err));
-    }
+}
+
+// most patches = players walking, true only on farm item changes
+function farmTouched(state, touched) {
+    const items = state.farmItems;
+    return items instanceof Map && (touched.has(items) || [...items.values()].some((item) => touched.has(item)));
 }
 
 // plan rerun every change, same src/ as site. panel only gets plan
