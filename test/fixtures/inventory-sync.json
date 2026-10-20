@@ -1,0 +1,66 @@
+{
+  "usableWeeks": [9, 8],
+  "grantedItemIds": [],
+  "items": [
+    {
+      "id": "item-1",
+      "itemId": "strawberry_seed",
+      "name": "Strawberry Seeds",
+      "type": "seed",
+      "rarity": "common",
+      "quantity": 10,
+      "slot": -1,
+      "stackable": true,
+      "subtype": "base",
+      "weekNumber": 9,
+      "weekLabel": "Week 1",
+      "usableUntil": "2026-10-27T03:59:59.999Z",
+      "itemData": {}
+    },
+    {
+      "id": "item-2",
+      "itemId": "apple_seed",
+      "name": "Apple Seed",
+      "type": "seed",
+      "rarity": "common",
+      "quantity": 3,
+      "slot": -1,
+      "stackable": true,
+      "subtype": "",
+      "weekNumber": 9,
+      "weekLabel": "Week 1",
+      "usableUntil": "2026-10-27T03:59:59.999Z",
+      "itemData": {}
+    },
+    {
+      "id": "item-3",
+      "itemId": "apple_seed",
+      "name": "Apple Seed",
+      "type": "seed",
+      "rarity": "common",
+      "quantity": 2,
+      "slot": -1,
+      "stackable": true,
+      "subtype": "",
+      "weekNumber": 8,
+      "weekLabel": "Prep Week 3",
+      "usableUntil": "2026-10-20T03:59:59.999Z",
+      "itemData": {}
+    },
+    {
+      "id": "item-4",
+      "itemId": "apple_seed",
+      "name": "Apple Seed",
+      "type": "seed",
+      "rarity": "common",
+      "quantity": 4,
+      "slot": -1,
+      "stackable": true,
+      "subtype": "",
+      "weekNumber": 7,
+      "weekLabel": "Prep Week 2",
+      "usableUntil": "2026-10-13T03:59:59.999Z",
+      "itemData": {}
+    }
+  ]
+}

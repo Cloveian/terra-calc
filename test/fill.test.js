@@ -68,7 +68,17 @@ test("multiplyerFrom: nothing to sell -> null", () => {
     assert.equal(multiplyerFrom(null), null);
 });
 
-// needs inventory.sync fixture (needs real item types first)
-test("inventoryFrom", { todo: true }, () => {
-    assert.ok(inventoryFrom({ coins: 4 }, { items: [], usableWeeks: [] }));
+test("inventoryFrom: coins, and apple seeds from the usable weeks only", () => {
+    // 3 this week + 2 from week 8 (still usable), 4 from week 7 expired, strawberrys are base seeds
+    assert.deepEqual(inventoryFrom(fixture("player-currency"), fixture("inventory-sync")), { coins: 42, plots: null, seeds: 5 });
+});
+
+test("inventoryFrom: no apple seeds -> 0", () => {
+    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, seeds: 0 });
+});
+
+test("inventoryFrom: missing either message -> null", () => {
+    assert.equal(inventoryFrom(null, fixture("inventory-sync")), null);
+    assert.equal(inventoryFrom(fixture("player-currency"), null), null);
+    assert.equal(inventoryFrom({ water: 2 }, fixture("inventory-sync")), null);
 });

@@ -2,6 +2,8 @@
 import { PREP_WEEKS } from "../src/data.js";
 import { withoutZeros } from "../src/tree.js";
 
+const APPLE_SEED = "apple_seed"; // terra's item id
+
 // GET /device-upgrades -> trees like TREES
 // totals[0] (none bought) not in response so null, site fills it from data.js
 // TODO: real tiered nodes titled per tier ("+8GB RAM") so name has the amount in it
@@ -53,10 +55,17 @@ export function weekFrom(currentWeek) {
     return match[1] ? n - 1 : PREP_WEEKS + n - 1;
 }
 
-// coins, plots and seeds from player.currency + inventory.sync
-// TODO: plots and seeds need item type/subtype values from a capture with inventory open. items with weekNumber outside usableWeeks are expired, skip them (game hides them too)
+// coins and still plantable apple seeds from player.currency + inventory.sync. free base seeds skipped (model has BASE_SEEDS)
+// TODO: plots from schema state or shop plot price (only under 19 plots)
 export function inventoryFrom(currency, inventory) {
-    return null;
+    if (typeof currency?.coins !== "number" || !Array.isArray(inventory?.items)) return null;
+    // game expiry rule, counts while weekNumber is in usableWeeks
+    const usable = new Set(inventory.usableWeeks ?? []);
+    const seeds = inventory.items
+        .filter((item) => item.itemId === APPLE_SEED && usable.has(item.weekNumber))
+        .reduce((sum, item) => sum + item.quantity, 0);
+    // plots only in room state (colyseus schema), panel asks for them
+    return { coins: currency.coins, plots: null, seeds };
 }
 
 // unit prices rounded, biggest base price (apples) least off
