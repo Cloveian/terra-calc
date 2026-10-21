@@ -1,6 +1,7 @@
 // next steps: farm chores now + this weeks crops and hours from site route
 import { hoursNeeded, simulateRoute } from "../src/route.js";
 import { RENT, MAX_PLOTS } from "../src/data.js";
+import { APPLE_SEED } from "./fill.js";
 
 // this weeks crops (= hours) from site route (src/route.js). no goal = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent)
 export function weekTarget(state, t, goal, m) {
@@ -17,6 +18,12 @@ export function weekTarget(state, t, goal, m) {
     }
     const row = route[0];
     return { w: row?.hours ?? 0, cap, reachable, out: row?.out ?? false };
+}
+
+// route state from mid-week. planted apples are paid for, counted back as seeds or route buys them agian n comes out low. coins + plots already have this weeks spending
+export function routeState(inventory, plots, farm, weekKey) {
+    const planted = (farm?.crops ?? []).filter((crop) => crop.week === weekKey && crop.seed === APPLE_SEED).length;
+    return { coins: inventory.coins, plots, seeds: inventory.seeds + planted };
 }
 
 // steps in doing order, n = crops, plots, seeds or hours. nothing without farm (no spots to count). w null = no target, plants what you have

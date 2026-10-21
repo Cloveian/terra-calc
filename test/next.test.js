@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekTarget, stepsFrom } from "../userscript/next.js";
+import { weekTarget, stepsFrom, routeState } from "../userscript/next.js";
 import { stuckFrom } from "../userscript/fill.js";
 import { hoursNeeded } from "../src/route.js";
 
@@ -20,6 +20,13 @@ test("weekTarget: with a goal it's the first week of hoursNeeded's route", () =>
 
 test("weekTarget: a goal you can't reach still goes as hard as it can", () => {
     assert.deepEqual(weekTarget({ coins: 42, plots: 36, seeds: 0 }, 3, 1e6, 1.1), { w: 18, cap: 45, reachable: false, out: false });
+});
+
+test("routeState: this week's planted apples count as seeds you've got", () => {
+    const farm = { crops: [...crops("dry", 4, { week: "2026-W43" }), ...crops("review", 6)] };
+    const inventory = { coins: 12, seeds: 1, baseSeeds: 0, unplaced: 0 };
+    assert.deepEqual(routeState(inventory, 20, farm, "2026-W43"), { coins: 12, plots: 20, seeds: 5 });
+    assert.deepEqual(routeState(inventory, 20, null, "2026-W43"), { coins: 12, plots: 20, seeds: 1 });
 });
 
 test("stepsFrom: 20 Oct, 36 stuck and 36 loan plots in the bag", () => {

@@ -9,7 +9,7 @@ import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom,
 } from "./fill.js";
-import { weekTarget, stepsFrom } from "./next.js";
+import { weekTarget, stepsFrom, routeState } from "./next.js";
 
 const FARM_KEY = "terra-calc-farm";
 
@@ -193,7 +193,7 @@ function plan() {
     const t = weekFrom(game.currentWeek);
     // todo: goal, rent week till i decide where it comes from
     const target = t !== null && plots !== null
-        ? weekTarget({ coins: inventory.coins, plots, seeds: inventory.seeds }, t, null, m)
+        ? weekTarget(routeState(inventory, plots, game.farm, game.hours?.weekKey), t, null, m)
         : null;
     const parts = {
         trees: treesFrom(game.deviceUpgrades),

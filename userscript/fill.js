@@ -3,7 +3,7 @@ import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX, CROPS } from "../src/data.js";
 import { withoutZeros } from "../src/tree.js";
 import { plotCost } from "../src/farm.js";
 
-const APPLE_SEED = "apple_seed"; // terra's item ids
+export const APPLE_SEED = "apple_seed"; // terra's item ids
 const DIRT_PLOT = "dirt_plot";
 
 // GET /device-upgrades -> trees like TREES
