@@ -62,7 +62,7 @@ export function showNotice(text) {
 }
 
 // plan from main.js, null if not enough to go on
-// TODO: hours left n goal progress bar. also game vs typed numbers
+// TODO: hours left n goal progress bar, site presets + coin box for goal. also game vs typed numbers
 export function drawPanel(plan) {
     if (!root) return;
     const title = document.createElement("b");
