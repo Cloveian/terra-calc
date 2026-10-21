@@ -46,7 +46,7 @@ test("20 Oct, Ratticus lent a plot per stuck crop and there's 2 bought ones in t
 
 test("this week's target and the steps go last", () => {
     const farm = { plots: 36, empty: 0, crops: crops("review", 36, { review: "review" }), seenAt: NOW };
-    const steps = [{ do: "place", n: 10 }, { do: "plant", n: 10 }, { do: "code", n: 7.5 }, { do: "ship", n: 10 }];
+    const steps = [{ do: "place", n: 10 }, { do: "plantBase", n: 10 }, { do: "code", n: 7.5 }, { do: "ship", n: 10 }];
     const plan = {
         t: 3, inventory: { coins: 0, plots: 36, unplaced: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, mGuessed: true, loans: 36,
         farm, stuck: stuckFrom(farm, "2026-W43"), target: { w: 10, cap: 10, reachable: null, out: false }, steps,
@@ -55,7 +55,7 @@ test("this week's target and the steps go last", () => {
         "this week: 10 crops (rent, no goal yet)",
         "next:",
         "place 10 plots",
-        "plant 10 seeds",
+        "plant 10 strawberry seeds",
         "code 7.5 h",
         "ship this week's project so the 10 grow",
     ]);

@@ -15,7 +15,7 @@ const WHY_LINES = {
     rejected: "won't grow, last week's ship was rejected",
 };
 
-// next.js steps, n = whatever that step counts
+// next.js steps, n = whatever that step counts. plan for ones needing more words
 const STEP_LINES = {
     clear: (n) => `clear ${n} withered`,
     harvest: (n) => `harvest ${n}`,
@@ -25,7 +25,8 @@ const STEP_LINES = {
     buySeeds: (n) => `buy ${some(n, "apple seed")} from Heidi`,
     waitForLoans: (n) => `(or wait, if last week's review isn't back by wednesday Ratticus lends up to ${n})`,
     place: (n) => `place ${some(n, "plot")}`,
-    plant: (n) => `plant ${some(n, "seed")}`,
+    plantBase: (n, plan) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}`,
+    plantApples: (n) => `plant ${some(n, "apple seed")}`,
     code: (n) => `code ${n} h`,
     ship: (n) => `ship this week's project so the ${n} grow`,
 };
@@ -97,20 +98,28 @@ export function linesFor(plan, now = Date.now()) {
 }
 
 // this weeks target + steps, after farm since they need it
-function nextLines({ target, steps }) {
+function nextLines(plan) {
+    const { target, steps } = plan;
     const lines = [];
     if (target?.out) lines.push("can't afford 10 crops this week, that's rent");
     else if (target) lines.push(`this week: ${some(target.w, "crop")}${target.reachable === null ? " (rent, no goal yet)" : ""}`);
     if (steps.length > 0) lines.push("next:");
-    for (const step of steps) lines.push(STEP_LINES[step.do](step.n));
+    for (const step of steps) lines.push(STEP_LINES[step.do](step.n, plan));
     return lines;
 }
 
-// free seeds by name. none left = named by week, carrots in prep
-function baseSeedsLine({ baseKinds }, t) {
-    const kinds = Object.entries(baseKinds);
-    if(kinds.length === 0) return some(0, isPrep(t) ? "carrot seed" : "strawberry seed");
+// free seeds by name, a count per kind
+function baseSeedsLine(inventory, t) {
+    const kinds = Object.entries(inventory.baseKinds);
+    if(kinds.length === 0) return some(0, baseSeedName(inventory, t));
     return kinds.map(([kind, n]) => some(n, `${kind} seed`)).join(", ");
+}
+
+// free seed name, "carrot or strawberry" if both. none left = named by week, carrots in prep
+function baseSeedName({ baseKinds }, t) {
+    const kinds = Object.keys(baseKinds);
+    if (kinds.length === 0) return isPrep(t) ? "carrot seed" : "strawberry seed";
+    return `${kinds.join(" or ")} seed`;
 }
 
 // crop kinds with counts, bare name if only one kind. game name, seed id without one

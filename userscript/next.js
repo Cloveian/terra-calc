@@ -48,7 +48,10 @@ export function stepsFrom({ farm, inventory, stuck, loans, weekKey, hoursDone, w
     // stuck crops with nothing lent yet, ratticus might cover some plots for free
     if (loans === 0) add({ do: "waitForLoans", n: Math.min(buyPlots, stuck.count) });
     add({ do: "place", n: Math.min(inventory.unplaced + buyPlots, Math.max(0, want - free)) });
-    add({ do: "plant", n: want });
+    // free seeds first, model counts first 10 crops as free ones (rent in main weeks)
+    const base = Math.min(want, inventory.baseSeeds);
+    add({ do: "plantBase", n: base });
+    add({ do: "plantApples", n: want - base });
 
     // hour a crop like model. no target = dry ones + ones about to go in
     const hours = w === null ? count((crop) => crop.stage === "dry") + want : w - hoursDone;

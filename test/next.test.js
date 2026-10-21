@@ -30,7 +30,7 @@ test("stepsFrom: 20 Oct, 36 stuck and 36 loan plots in the bag", () => {
     });
     assert.deepEqual(steps, [
         { do: "place", n: 10 },
-        { do: "plant", n: 10 },
+        { do: "plantBase", n: 10 },
         { do: "code", n: 10 },
         { do: "ship", n: 10 },
     ]);
@@ -46,7 +46,7 @@ test("stepsFrom: 19 Oct, stuck with nothing lent yet, so the plots would have to
         { do: "buyPlots", n: 10 },
         { do: "waitForLoans", n: 10 },
         { do: "place", n: 10 },
-        { do: "plant", n: 10 },
+        { do: "plantBase", n: 10 },
         { do: "code", n: 10 },
         { do: "ship", n: 10 },
     ]);
@@ -73,7 +73,8 @@ test("stepsFrom: a busy week, harvesting last week's pays the loans back", () =>
         { do: "buyPlots", n: 13 },
         { do: "buySeeds", n: 2 },
         { do: "place", n: 15 },
-        { do: "plant", n: 17 },
+        { do: "plantBase", n: 10 },
+        { do: "plantApples", n: 7 },
         { do: "code", n: 17.5 },
         { do: "ship", n: 20 },
     ]);
@@ -88,7 +89,7 @@ test("stepsFrom: no target just plants what you've got and waters the dry ones",
     assert.deepEqual(steps, [
         { do: "buyPlots", n: 2 },
         { do: "place", n: 2 },
-        { do: "plant", n: 3 },
+        { do: "plantApples", n: 3 },
         { do: "code", n: 5 },
         { do: "ship", n: 5 },
     ]);
