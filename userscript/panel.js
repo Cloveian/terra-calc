@@ -10,8 +10,8 @@ const STAGE_LINES = {
 };
 const WHY_LINES = {
     review: "waiting on last week's review",
-    changes: "waiting on you, a reviewer asked for changes, reship last week's project",
-    short: "need more approved hours, devlog and reship last week's project",
+    changes: "waiting on you, a reviewer asked for changes",
+    short: "need more approved hours",
     rejected: "won't grow, last week's ship was rejected",
 };
 

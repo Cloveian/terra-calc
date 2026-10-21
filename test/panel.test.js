@@ -81,7 +81,7 @@ test("a mixed farm", () => {
         "3 ready to harvest (2 apple, 1 carrot)",
         "1 need water (apple)",
         "2 watered, ship this week's project for them to grow (apple)",
-        "2 waiting on you, a reviewer asked for changes, reship last week's project (apple)",
+        "2 waiting on you, a reviewer asked for changes (apple)",
         "2 waiting on this week's review (apple)",
         "(farm as of 5 min ago)",
     ]);
