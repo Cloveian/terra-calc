@@ -61,6 +61,21 @@
       "weekLabel": "Prep Week 2",
       "usableUntil": "2026-10-13T03:59:59.999Z",
       "itemData": {}
+    },
+    {
+      "id": "item-5",
+      "itemId": "dirt_plot",
+      "name": "Dirt Plot",
+      "type": "placeable",
+      "rarity": "common",
+      "quantity": 36,
+      "slot": -1,
+      "stackable": true,
+      "subtype": "",
+      "weekNumber": null,
+      "weekLabel": null,
+      "usableUntil": null,
+      "itemData": {}
     }
   ]
 }

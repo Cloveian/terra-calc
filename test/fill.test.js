@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { TREES } from "../src/data.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
-    shopFrom, shopProblems, farmSchemaProblems,
+    shopFrom, shopProblems, farmSchemaProblems, loansFrom,
 } from "../userscript/fill.js";
 
 // most fixtures hand made from capture shapes. device-upgrades-real is a real response, owned + purchases emptied, coins and address swapped for made up ones
@@ -89,13 +89,13 @@ test("multiplyerFrom: nothing to sell -> null", () => {
 });
 
 test("inventoryFrom: coins, and apple seeds from the usable weeks only", () => {
-    // 3 this week + 2 from week 8 (still usable), 4 from week 7 expired, the 10 strawberrys are base seeds
+    // 3 this week + 2 from week 8 (still usable), 4 from week 7 expired, the 10 strawberrys are base seeds, 36 plots are loans like in a capture (no week)
     const inventory = inventoryFrom(fixture("player-currency"), fixture("inventory-sync"));
-    assert.deepEqual(inventory, { coins: 42, plots: null, seeds: 5, baseSeeds: 10, baseKinds: { strawberry: 10 } });
+    assert.deepEqual(inventory, { coins: 42, plots: null, unplaced: 36, seeds: 5, baseSeeds: 10, baseKinds: { strawberry: 10 } });
 });
 
 test("inventoryFrom: no seeds -> 0s", () => {
-    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, seeds: 0, baseSeeds: 0, baseKinds: {} });
+    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, unplaced: 0, seeds: 0, baseSeeds: 0, baseKinds: {} });
 });
 
 test("inventoryFrom: base seeds by subtype, so prep carrots count too, and expire like the rest", () => {
@@ -171,10 +171,25 @@ test("farmSchemaProblems: renamed fields show up, no farmItems or no decoder is 
 
 test("stuckFrom: waiting on review from before this week, and why", () => {
     const farm = farmFrom(farmState, "me", "me");
-    assert.deepEqual(stuckFrom(farm, "2026-W43"), { count: 2, why: { review: 1, changes: 1 } });
-    assert.deepEqual(stuckFrom(farm, "2026-W42"), { count: 0, why: {} }, "planted this week isn't stuck yet");
-    assert.deepEqual(stuckFrom(farm, null), { count: 2, why: { review: 1, changes: 1 } });
-    assert.deepEqual(stuckFrom(null, "2026-W43"), { count: 0, why: {} });
+    const stuck = stuckFrom(farm, "2026-W43");
+    assert.equal(stuck.count, 2);
+    assert.deepEqual(stuck.why, { review: 1, changes: 1 });
+    // same objects as farm.crops
+    assert.deepEqual(stuck.crops.map((crop) => crop.review), ["review", "changes"]);
+    assert.ok(stuck.crops.every((crop) => farm.crops.includes(crop)));
+    assert.deepEqual(stuckFrom(farm, "2026-W42"), { count: 0, why: {}, crops: [] }, "planted this week isn't stuck yet");
+    assert.equal(stuckFrom(farm, null).count, 2);
+    assert.deepEqual(stuckFrom(null, "2026-W43"), { count: 0, why: {}, crops: [] });
+});
+
+test("loansFrom: as many unplaced as stuck (or more) means that many are loans", () => {
+    const stuck = (count) => ({ count, why: { review: count }, crops: [] });
+    assert.equal(loansFrom({ unplaced: 36 }, stuck(36)), 36, "the 20 Oct capture");
+    assert.equal(loansFrom({ unplaced: 40 }, stuck(36)), 36, "the other 4 are bought ones");
+    assert.equal(loansFrom({ unplaced: 20 }, stuck(36)), 0, "some placed already, can't tell");
+    assert.equal(loansFrom({ unplaced: 5 }, stuck(0)), 0, "nothing stuck, nothing lent");
+    assert.equal(loansFrom({ unplaced: 5 }, null), 0, "farm not seen yet");
+    assert.equal(loansFrom(null, stuck(3)), 0);
 });
 
 test("userIdFromToken: the userId out of the JWT", () => {

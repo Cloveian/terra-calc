@@ -7,13 +7,16 @@ import { setDebug, debug } from "./debug.js";
 import { mountPanel, drawPanel, showNotice } from "./panel.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
-    shopFrom, shopProblems, farmSchemaProblems,
+    shopFrom, shopProblems, farmSchemaProblems, loansFrom,
 } from "./fill.js";
 
 const FARM_KEY = "terra-calc-farm";
 
-// can stay null: m and plots (panel asks), farm and stuck (only after farm visit)
-const OPTIONAL = new Set(["m", "farm", "stuck"]);
+// can stay null: plots (panel asks), farm and stuck (only after farm visit)
+const OPTIONAL = new Set(["farm", "stuck"]);
+
+// guess till a reviewed crop is in the market, m comes from project review
+const M_GUESS = 1.1;
 
 // latest from game. farm = last visit to my own farm, saved for reloads in town (seenAt for its age)
 const game = {
@@ -178,14 +181,22 @@ function saveFarm(farm) {
 // fill.js output only for now. todo: fill.js state + my goal (saved like site link) -> hoursNeeded + milestones (src/route.js) + goalCost (src/tree.js). reward-estimate water = hours done this week
 function plan() {
     const inventory = inventoryFrom(game.currency, game.inventory);
+    const m = multiplyerFrom(game.marketItems);
+    const stuck = game.farm && stuckFrom(game.farm, game.hours?.weekKey);
+    const loans = loansFrom(inventory, stuck);
+    // owned plots = placed + bag - ratticus's loans
+    // todo: shop count might alredy include bag ones, needs a shop look with plots in my bag
+    const placed = plotsNow();
     const parts = {
         trees: treesFrom(game.deviceUpgrades),
         owned: ownedFrom(game.deviceUpgrades),
         t: weekFrom(game.currentWeek),
-        inventory: inventory && { ...inventory, plots: plotsNow() },
-        m: multiplyerFrom(game.marketItems),
+        inventory: inventory && { ...inventory, plots: placed === null ? null : placed + inventory.unplaced - loans },
+        m: m ?? M_GUESS,
+        mGuessed: m === null,
+        loans,
         farm: game.farm,
-        stuck: game.farm && stuckFrom(game.farm, game.hours?.weekKey),
+        stuck,
     };
     const missing = Object.keys(parts).filter((key) => parts[key] === null);
     debug("plan", missing.length > 0 ? `missing ${missing.join(", ")}` : "has everything", parts);

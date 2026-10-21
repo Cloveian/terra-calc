@@ -63,26 +63,29 @@ export function inventoryFrom(currency, inventory) {
     // game expiry rule, counts while weekNumber is in usableWeeks
     const weeks = new Set(inventory.usableWeeks ?? []);
     const usable = inventory.items.filter((item) => weeks.has(item.weekNumber));
-    const count = (keep) => usable.filter(keep).reduce((sum, item) => sum + item.quantity, 0);
+    const sum = (items) => items.reduce((total, item) => total + item.quantity, 0);
     // subtype "base", carrots in prep and strawberries from week 1. model assumes 10, steps need real count
-    const isBase = (item) => item.type === "seed" && item.subtype === "base";
+    const base = usable.filter((item) => item.type === "seed" && item.subtype === "base");
     // per kind for panel, prep 3 carrots still usuable in week 1 so can be both
     const baseKinds = {};
-    for (const item of usable.filter(isBase)) {
+    for (const item of base) {
         const kind = item.itemId.replace(/_seed$/, "");
         baseKinds[kind] = (baseKinds[kind] ?? 0) + item.quantity;
     }
     return {
         coins: currency.coins,
-        // only in farm room state. main.js fills it from farmFrom after farm visit or shopFrom before (under 19 plots)
+        // placed ones, only in farm room state. main.js fills it from farmFrom after farm visit or shopFrom before (under 19 plots)
         plots: null,
-        seeds: count((item) => item.itemId === APPLE_SEED),
-        baseSeeds: count(isBase),
+        // dirt plots in bag, bought but not placed yet or ratticus's loan ones (look the same). no week on them, all items counted
+        unplaced: sum(inventory.items.filter((item) => item.itemId === DIRT_PLOT)),
+        seeds: sum(usable.filter((item) => item.itemId === APPLE_SEED)),
+        baseSeeds: sum(base),
         baseKinds,
     };
 }
 
 // room state (schema.js) -> my farm, null off farm or on freinds farm. owner from joinComplete, me from userIdFromToken. plots and crops both farmItems, crops point at plotId
+// todo: placed ratticus loan plots count as mine here till i see if a placed one looks dihfrent
 export function farmFrom(state, farmOwnerId, myId) {
     if (!(state?.farmItems instanceof Map) || !farmOwnerId || farmOwnerId !== myId) return null;
     const items = [...state.farmItems.values()];
@@ -122,12 +125,18 @@ function stageOf(crop) {
     return "watered";
 }
 
-// crops stuck in review from before weekKey (hours.update, like "2026-W43"), all of them without one. week keys compare fine as strings, always 2 digit weeks
+// crops stuck in review from before weekKey (hours.update, like "2026-W43"), all of them without one. week keys compare fine as strings, always 2 digit weeks. crops kept so panel can name them
 export function stuckFrom(farm, weekKey) {
     const stuck = (farm?.crops ?? []).filter((crop) => crop.stage === "review" && (!weekKey || crop.week < weekKey));
     const why = {};
     for (const crop of stuck) why[crop.review ?? "review"] = (why[crop.review ?? "review"] ?? 0) + 1;
-    return { count: stuck.length, why };
+    return { count: stuck.length, why, crops: stuck };
+}
+
+// ratticus's loan plots among unplaced ones. one lent per stuck crop, plain dirt plot in bag (no subtype, plotLoan.request on join gets no answer). unplaced >= stuck = that many are loans, fewer = cant tell so 0
+export function loansFrom(inventory, stuck) {
+    const count = stuck?.count ?? 0;
+    return count > 0 && inventory?.unplaced >= count ? count : 0;
 }
 
 // auth token = JWT, userId in middle part = me for farmOwnerId

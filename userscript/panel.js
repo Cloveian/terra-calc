@@ -57,23 +57,25 @@ export function drawPanel(plan) {
 
 // words, one string per line
 export function linesFor(plan, now = Date.now()) {
-    const { t, inventory, m, farm, stuck } = plan;
+    const { t, inventory, m, mGuessed, loans, farm, stuck } = plan;
     const lines = [weekName(t)];
     lines.push(`${some(Math.floor(inventory.coins), "coin")}, ${some(inventory.seeds, "apple seed")}, ${baseSeedsLine(inventory, t)}`);
     lines.push(inventory.plots === null ? "plots: go to your farm or open Heidi's shop" : some(inventory.plots, "plot"));
-    lines.push(m === null ? "multiplier: open the market with crops to sell" : `multiplier ${Math.round(m * 100) / 100}`);
+    if (loans > 0) lines.push(`${some(loans, "loan plot")} to place, Ratticus takes them back when you harvest the stuck crops`);
+    const bagged = inventory.unplaced - loans;
+    if (bagged > 0) lines.push(`${some(bagged, "plot")} in your bag to place`);
+    lines.push(`multiplier ${Math.round(m * 100) / 100}${mGuessed ? ", a guess till a review comes back" : ""}`);
     if(!farm) return lines;
 
     if (farm.empty > 0) lines.push(some(farm.empty, "empty plot"));
-    const counts = {};
-    for (const crop of farm.crops) counts[crop.stage] = (counts[crop.stage] ?? 0) + 1;
-    for (const [stage, text] of Object.entries(STAGE_LINES)) {
-        if (counts[stage]) lines.push(`${counts[stage]} ${text}`);
-    }
+    const line = (crops, text) => crops.length > 0 && lines.push(`${crops.length} ${text}${cropKinds(crops)}`);
+    for (const [stage, text] of Object.entries(STAGE_LINES)) line(farm.crops.filter((crop) => crop.stage === stage), text);
     // stuck = from before this week (all of them if week unkown), rest of review is this weeks n just waiting
-    for (const [why, n] of Object.entries(stuck?.why ?? {})) lines.push(`${n} ${WHY_LINES[why] ?? `stuck (${why})`}`);
-    const waiting = (counts.review ?? 0) - (stuck?.count ?? 0);
-    if (waiting > 0) lines.push(`${waiting} waiting on this week's review`);
+    const stuckCrops = new Set(stuck.crops);
+    for (const why of Object.keys(stuck.why)) {
+        line(stuck.crops.filter((crop) => (crop.review ?? "review") === why), WHY_LINES[why] ?? `stuck (${why})`);
+    }
+    line(farm.crops.filter((crop) => crop.stage === "review" && !stuckCrops.has(crop)), "waiting on this week's review");
     if (farm.seenAt) lines.push(`(farm as of ${ago(now - farm.seenAt)})`);
     return lines;
 }
@@ -83,6 +85,17 @@ function baseSeedsLine({ baseKinds }, t) {
     const kinds = Object.entries(baseKinds);
     if(kinds.length === 0) return some(0, isPrep(t) ? "carrot seed" : "strawberry seed");
     return kinds.map(([kind, n]) => some(n, `${kind} seed`)).join(", ");
+}
+
+// crop kinds with counts, bare name if only one kind. game name, seed id without one
+function cropKinds(crops) {
+    const counts = new Map();
+    for (const crop of crops) {
+        const name = (crop.name || crop.seed).toLowerCase();
+        counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    if (counts.size === 1) return ` (${[...counts.keys()][0]})`;
+    return ` (${[...counts].map(([name, n]) => `${n} ${name}`).join(", ")})`;
 }
 
 function some(n, word) {
