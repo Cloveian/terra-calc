@@ -6,20 +6,27 @@ import { hoursNeeded } from "../src/route.js";
 
 const crops = (stage, n, { review = null, week = "2026-W42" } = {}) =>
     Array.from({ length: n }, () => ({ seed: "apple_seed", name: "Apple", stage, review, week }));
+// weekTarget minus route (simulateRoute output)
+const target = (...args) => {
+    const { route, ...rest } = weekTarget(...args);
+    assert.ok(route.length > 0);
+    return rest;
+};
 
 test("weekTarget: no goal plans the rent week, like the site with nothing picked", () => {
     // 42 coins = 18 crops, capped at 10
-    assert.deepEqual(weekTarget({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1), { w: 10, cap: 10, reachable: null, out: false });
+    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1), { w: 10, cap: 10, reachable: null, out: false });
 });
 
 test("weekTarget: with a goal it's the first week of hoursNeeded's route", () => {
     const state = { coins: 42, plots: 36, seeds: 0 };
     const result = hoursNeeded(state, 3, 2000, 1.1);
-    assert.deepEqual(weekTarget(state, 3, 2000, 1.1), { w: result.route[0].hours, cap: result.cap, reachable: true, out: false });
+    assert.deepEqual(target(state, 3, 2000, 1.1), { w: result.route[0].hours, cap: result.cap, reachable: true, out: false });
+    assert.deepEqual(weekTarget(state, 3, 2000, 1.1).route, result.route);
 });
 
 test("weekTarget: a goal you can't reach still goes as hard as it can", () => {
-    assert.deepEqual(weekTarget({ coins: 42, plots: 36, seeds: 0 }, 3, 1e6, 1.1), { w: 18, cap: 45, reachable: false, out: false });
+    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, 1e6, 1.1), { w: 18, cap: 45, reachable: false, out: false });
 });
 
 test("routeState: this week's planted apples count as seeds you've got", () => {

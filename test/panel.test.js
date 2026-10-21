@@ -61,6 +61,44 @@ test("this week's target and the steps go last", () => {
     ]);
 });
 
+test("a goal shows before the farm's been seen, with the next pick and when it's all done", () => {
+    const goal = {
+        device: "Framework 12", coins: 2800, custom: false,
+        milestones: [
+            { name: "Core 3 304", qty: 1, now: false, week: 5 },
+            { name: "RAM", qty: 2, now: false, week: 8 },
+            { name: "Framework 13", qty: 1, now: false, week: 11 },
+        ],
+    };
+    const plan = {
+        t: 3, inventory: { coins: 42.6, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, mGuessed: true, farm: null,
+        stuck: null, target: { w: 18, cap: 18, reachable: true, out: false, route: [] }, goal, steps: [],
+    };
+    assert.deepEqual(linesFor(plan, NOW).slice(4), [
+        "goal: 2800 coins (Framework 12), 2758 to go",
+        "next pick: Core 3 304 in Week 3",
+        "all of it in Week 9",
+        "this week: 18 crops",
+    ]);
+});
+
+test("a goal you can't reach says the best you'd get, one you can buy now says that", () => {
+    const route = [{ endCoins: 900 }, { endCoins: 11685.4 }];
+    const base = { t: 3, inventory: { coins: 3000, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, farm: null, stuck: null, steps: [] };
+    const far = linesFor({
+        ...base, target: { w: 45, cap: 45, reachable: false, out: false, route },
+        goal: { device: "Framework 12", coins: 20000, custom: true, milestones: [] },
+    }, NOW);
+    assert.ok(far.includes("goal: 20000 coins, 17000 to go"));
+    assert.ok(far.includes("can't get all of it even at 45 h, best is 11685 coins"));
+    const now = linesFor({
+        ...base, target: { w: 10, cap: 10, reachable: true, out: false, route },
+        goal: { device: "iPad Mini", coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, now: true, week: null }] },
+    }, NOW);
+    assert.ok(now.includes("goal: 750 coins (iPad Mini), 0 to go"));
+    assert.ok(now.includes("you can buy all of it now"));
+});
+
 test("short on hours just says so, the devlog step says what to do", () => {
     const farm = { plots: 1, empty: 0, crops: crops("review", 1, { review: "short" }), seenAt: NOW };
     const plan = {

@@ -3,7 +3,7 @@ import { hoursNeeded, simulateRoute } from "../src/route.js";
 import { RENT, MAX_PLOTS } from "../src/data.js";
 import { APPLE_SEED } from "./fill.js";
 
-// this weeks crops (= hours) from site route (src/route.js). no goal = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent)
+// this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent). route for milestones
 export function weekTarget(state, t, goal, m) {
     let cap = RENT;
     let route;
@@ -17,7 +17,7 @@ export function weekTarget(state, t, goal, m) {
         route = simulateRoute(state, t, cap, m);
     }
     const row = route[0];
-    return { w: row?.hours ?? 0, cap, reachable, out: row?.out ?? false };
+    return { w: row?.hours ?? 0, cap, reachable, out: row?.out ?? false, route };
 }
 
 // route state from mid-week. planted apples are paid for, counted back as seeds or route buys them agian n comes out low. coins + plots already have this weeks spending

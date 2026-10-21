@@ -77,16 +77,17 @@ function reportClamps(tree, label, before, after, problems) {
 }
 
 // Raw strings (from the hash or the form) → { state, problems }. Missing keys get defaults quietly.
-export function clean(raw, today) {
+// userscript passes live trees (/device-upgrades), site gets data.js TREES
+export function clean(raw, today, trees = TREES) {
     const d = defaults(today);
     const problems = [];
 
     let device = d.device;
     if ("device" in raw) {
-        if (raw.device in TREES) device = raw.device;
-        else problems.push(`${LABELS.device}: there's no device called "${raw.device}", used ${TREES[d.device].device}`);
+        if (raw.device in trees) device = raw.device;
+        else problems.push(`${LABELS.device}: there's no device called "${raw.device}", used ${trees[d.device]?.device ?? d.device}`);
     }
-    const tree = TREES[device];
+    const tree = trees[device];
 
     let date = d.date;
     if ("date" in raw) {

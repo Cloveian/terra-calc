@@ -10,11 +10,14 @@ import {
     shopFrom, shopProblems, farmSchemaProblems, loansFrom,
 } from "./fill.js";
 import { weekTarget, stepsFrom, routeState } from "./next.js";
+import { cleanGoal, goalCoins, goalItems } from "./goal.js";
+import { milestones } from "../src/route.js";
 
 const FARM_KEY = "terra-calc-farm";
+const GOAL_KEY = "terra-calc-goal";
 
-// can stay null: plots (panel asks), farm and stuck (only after farm visit), target (needs plots)
-const OPTIONAL = new Set(["farm", "stuck", "target"]);
+// can stay null: plots (panel asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one)
+const OPTIONAL = new Set(["farm", "stuck", "target", "goal"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
 const M_GUESS = 1.1;
@@ -31,8 +34,11 @@ const game = {
     farmOwnerId: null, // whose farm this room is (joinComplete)
     roomState: null,
     farmReadable: true, // false = room FarmItem missing fields farmFrom needs
-    farm: loadFarm(),
+    farm: loadMine(FARM_KEY),
 };
+
+// cleaned against live trees every plan(), null = rent week
+let savedGoal = loadMine(GOAL_KEY);
 
 const settings = loadSettings();
 setDebug(settings.debug);
@@ -43,6 +49,8 @@ window.terraCalc = {
     game,
     settings,
     plan,
+    // terraCalc.goal({ want: { ram_12: 2 } }) or ({ goal: 5000 }), null clears. console only till tree bits exist
+    goal: setGoal,
     debug(on = true) {
         settings.debug = on;
         saveSettings(settings);
@@ -117,6 +125,15 @@ async function readRest() {
     }
 }
 
+// unchecked here, junk turns into problems in plan()
+function setGoal(goal) {
+    savedGoal = goal && { device: goal.device ?? game.deviceUpgrades?.mainDevice, ...goal };
+    saveMine(GOAL_KEY, savedGoal);
+    debug("goal", savedGoal);
+    drawPanel(plan());
+    return savedGoal;
+}
+
 // most patches = players walking, true only on farm item changes
 function farmTouched(state, touched) {
     const items = state.farmItems;
@@ -139,7 +156,7 @@ function readFarm() {
     const farm = farmFrom(game.roomState, game.farmOwnerId, myId());
     if (!farm) return;
     game.farm = { ...farm, seenAt: Date.now() };
-    saveFarm(game.farm);
+    saveMine(FARM_KEY, game.farm);
     debug("farm", { plots: farm.plots, empty: farm.empty, stuck: stuckFrom(farm, game.hours?.weekKey) });
     checkShop();
     drawPanel(plan());
@@ -161,25 +178,26 @@ function plotsNow() {
     return farm?.plots ?? null;
 }
 
-// saved with owner id, other acounts on this browser get nothing
-function loadFarm() {
+// farm n goal, saved with owner id. other acounts on this browser get nothing
+function loadMine(key) {
     try {
-        const saved = JSON.parse(localStorage.getItem(FARM_KEY) ?? "null");
-        return saved && saved.userId === myId() ? saved.farm : null;
+        const saved = JSON.parse(localStorage.getItem(key) ?? "null");
+        return saved && saved.userId === myId() ? saved.value : null;
     } catch {
         return null;
     }
 }
 
-function saveFarm(farm) {
+function saveMine(key, value) {
     try {
-        localStorage.setItem(FARM_KEY, JSON.stringify({ userId: myId(), farm }));
+        localStorage.setItem(key, JSON.stringify({ userId: myId(), value }));
     } catch {
-        // reread next farm visit
+        // farm gets reread next visit, goal is just gone after reload tho
     }
 }
 
-// fill.js output only for now. todo: fill.js state + my goal (saved like site link) -> hoursNeeded + milestones (src/route.js) + goalCost (src/tree.js). reward-estimate water = hours done this week
+// everthing panel needs, fill.js reads + saved goal
+// todo: reward-estimate water = hours done this week
 function plan() {
     const inventory = inventoryFrom(game.currency, game.inventory);
     const mRead = multiplyerFrom(game.marketItems);
@@ -191,13 +209,18 @@ function plan() {
     const placed = plotsNow();
     const plots = inventory && placed !== null ? placed + inventory.unplaced - loans : null;
     const t = weekFrom(game.currentWeek);
-    // todo: goal, rent week till i decide where it comes from
+    const trees = treesFrom(game.deviceUpgrades);
+    const owned = ownedFrom(game.deviceUpgrades);
+    // own is per goal device, maybe not my main one
+    const goal = cleanGoal(savedGoal, trees, owned);
+    const coinsGoal = goal && goalCoins(goal.goal, trees, goal.own);
     const target = t !== null && plots !== null
-        ? weekTarget(routeState(inventory, plots, game.farm, game.hours?.weekKey), t, null, m)
+        ? weekTarget(routeState(inventory, plots, game.farm, game.hours?.weekKey), t, coinsGoal, m)
         : null;
+    for (const problem of goal?.problems ?? []) showNotice(`Your goal changed: ${problem}`);
     const parts = {
-        trees: treesFrom(game.deviceUpgrades),
-        owned: ownedFrom(game.deviceUpgrades),
+        trees,
+        owned,
         t,
         inventory: inventory && { ...inventory, plots },
         m,
@@ -206,6 +229,13 @@ function plan() {
         farm: game.farm,
         stuck,
         target,
+        // for panel goal lines, null = rent week
+        goal: coinsGoal === null ? null : {
+            device: trees[goal.goal.device].device,
+            coins: coinsGoal,
+            custom: goal.goal.goal !== null,
+            milestones: target ? milestones(target.route, goalItems(goal.goal, trees, goal.own)) : [],
+        },
         steps: stepsFrom({
             farm: game.farm,
             inventory,

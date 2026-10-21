@@ -58,7 +58,7 @@ export function showNotice(text) {
 }
 
 // plan from main.js, null if not enough to go on
-// TODO: still just what it read, no plan yet. needs goal for this weeks line ("buy 5 plots + 25 apple seeds, code 35 h"), hours left n goal progress bar. also game vs typed numbers
+// TODO: hours left n goal progress bar. also game vs typed numbers
 export function drawPanel(plan) {
     if (!root) return;
     const title = document.createElement("b");
@@ -81,7 +81,8 @@ export function linesFor(plan, now = Date.now()) {
     const bagged = inventory.unplaced - loans;
     if (bagged > 0) lines.push(`${some(bagged, "plot")} in your bag to place`);
     lines.push(`multiplier ${Math.round(m * 100) / 100}${mGuessed ? ", a guess till a review comes back" : ""}`);
-    if(!farm) return lines;
+    // goal + this weeks crops work without farm, steps just come out empty
+    if (!farm) return [...lines, ...nextLines(plan)];
 
     if (farm.empty > 0) lines.push(some(farm.empty, "empty plot"));
     const line = (crops, text) => crops.length > 0 && lines.push(`${crops.length} ${text}${cropKinds(crops)}`);
@@ -97,10 +98,10 @@ export function linesFor(plan, now = Date.now()) {
     return lines;
 }
 
-// this weeks target + steps, after farm since they need it
+// goal, this weeks target + steps, after farm lines
 function nextLines(plan) {
-    const { target, steps } = plan;
-    const lines = [];
+    const { target, steps, goal, inventory } = plan;
+    const lines = goal ? goalLines(goal, target, inventory.coins) : [];
     if (target?.out) lines.push("can't afford 10 crops this week, that's rent");
     else if (target) lines.push(`this week: ${some(target.w, "crop")}${target.reachable === null ? " (rent, no goal yet)" : ""}`);
     if (steps.length > 0) lines.push("next:");
@@ -120,6 +121,28 @@ function baseSeedName({ baseKinds }, t) {
     const kinds = Object.keys(baseKinds);
     if (kinds.length === 0) return isPrep(t) ? "carrot seed" : "strawberry seed";
     return `${kinds.join(" or ")} seed`;
+}
+
+// "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)
+function goalLines(goal, target, coins) {
+    const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins))} to go`];
+    if (target?.reachable === false) {
+        lines.push(`can't get all of it even at 45 h, best is ${Math.floor(target.route.at(-1).endCoins)} coins`);
+    }
+    const picks = goal.milestones;
+    const next = picks.find((pick) => !pick.now);
+    if (picks.length > 0 && !next) lines.push("you can buy all of it now");
+    if (next) lines.push(`next pick: ${pickName(next)} ${when(next)}`);
+    if (next && next !== picks.at(-1)) lines.push(`all of it ${when(picks.at(-1))}`);
+    return lines;
+}
+
+function pickName({ name, qty }) {
+    return qty > 1 ? `${qty} ${name}` : name;
+}
+
+function when({ week }) {
+    return week === null ? "doesn't fit" : `in ${weekName(week)}`;
 }
 
 // crop kinds with counts, bare name if only one kind. game name, seed id without one
