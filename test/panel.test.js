@@ -61,6 +61,17 @@ test("this week's target and the steps go last", () => {
     ]);
 });
 
+test("short on hours just says so, the devlog step says what to do", () => {
+    const farm = { plots: 1, empty: 0, crops: crops("review", 1, { review: "short" }), seenAt: NOW };
+    const plan = {
+        t: 3, inventory: { coins: 0, plots: 1, unplaced: 0, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1.1, mGuessed: true, loans: 0, farm,
+        stuck: stuckFrom(farm, "2026-W43"), steps: [{ do: "devlog", n: 1 }],
+    };
+    const lines = linesFor(plan, NOW);
+    assert.ok(lines.includes("1 need more approved hours (apple)"));
+    assert.ok(lines.includes("devlog and reship last week's project, 1 short on hours"));
+});
+
 test("a mixed farm", () => {
     const farm = {
         plots: 12,
