@@ -35,8 +35,8 @@ let root = null;
 let noticeBox = null;
 let planBox = null;
 
-// screen corner for now, maybe terra menu tab later. just enough style to read over canvas
-export function mountPanel() {
+// screen corner for now, maybe terra menu tab later. just enough style to read over canvas. pickGoal opens terra's tree
+export function mountPanel(pickGoal) {
     if (root) return;
     root = document.createElement("div");
     root.id = "terra-calc-panel";
@@ -45,7 +45,11 @@ export function mountPanel() {
     noticeBox = document.createElement("div");
     planBox = document.createElement("div");
     planBox.textContent = "Terra Calc";
-    root.append(noticeBox, planBox);
+    const goalButton = document.createElement("button");
+    goalButton.textContent = "pick your goal";
+    goalButton.style.cssText = "margin-top:6px;font:inherit;cursor:pointer";
+    goalButton.addEventListener("click", () => pickGoal());
+    root.append(noticeBox, planBox, goalButton);
     document.body.append(root);
 }
 

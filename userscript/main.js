@@ -11,6 +11,7 @@ import {
 } from "./fill.js";
 import { weekTarget, stepsFrom, routeState } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
+import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { milestones } from "../src/route.js";
 
 const FARM_KEY = "terra-calc-farm";
@@ -39,6 +40,7 @@ const game = {
 
 // cleaned against live trees every plan(), null = rent week
 let savedGoal = loadMine(GOAL_KEY);
+let treeBits = null; // set in plan(), for drawWantBits
 
 const settings = loadSettings();
 setDebug(settings.debug);
@@ -49,7 +51,7 @@ window.terraCalc = {
     game,
     settings,
     plan,
-    // terraCalc.goal({ want: { ram_12: 2 } }) or ({ goal: 5000 }), null clears. console only till tree bits exist
+    // terraCalc.goal({ want: { ram_12: 2 } }) or ({ goal: 5000 }), null clears
     goal: setGoal,
     debug(on = true) {
         settings.debug = on;
@@ -75,7 +77,7 @@ onGameMessage(IN.shopStock, (body) => {
     const shop = shopFrom(body);
     if (shop) game.shop = { ...shop, seenAt: Date.now() };
     checkShop();
-    drawPanel(plan());
+    draw();
 });
 
 // room state and owner come in either order, both try readFarm. new room forgets owner first or friend's farm passes for mine till their joinComplete
@@ -105,8 +107,9 @@ onGameMessage(ROOM.broken, () => {
 document.addEventListener("DOMContentLoaded", start);
 
 async function start() {
-    if (settings.panel) mountPanel();
+    if (settings.panel) mountPanel(openTree);
     if (!settings.fill) return drawPanel(null);
+    mountWantBits(pickWant);
     await readRest();
     if (settings.debug) {
         liveBuild().then((build) => debug("live build", build), (err) => debug("no live build", err));
@@ -125,12 +128,35 @@ async function readRest() {
     }
 }
 
+function draw() {
+    drawPanel(plan());
+    drawWantBits(treeBits);
+}
+
+// + or - from terra's tree. picking on another device moves the goal there
+// todo: say what got taken out with it (removed). notices stick around forever tho
+function pickWant(device, id, delta) {
+    const trees = treesFrom(game.deviceUpgrades);
+    const owned = ownedFrom(game.deviceUpgrades);
+    let current = cleanGoal(savedGoal, trees, owned);
+    if (!current || !(device in trees)) return;
+    if (device !== current.goal.device) {
+        const picked = goalCoins(current.goal, trees, current.own) !== null;
+        const ask = `Switch your goal to ${trees[device].device}? That clears what you wanted on ${trees[current.goal.device].device}.`;
+        if (picked && !window.confirm(ask)) return;
+        current = cleanGoal({ device }, trees, owned);
+    }
+    const { want, removed } = changeWant(trees[device], current.own, current.goal.want, id, delta);
+    debug("picked", { device, id, delta, removed });
+    setGoal({ ...current.goal, want, goal: null }); // any pick ends a custom coin goal, like site
+}
+
 // unchecked here, junk turns into problems in plan()
 function setGoal(goal) {
     savedGoal = goal && { device: goal.device ?? game.deviceUpgrades?.mainDevice, ...goal };
     saveMine(GOAL_KEY, savedGoal);
     debug("goal", savedGoal);
-    drawPanel(plan());
+    draw();
     return savedGoal;
 }
 
@@ -143,7 +169,7 @@ function farmTouched(state, touched) {
 // plan rerun every change, same src/ as site. panel only gets plan
 function changed(key, body) {
     game[key] = body;
-    drawPanel(plan());
+    draw();
 }
 
 function myId() {
@@ -159,7 +185,7 @@ function readFarm() {
     saveMine(FARM_KEY, game.farm);
     debug("farm", { plots: farm.plots, empty: farm.empty, stuck: stuckFrom(farm, game.hours?.weekKey) });
     checkShop();
-    drawPanel(plan());
+    draw();
 }
 
 // shop prices vs model, again on every new plot count. notice for apples only, off plot price just as likley old farm so logged only
@@ -218,6 +244,9 @@ function plan() {
         ? weekTarget(routeState(inventory, plots, game.farm, game.hours?.weekKey), t, coinsGoal, m)
         : null;
     for (const problem of goal?.problems ?? []) showNotice(`Your goal changed: ${problem}`);
+    const rows = goal && target ? milestones(target.route, goalItems(goal.goal, trees, goal.own)) : [];
+    // set even if plan comes back null, can pick before farm loads
+    treeBits = { trees, owned, goal: goal && { device: goal.goal.device, want: goal.goal.want, own: goal.own }, milestones: rows };
     const parts = {
         trees,
         owned,
@@ -234,7 +263,7 @@ function plan() {
             device: trees[goal.goal.device].device,
             coins: coinsGoal,
             custom: goal.goal.goal !== null,
-            milestones: target ? milestones(target.route, goalItems(goal.goal, trees, goal.own)) : [],
+            milestones: rows,
         },
         steps: stepsFrom({
             farm: game.farm,
