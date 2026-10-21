@@ -15,6 +15,21 @@ const WHY_LINES = {
     rejected: "won't grow, last week's ship was rejected",
 };
 
+// next.js steps, n = whatever that step counts
+const STEP_LINES = {
+    clear: (n) => `clear ${n} withered`,
+    harvest: (n) => `harvest ${n}`,
+    reship: (n) => `reship last week's project, ${n} waiting on changes`,
+    devlog: (n) => `devlog and reship last week's project, ${n} short on hours`,
+    buyPlots: (n) => `buy ${some(n, "plot")} from Heidi`,
+    buySeeds: (n) => `buy ${some(n, "apple seed")} from Heidi`,
+    waitForLoans: (n) => `(or wait, if last week's review isn't back by wednesday Ratticus lends up to ${n})`,
+    place: (n) => `place ${some(n, "plot")}`,
+    plant: (n) => `plant ${some(n, "seed")}`,
+    code: (n) => `code ${n} h`,
+    ship: (n) => `ship this week's project so the ${n} grow`,
+};
+
 let root = null;
 let noticeBox = null;
 let planBox = null;
@@ -77,6 +92,17 @@ export function linesFor(plan, now = Date.now()) {
     }
     line(farm.crops.filter((crop) => crop.stage === "review" && !stuckCrops.has(crop)), "waiting on this week's review");
     if (farm.seenAt) lines.push(`(farm as of ${ago(now - farm.seenAt)})`);
+    lines.push(...nextLines(plan));
+    return lines;
+}
+
+// this weeks target + steps, after farm since they need it
+function nextLines({ target, steps }) {
+    const lines = [];
+    if (target?.out) lines.push("can't afford 10 crops this week, that's rent");
+    else if (target) lines.push(`this week: ${some(target.w, "crop")}${target.reachable === null ? " (rent, no goal yet)" : ""}`);
+    if (steps.length > 0) lines.push("next:");
+    for (const step of steps) lines.push(STEP_LINES[step.do](step.n));
     return lines;
 }
 
