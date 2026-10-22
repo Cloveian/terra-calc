@@ -12,7 +12,7 @@ const texts = (tasks) => tasks.map((task) => task.text);
 test("before the farm's been seen it just says go look", () => {
     const plan = { t: 3, inventory: { coins: 0, plots: null, seeds: 1, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, mGuessed: true, farm: null, stuck: null, steps: [] };
     assert.deepEqual(cardFor(plan, NOW), {
-        tasks: [{ text: "go to your farm so Terra Calc can count your plots", depth: 0 }],
+        tasks: [{ text: "go to your farm so Terra Calc can count your plots", depth: 0, done: false }],
         details: [],
     });
 });
@@ -45,10 +45,10 @@ test("the steps are the tasks, indented under what they wait on", () => {
         farm, stuck: stuckFrom(farm, "2026-W43"), target: { w: 10, cap: 10, reachable: null, out: false }, steps,
     };
     assert.deepEqual(cardFor(plan, NOW).tasks, [
-        { text: "place 10 plots", depth: 0 },
-        { text: "plant 10 strawberry seeds", depth: 1 },
-        { text: "code 7.5 h", depth: 0 },
-        { text: "ship this week's project so the 10 grow", depth: 1 },
+        { text: "place 10 plots", depth: 0, done: false },
+        { text: "plant 10 strawberry seeds", depth: 1, done: false },
+        { text: "code 7.5 h", depth: 0, done: false },
+        { text: "ship this week's project so the 10 grow", depth: 1, done: false },
     ]);
 });
 

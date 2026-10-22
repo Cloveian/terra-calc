@@ -9,7 +9,7 @@ import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom,
 } from "./fill.js";
-import { weekTarget, stepsFrom, routeState, rowHours } from "./next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, tickSteps } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { milestones } from "../src/route.js";
@@ -17,6 +17,7 @@ import { byId } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
 const GOAL_KEY = "terra-calc-goal";
+const STEPS_KEY = "terra-calc-week-steps";
 
 // can stay null: plots (card asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one)
 const OPTIONAL = new Set(["farm", "stuck", "target", "goal"]);
@@ -42,6 +43,7 @@ const game = {
 // cleaned against live trees every plan(), null = rent week
 let savedGoal = loadMine(GOAL_KEY);
 let treeBits = null; // set in plan(), for drawWantBits
+let savedSteps = loadMine(STEPS_KEY); // week checklist as it first came out, for the ticks
 
 const settings = loadSettings();
 setDebug(settings.debug);
@@ -232,7 +234,21 @@ function plotsNow() {
     return farm?.plots ?? null;
 }
 
-// farm n goal, saved with owner id. other acounts on this browser get nothing
+// steps with done ones ticked off (tickSteps), saved so a reload keeps the ticks
+function weekSteps(steps, w) {
+    const weekKey = game.hours?.weekKey;
+    // no farm (no steps) or no week key would look like everything got done
+    // w null while messages still come in after a reload, ticking then threw the saved list away
+    if (!game.farm || !weekKey || w === null) return steps;
+    const ticked = tickSteps(savedSteps, steps, weekKey, w);
+    if (JSON.stringify(ticked.saved) !== JSON.stringify(savedSteps)) {
+        savedSteps = ticked.saved;
+        saveMine(STEPS_KEY, savedSteps);
+    }
+    return ticked.steps;
+}
+
+// farm, goal n week steps, saved with owner id. other acounts on this browser get nothing
 function loadMine(key) {
     try {
         const saved = JSON.parse(localStorage.getItem(key) ?? "null");
@@ -298,7 +314,7 @@ function plan() {
             custom: goal.goal.goal !== null,
             milestones: rows,
         },
-        steps: stepsFrom({
+        steps: weekSteps(stepsFrom({
             farm: game.farm,
             inventory,
             stuck,
@@ -306,7 +322,7 @@ function plan() {
             weekKey: game.hours?.weekKey,
             hoursDone: (game.hours?.week.creditedSeconds ?? 0) / 3600,
             w: target?.w ?? null,
-        }),
+        }), target?.w ?? null),
     };
     const missing = Object.keys(parts).filter((key) => parts[key] === null);
     debug("plan", missing.length > 0 ? `missing ${missing.join(", ")}` : "has everything", parts);

@@ -153,15 +153,16 @@ function makeOwnCard() {
 }
 
 function drawBlock(block, { tasks, details }) {
-    const rows = tasks.map((task, i) => {
+    const current = tasks.find((task) => !task.done);
+    const rows = tasks.map((task) => {
         const row = document.createElement("div");
-        row.className = `${questClass("task")} ${i === 0 ? questClass("taskCurrent") : ""}`;
+        row.className = `${questClass("task")} ${task === current ? questClass("taskCurrent") : ""}`;
         // 1.25em = their checkbox + gap, same as detail line margin
         row.style.paddingLeft = `${task.depth * 1.25}em`;
         const box = document.createElement("div");
-        box.className = questClass("taskCheckbox");
+        box.className = `${questClass("taskCheckbox")} ${task.done ? questClass("taskCheckboxDone") : ""}`;
         const label = document.createElement("span");
-        label.className = questClass("taskLabel");
+        label.className = `${questClass("taskLabel")} ${task.done ? questClass("taskLabelDone") : ""}`;
         label.textContent = task.text;
         row.append(box, label);
         return row;
@@ -185,9 +186,14 @@ function drawBlock(block, { tasks, details }) {
 // coins, plots and m left out, the steps already use them (terraCalc.plan() has em all)
 export function cardFor(plan, now = Date.now()) {
     const { loans, farm, stuck, target, steps, goal, inventory } = plan;
-    const tasks = nestSteps(steps).map((step) => ({ text: STEP_LINES[step.do](step.n, plan), depth: step.depth }));
+    // ticked ones still count for the indent, list doesnt jump around
+    const tasks = nestSteps(steps).map((step) => ({
+        text: STEP_LINES[step.do](step.n, plan),
+        depth: step.depth,
+        done: step.done ?? false,
+    }));
     // the steps need the farm to count from, the goal doesn't
-    if (!farm) tasks.push({ text: "go to your farm so Terra Calc can count your plots", depth: 0 });
+    if (!farm) tasks.push({ text: "go to your farm so Terra Calc can count your plots", depth: 0, done: false });
 
     const details = [];
     if (target?.out) details.push("can't afford 10 crops this week, that's rent");

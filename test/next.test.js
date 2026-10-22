@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekTarget, stepsFrom, routeState, rowHours, nestSteps } from "../userscript/next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps } from "../userscript/next.js";
 import { stuckFrom } from "../userscript/fill.js";
 import { hoursNeeded } from "../src/route.js";
 
@@ -100,6 +100,31 @@ test("stepsFrom: a busy week, harvesting last week's pays the loans back", () =>
     ]);
     // place under buyPlots, planting under place, ship under code
     assert.deepEqual(nestSteps(steps).map((step) => step.depth), [0, 0, 0, 0, 0, 1, 2, 2, 0, 1]);
+});
+
+test("tickSteps: steps that are gone are done, with the count they started with", () => {
+    const week = "2026-W43";
+    const first = tickSteps(null, [{ do: "buyPlots", n: 4 }, { do: "place", n: 4 }, { do: "code", n: 28.3 }], week, 40);
+    assert.ok(first.steps.every((step) => !step.done));
+    // bought the plots, placed 1 of them
+    const later = tickSteps(first.saved, [{ do: "place", n: 3 }, { do: "code", n: 27 }], week, 40);
+    assert.deepEqual(later.steps, [
+        { do: "buyPlots", n: 4, done: true },
+        { do: "place", n: 3, done: false },
+        { do: "code", n: 27, done: false },
+    ]);
+});
+
+test("tickSteps: a new step goes after the one before it, a new target or week starts over", () => {
+    const week = "2026-W43";
+    const { saved } = tickSteps(null, [{ do: "place", n: 4 }, { do: "code", n: 20 }], week, 30);
+    const withShip = tickSteps(saved, [{ do: "place", n: 4 }, { do: "code", n: 20 }, { do: "ship", n: 30 }], week, 30);
+    assert.deepEqual(withShip.steps.map((step) => step.do), ["place", "code", "ship"]);
+    const withHarvest = tickSteps(withShip.saved, [{ do: "harvest", n: 2 }, { do: "code", n: 20 }], week, 30);
+    assert.deepEqual(withHarvest.steps.map((step) => [step.do, step.done]), [["harvest", false], ["place", true], ["code", false], ["ship", true]]);
+    // new goal = new w, old list was for another plan
+    assert.deepEqual(tickSteps(withShip.saved, [{ do: "code", n: 10 }], week, 10).steps, [{ do: "code", n: 10, done: false }]);
+    assert.deepEqual(tickSteps(withShip.saved, [{ do: "code", n: 10 }], "2026-W44", 30).steps, [{ do: "code", n: 10, done: false }]);
 });
 
 test("nestSteps: a step goes back left when what it waits on is done", () => {

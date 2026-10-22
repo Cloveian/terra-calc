@@ -127,7 +127,7 @@ What waits on what, a table in next.js next to the steps (the steps' own `requir
 | ship | code |
 | "or wait for Ratticus" | buy plots (it's the other way to get them) |
 
-A step's indent is one more than the deepest step it waits on that's still on the list, and the order doesn't change, same as the site's milestone list (built 22 Oct, `nestSteps`). For that to read right, buy seeds now comes before buy plots, so place sits right under the plots. Once the plots are placed, planting moves back left by itself.
+A step's indent is one more than the deepest step it waits on that's still on the list, and the order doesn't change, same as the site's milestone list (built 22 Oct, `nestSteps`). For that to read right, buy seeds now comes before buy plots, so place sits right under the plots. Ticked steps stay on the list and keep their spot in the indent (step 6), so the list doesn't jump around as you go.
 
 - **hiding theirs:** a `data-terra-calc` attribute on their `._questBody_`, and one `<style>` rule, `[data-terra-calc] > :not(.terra-calc-steps) { display: none }`. Solid only rewrites the classes it set itself, an attribute it never set stays put. No touching their elements' classes or inline styles
 - **their countdown** is the one bit of theirs we don't have, the game knows deadlines we don't. **Decision:** hide it too, or keep it under ours? Default: keep it
@@ -151,7 +151,7 @@ A step's indent is one more than the deepest step it waits on that's still on th
 3. ~~the steps' "waits on" table and the indent, tests~~ done 22 Oct (`nestSteps`)
 4. ~~our steps in Terra's This Week card, hiding theirs, the observer, the no-card fallback. Panel goes~~ done 22 Oct (`card.js`, was panel.js). Checked against the dumped css with a fake card (`research/terra-js/card-test.html`), not in the real game yet
 5. ~~the number boxes on the tree tags~~ done 22 Oct, checked on a fake tree with the dumped css (`research/terra-js/tree-test.html`), not in the real game yet
-6. ticking, if that's a yes
+6. ~~ticking, if that's a yes~~ done 22 Oct with the default (ticked, `tickSteps`). The week's list starts over when the week's crop target changes, so a new goal doesn't show stuff as done that just stopped being needed. If w wobbles by one mid week the ticks reset too, ill just have to see if that happens in the real game
 
 ## Captures that would help
 

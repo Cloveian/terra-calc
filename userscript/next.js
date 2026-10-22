@@ -80,6 +80,26 @@ export function stepsFrom({ farm, inventory, stuck, loans, weekKey, hoursDone, w
     return steps;
 }
 
+// week checklist with done ones ticked, like terra's own. saved = list as it first came out, null at first
+export function tickSteps(saved, steps, weekKey, w) {
+    // new target (w) starts over, steps that stopped being needed would show done
+    const list = saved?.weekKey === weekKey && saved.w === w ? [...saved.steps] : [];
+    steps.forEach((step, i) => {
+        if (list.some((kept) => kept.do === step.do)) return;
+        // new ones go after the one before, always in the list by now
+        const at = i === 0 ? 0 : list.findIndex((kept) => kept.do === steps[i - 1].do) + 1;
+        list.splice(at, 0, { do: step.do, n: step.n });
+    });
+    return {
+        saved: { weekKey, w, steps: list },
+        steps: list.map((kept) => {
+            // gone from stepsFrom = done, keeps its starting count
+            const now = steps.find((step) => step.do === kept.do);
+            return now ? { ...now, done: false } : { ...kept, done: true };
+        }),
+    };
+}
+
 // what each step waits on, like tree node requires. clear + harvest free plots for planting, the "or wait" is the other way to get plots
 const STEP_NEEDS = {
     place: ["buyPlots"],
@@ -89,7 +109,7 @@ const STEP_NEEDS = {
     ship: ["code"],
 };
 
-// depth for checklist indent, one past the deepest step it waits on thats still to do. order kept like sites milestone list, works cuz stepsFrom puts every step after its needs (a need further down never counts)
+// depth for checklist indent, one past the deepest step it waits on thats still on the list, ticked ones too. order kept like sites milestone list, works cuz stepsFrom puts every step after its needs (a need further down never counts)
 export function nestSteps(steps) {
     const depth = {};
     return steps.map((step) => {
