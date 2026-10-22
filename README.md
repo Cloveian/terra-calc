@@ -12,7 +12,7 @@
 
 ## Using it
 
-1. **Inventory**: your coins, dirt plots, apple seeds and today's date.
+1. **Inventory**: your coins, dirt plots, apple seeds, any bok choy and eggplant seeds you have and today's date, then tick which bonus seeds are in Heidi's shop today.
 2. **Settings**: your project review multiplier (0.8–1.5, use 1 if you don't know yet).
 3. **Goal**: pick your device, then tick the upgrades you want in the tree (or press a quick pick like "Max 12"). Tick **own** for anything you've already bought.
 4. **Your plan** shows:

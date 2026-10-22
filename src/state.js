@@ -1,23 +1,25 @@
 // Page state and URL hash.
-// state = { coins, plots, seeds, date, m, cap, goal, device, own, want, first }
+// state = { coins, plots, seeds, bok, egg, shop, date, m, cap, goal, device, own, want, first }
 //   goal: null = use the tree picks, a number = custom goal typed by hand
 //   own / want: { id: qty }, first: ids (or id:n for one tier) to buy first (milestone order)
-import { TREES, FREE_PLOTS, MAX_PLOTS, RENT, MULTIPLIER, STARTING_COINS } from "./data.js";
+//   bok / egg: bok choy and eggplant seeds on hand, shop: bonus seed ids in heidi's shop today
+import { TREES, CROPS, FREE_PLOTS, MAX_PLOTS, RENT, MULTIPLIER, STARTING_COINS } from "./data.js";
 import { normalize, limitOf } from "./tree.js";
 
 export const DEFAULT_DEVICE = "framework_12";
 
 // what each value is called on the page, for the "something in that link was off" list
 const LABELS = {
-    coins: "Coins", plots: "Dirt plots", seeds: "Apple seeds", date: "Date", m: "Multiplier",
+    coins: "Coins", plots: "Dirt plots", seeds: "Apple seeds", bok: "Bok Choy seeds", egg: "Eggplant seeds",
+    shop: "Heidi's shop", date: "Date", m: "Multiplier",
     cap: "Hours/week", goal: "Goal", device: "Device", own: "Own", want: "Want", first: "Buy order",
 };
 
-export const HASH_KEYS = ["coins", "plots", "seeds", "date", "m", "cap", "goal", "device", "own", "want", "first"];
+export const HASH_KEYS = ["coins", "plots", "seeds", "bok", "egg", "shop", "date", "m", "cap", "goal", "device", "own", "want", "first"];
 
 export function defaults(today) {
     return {
-        coins: STARTING_COINS, plots: FREE_PLOTS, seeds: 0, date: today, m: 1, cap: RENT,
+        coins: STARTING_COINS, plots: FREE_PLOTS, seeds: 0, bok: 0, egg: 0, shop: [], date: today, m: 1, cap: RENT,
         goal: null, device: DEFAULT_DEVICE, own: {}, want: {}, first: [],
     };
 }
@@ -125,10 +127,22 @@ export function clean(raw, today, trees = TREES) {
         else first.push(key);
     }
 
+    // bonus seeds in the shop today, each one once
+    const shop = [];
+    for (const id of (raw.shop ?? "").split(",")) {
+        if (id === "" || shop.includes(id)) continue;
+        if (CROPS[id]?.bonus) shop.push(id);
+        else problems.push(`${LABELS.shop}: there's no bonus seed called "${id}"`);
+    }
+
+    const seedCount = (n) => Math.max(0, Math.round(n));
     const state = {
         coins: number(raw, "coins", d.coins, problems, (n) => Math.max(0, n)),
         plots: number(raw, "plots", d.plots, problems, (n) => clamp(Math.round(n), FREE_PLOTS, MAX_PLOTS)),
-        seeds: number(raw, "seeds", d.seeds, problems, (n) => Math.max(0, Math.round(n))),
+        seeds: number(raw, "seeds", d.seeds, problems, seedCount),
+        bok: number(raw, "bok", d.bok, problems, seedCount),
+        egg: number(raw, "egg", d.egg, problems, seedCount),
+        shop,
         date,
         m: number(raw, "m", d.m, problems, (n) => clamp(n, MULTIPLIER.min, MULTIPLIER.max)),
         cap: number(raw, "cap", d.cap, problems, (n) => clamp(Math.round(n), RENT, MAX_PLOTS)),
@@ -146,6 +160,9 @@ export function clean(raw, today, trees = TREES) {
 export function toHash(state, today) {
     const params = new URLSearchParams();
     for (const key of ["coins", "plots", "seeds", "m", "cap"]) params.set(key, state[key]);
+    // bok / egg left out at 0, most links never have any
+    for (const key of ["bok", "egg"]) if (state[key] > 0) params.set(key, state[key]);
+    if (state.shop.length) params.set("shop", state.shop.join(","));
     if (state.date !== today) params.set("date", state.date);
     if (state.goal !== null) params.set("goal", state.goal);
     params.set("device", state.device);

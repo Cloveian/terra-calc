@@ -1,5 +1,5 @@
 // The only module that touches the page: keeps the state, draws it, turns clicks into state changes.
-import { TREES, PRESETS, PICK_WARNINGS, MAX_PLOTS, PRICES_AS_OF } from "./data.js";
+import { TREES, PRESETS, PICK_WARNINGS, MAX_PLOTS, PRICES_AS_OF, CROPS, RENT } from "./data.js";
 import { easternDay, weekIndex, weekName, LAST_WEEK } from "./week.js";
 import { simulateRoute, hoursNeeded, milestones } from "./route.js";
 import {
@@ -17,7 +17,9 @@ const CARD = { w: 168, h: 150 };
 const SVG = "http://www.w3.org/2000/svg";
 
 // inputs read through clean(), like the hash
-const FORM_FIELDS = ["coins", "plots", "seeds", "date", "m", "cap", "goal"];
+const FORM_FIELDS = ["coins", "plots", "seeds", "bok", "egg", "date", "m", "cap", "goal"];
+// heidi's shop ticks, checkbox ids are shop-<id>
+const SHOP_SEEDS = Object.keys(CROPS).filter((id) => CROPS[id].bonus);
 
 // kaomoji for the result messages (found with `emoticond search`)
 const FACES = {
@@ -307,12 +309,27 @@ const COLUMNS = [
     ["Start coins", (row) => coins(row.startCoins)],
     ["Plots", (row) => row.plots, "dirt-plot"],
     ["Can use (h)", (row) => row.wMax], // the most hours you can afford seeds and plots for
-    ["Planned (h)", (row) => (row.out ? `${row.hours} (under 10 h: out)` : row.hours), "water-drop"],
+    ["Planned (h)", plannedHours, "water-drop"],
     ["New plots", (row) => row.newPlots],
     ["Spent", (row) => coins(row.spent)],
     ["Sold", (row) => coins(row.sold)],
     ["End coins", (row) => coins(row.endCoins), "coin"],
 ];
+
+function plannedHours(row) {
+    if (row.out) return `${row.hours} (under 10 h: out)`;
+    const mix = mixText(row.mix);
+    return mix ? `${row.hours} (${mix})` : row.hours;
+}
+
+// first weeks seeds, "10 eggplant + 14 apple". "" for apples only or no mix
+function mixText(mix) {
+    if (!mix || !SHOP_SEEDS.some((id) => mix[id] > 0)) return "";
+    return ["eggplant", "bokchoy", "apple"]
+        .filter((id) => mix[id] > 0)
+        .map((id) => `${mix[id]} ${(CROPS[id].name ?? id).toLowerCase()}`)
+        .join(" + ");
+}
 
 function drawTable(route) {
     const table = $("route");
@@ -493,10 +510,12 @@ function render() {
 
     const goal = state.goal ?? total;
     const inventory = { coins: state.coins, plots: state.plots, seeds: state.seeds };
+    // bonus seeds, first week only (route.js)
+    const thisWeek = { seeds: state.shop, onHand: { bokchoy: state.bok, eggplant: state.egg } };
     let route;
     let cap = state.cap;
     if (goal > 0) {
-        const result = hoursNeeded(inventory, t, goal, state.m);
+        const result = hoursNeeded(inventory, t, goal, state.m, RENT, thisWeek);
         if (result) {
             route = result.route;
             cap = result.cap;
@@ -508,7 +527,7 @@ function render() {
             );
         } else {
             cap = MAX_PLOTS;
-            route = simulateRoute(inventory, t, cap, state.m);
+            route = simulateRoute(inventory, t, cap, state.m, thisWeek);
             summary.dataset.tone = "error";
             summary.replaceChildren(
                 el("strong", "Not reachable."),
@@ -517,7 +536,7 @@ function render() {
             );
         }
     } else {
-        route = simulateRoute(inventory, t, state.cap, state.m);
+        route = simulateRoute(inventory, t, state.cap, state.m, thisWeek);
         summary.dataset.tone = "info";
         summary.replaceChildren(
             `At ${state.cap} h/week ${weeksSpan(route)} you end with `,
@@ -714,6 +733,7 @@ function fillForm() {
         if (key !== "goal") $(key).value = state[key];
         else if (state.goal !== null) $(key).value = state.goal; // the picks' total is filled in by render()
     }
+    for (const id of SHOP_SEEDS) $(`shop-${id}`).checked = state.shop.includes(id);
 }
 
 // state → raw strings, so form edits go through clean() just like the hash
@@ -999,6 +1019,8 @@ new ResizeObserver(() => (viewMoved ? setView(view) : afterResize())).observe(tr
 for (const input of document.querySelectorAll("input:not([type=checkbox]), select")) {
     sketch(input, input.id, true);
 }
+// the shop ticks in Inventory, wobbly like the tree's checkboxes
+sketchAll(document.querySelectorAll("form input[type=checkbox]"), (box) => box.id, true);
 // focusing an input changes its outline (thicker, accent colour), so draw it again;
 // next frame, so the browser has already updated what's focused
 for (const type of ["focusin", "focusout"]) {
@@ -1034,8 +1056,10 @@ fillForm();
 update();
 
 document.addEventListener("input", (event) => {
-    if (!FORM_FIELDS.includes(event.target.id)) return;
+    const shopTick = SHOP_SEEDS.some((id) => event.target.id === `shop-${id}`);
+    if (!FORM_FIELDS.includes(event.target.id) && !shopTick) return;
     const form = Object.fromEntries(FORM_FIELDS.map((key) => [key, $(key).value]));
+    form.shop = SHOP_SEEDS.filter((id) => $(`shop-${id}`).checked).join(",");
     // the goal box shows the picks' total unless you typed your own: only read it when it's
     // what you're editing, or editing anything else would turn that total into a custom goal
     if (event.target.id !== "goal") form.goal = state.goal ?? "";

@@ -56,7 +56,14 @@
                         <label><span class="icon icon-coin" aria-hidden="true"></span> Coins <input id="coins" type="number" min="0" step="any"></label>
                         <label><span class="icon icon-dirt-plot" aria-hidden="true"></span> Dirt plots <input id="plots" type="number" min="10" max="45"></label>
                         <label><span class="icon icon-apple-seed" aria-hidden="true"></span> Apple seeds <input id="seeds" type="number" min="0"></label>
+                        <label><span class="icon icon-apple-seed" aria-hidden="true"></span> Bok Choy seeds <input id="bok" type="number" min="0"></label>
+                        <label><span class="icon icon-apple-seed" aria-hidden="true"></span> Eggplant seeds <input id="egg" type="number" min="0"></label>
                         <label><span class="icon icon-calendar" aria-hidden="true"></span> Date (US Eastern) <input id="date" type="date"></label>
+                    </div>
+                    <!-- bonus seeds, only sold some days (ids are shop-<crop id>, ui.js) -->
+                    <div class="grid">
+                        <label><input id="shop-bokchoy" type="checkbox"> Bok Choy in Heidi's shop today</label>
+                        <label><input id="shop-eggplant" type="checkbox"> Eggplant in Heidi's shop today</label>
                     </div>
                 </fieldset>
 

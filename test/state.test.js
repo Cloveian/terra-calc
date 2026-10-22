@@ -19,6 +19,23 @@ test("a good hash round-trips", () => {
     assert.deepEqual(clean(raw(toHash(state, TODAY)), TODAY).state, state);
 });
 
+test("bonus seeds on hand and the shop ticks round-trip, unknown shop ids are dropped", () => {
+    const { state, problems } = clean(raw("bok=2&egg=3&shop=eggplant"), TODAY);
+    assert.deepEqual(problems, []);
+    assert.equal(state.bok, 2);
+    assert.equal(state.egg, 3);
+    assert.deepEqual(state.shop, ["eggplant"]);
+    assert.ok(toHash(state, TODAY).includes("bok=2&egg=3&shop=eggplant"));
+    assert.deepEqual(clean(raw(toHash(state, TODAY)), TODAY).state, state);
+
+    const bad = clean(raw("shop=banana,bokchoy,apple"), TODAY);
+    assert.deepEqual(bad.state.shop, ["bokchoy"]);
+    assert.deepEqual(bad.problems, [
+        `Heidi's shop: there's no bonus seed called "banana"`,
+        `Heidi's shop: there's no bonus seed called "apple"`,
+    ]);
+});
+
 test("buy order: a tier of a tiered node is fine, a tier of anything else or past the last isn't", () => {
     const { state, problems } = clean(raw("first=ram_12:2,ssd_12:3,cpu_12:1,ram_12:0,ram_12:2:1,cpu_12"), TODAY);
     assert.deepEqual(state.first, ["ram_12:2", "cpu_12"]);
