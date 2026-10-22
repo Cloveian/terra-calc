@@ -52,7 +52,7 @@ test("the steps are the tasks, indented under what they wait on", () => {
     ]);
 });
 
-test("a goal shows before the farm's been seen, with the next pick, when it's all done, and the m guess", () => {
+test("a goal shows before the farm's been seen, with the next pick and when it's all done", () => {
     const goal = {
         device: "Framework 12", coins: 2800, custom: false,
         milestones: [
@@ -66,7 +66,7 @@ test("a goal shows before the farm's been seen, with the next pick, when it's al
         stuck: null, target: { w: 18, cap: 18, reachable: true, out: false, route: [] }, goal, steps: [],
     };
     assert.deepEqual(cardFor(plan, NOW).details, [
-        "goal: 2800 coins (Framework 12), 2758 to go (guessing m 1.1)",
+        "goal: 2800 coins (Framework 12), 2758 to go",
         "next pick: Core 3 304 in Week 3",
         "all of it in Week 9",
     ]);

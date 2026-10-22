@@ -116,7 +116,7 @@ code 18 h
 | Decision | What it does |
 | --- | --- |
 | Not reachable | "can't get all of it, best is 11685 coins", then which picks fit and which don't (words, not ticks and crosses, the panel's tiny) |
-| Multiplier guess | While m is the 1.1 guess the goal line says "(guessing m 1.1)", the hours swing a lot with m. A goal that's only reachable at m 1.2+ says that |
+| Multiplier guess | ~~While m is the 1.1 guess the goal line says "(guessing m 1.1)"~~ not anymore (22 Oct), the real m is there within a second. You can set your own m in our settings instead, see [this-week.md](this-week.md). A goal that's only reachable at m 1.2+ says that (todo) |
 | "What can I get" mode | "at 20 h a week you end with 6200 coins: Max 12 minus the SSD" or whatever fits, in buy order |
 | Week rollover | Goal stays, plan reworks itself when `hours.update` says it's a new week (already re-reads REST then) |
 

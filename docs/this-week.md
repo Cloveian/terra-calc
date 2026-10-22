@@ -141,7 +141,7 @@ A step's indent is one more than the deepest step it waits on that's still on th
 | Decision | What it does |
 | --- | --- |
 | Ticking | **Decision:** steps vanish when done (like the panel now), or stay ticked ✓ for the rest of the week? Default: ticked, it looks like theirs and it's satisfying lol. Needs the week's first list saved per `weekKey`, then a step is done when what's left of it hits 0 |
-| The floating panel | **Decision:** goes away, or stays as a "details" thing? Default: goes. Notices ("Terra's prices changed") become detail lines in the card, coins/multiplier/farm age are in `terraCalc.plan()` for debugging. The m guess still shows, "(guessing m 1.1)" on the goal line, the hours swing too much with it to hide that |
+| The floating panel | **Decision:** goes away, or stays as a "details" thing? Default: goes. Notices ("Terra's prices changed") become detail lines in the card, coins/multiplier/farm age are in `terraCalc.plan()` for debugging. ~~The m guess still shows~~ not anymore (22 Oct), the real m shows up within like a second so the guess note was just noise. Overriding m goes in our settings instead |
 | Settings | The existing `settings.panel` turns the card rows off, same as it turns the panel off now |
 
 ## Order to build it

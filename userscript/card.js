@@ -220,9 +220,9 @@ function drawBlock(block, { tasks, details }) {
 
 // coins, plots and m left out, the steps already use them (terraCalc.plan() has em all)
 export function cardFor(plan, now = Date.now()) {
-    const { loans, farm, stuck, target, steps, goal, inventory, m, mGuessed } = plan;
+    const { loans, farm, stuck, target, steps, goal, inventory } = plan;
     const tasks = nestSteps(steps).map((step) => ({ text: STEP_LINES[step.do](step.n, plan), depth: step.depth }));
-    // steps need farm, goal doesnt
+    // the steps need the farm to count from, the goal doesn't
     if (!farm) tasks.push({ text: "go to your farm so Terra Calc can count your plots", depth: 0 });
 
     const details = [];
@@ -233,7 +233,7 @@ export function cardFor(plan, now = Date.now()) {
         details.push(`${these.length} ${WHY_LINES[why] ?? `stuck (${why})`}${cropKinds(these)}`);
     }
     if (loans > 0) details.push(`${some(loans, "loan plot")} from Ratticus, he takes them back when you harvest the stuck crops`);
-    if (goal) details.push(...goalLines(goal, target, inventory.coins, mGuessed ? m : null));
+    if (goal) details.push(...goalLines(goal, target, inventory.coins));
     // only once its old enough to throw the steps off
     if (farm?.seenAt && now - farm.seenAt >= FARM_OLD) details.push(`(farm as of ${ago(now - farm.seenAt)})`);
     return { tasks, details };
@@ -247,10 +247,8 @@ function baseSeedName({ baseKinds }, t) {
 }
 
 // "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)
-function goalLines(goal, target, coins, mGuess = null) {
-    // weeks swing a lot with m
-    const guess = mGuess === null ? "" : ` (guessing m ${Math.round(mGuess * 100) / 100})`;
-    const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins))} to go${guess}`];
+function goalLines(goal, target, coins) {
+    const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins))} to go`];
     if (target?.reachable === false) {
         lines.push(`can't get all of it even at 45 h, best is ${Math.floor(target.route.at(-1).endCoins)} coins`);
     }
