@@ -1,7 +1,7 @@
 // Page state and URL hash.
 // state = { coins, plots, seeds, date, m, cap, goal, device, own, want, first }
 //   goal: null = use the tree picks, a number = custom goal typed by hand
-//   own / want: { id: qty }, first: ids to buy first (milestone order)
+//   own / want: { id: qty }, first: ids (or id:n for one tier) to buy first (milestone order)
 import { TREES, FREE_PLOTS, MAX_PLOTS, RENT, MULTIPLIER, STARTING_COINS } from "./data.js";
 import { normalize, limitOf } from "./tree.js";
 
@@ -107,10 +107,15 @@ export function clean(raw, today, trees = TREES) {
     reportClamps(tree, "want", wantRaw, want, problems);
 
     const first = [];
-    for (const id of (raw.first ?? "").split(",")) {
-        if (id === "") continue;
-        if (tree.nodes.some((node) => node.id === id)) first.push(id);
-        else problems.push(`${LABELS.first}: there's no upgrade called "${id}"`);
+    for (const key of (raw.first ?? "").split(",")) {
+        if (key === "") continue;
+        // node id, or id:n for one tier of a tiered one (row keys from buyOrder)
+        const [id, unit, extra] = key.split(":");
+        const node = tree.nodes.find((n) => n.id === id);
+        const tierOk = unit === undefined
+            || (extra === undefined && node?.tiers && /^\d+$/.test(unit) && unit >= 1 && unit <= node.tiers.length);
+        if (node && tierOk) first.push(key);
+        else problems.push(`${LABELS.first}: there's no upgrade called "${key}"`);
     }
 
     const state = {

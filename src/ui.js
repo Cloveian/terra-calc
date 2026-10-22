@@ -4,6 +4,7 @@ import { easternDay, weekIndex, weekName, LAST_WEEK } from "./week.js";
 import { simulateRoute, hoursNeeded, milestones } from "./route.js";
 import {
     goalCost, nextPrice, nodeHours, unpick, dependentsOf, normalize, buyOrder, displayOrder, treeLayout,
+    waitsOn, prioFrom,
 } from "./tree.js";
 import { clean, toHash, canAdd } from "./state.js";
 import { wobblyRect, wobblyLine, seedOf, outlineMargin } from "./sketch.js";
@@ -344,15 +345,13 @@ function drawMilestones(route, cap) {
     box.hidden = state.goal !== null || route.length === 0;
     if (box.hidden) return;
 
-    const items = milestones(route, buyOrder(tree(), state.want, state.own, state.first));
+    const items = milestones(route, buyOrder(tree(), state.want, state.own, prioFrom(state.first)));
     box.hidden = items.length === 0;
-    const ids = items.map((item) => item.id);
+    const keys = items.map((item) => item.key);
     const depth = Object.fromEntries(displayOrder(tree()).map((row) => [row.node.id, row.depth]));
-    // does `id` need `other` first (directly or further up the tree)?
-    const needs = (id, other) => dependentsOf(tree(), other).includes(id);
     // swap with the neighbour; the whole order is saved, so it stays like that
     const move = (index, step) => {
-        const order = [...ids];
+        const order = [...keys];
         [order[index], order[index + step]] = [order[index + step], order[index]];
         state = { ...state, first: order };
         update();
@@ -372,15 +371,15 @@ function drawMilestones(route, cap) {
         const cost = el("span", `${coins(item.cost)} coins${forAll} (${coins(item.total)} so far)`);
         cost.className = "milestone-cost";
         const sooner = button(icon("select-arrow-up"), () => move(index, -1), `Buy ${item.name} sooner`);
-        sooner.id = `sooner-${item.id}`;
+        sooner.id = `sooner-${item.key}`;
         sooner.className = "secondary outline";
-        sooner.disabled = index === 0 || needs(item.id, ids[index - 1]); // can't go before what it needs
+        sooner.disabled = index === 0 || waitsOn(tree(), item, items[index - 1]); // can't go before what it needs
         sooner.title = index === 0 ? "Already first"
             : sooner.disabled ? `Needs ${items[index - 1].name} first` : `Buy ${item.name} sooner`;
         const later = button(icon("select-arrow"), () => move(index, 1), `Buy ${item.name} later`);
-        later.id = `later-${item.id}`;
+        later.id = `later-${item.key}`;
         later.className = "secondary outline";
-        later.disabled = index === items.length - 1 || needs(ids[index + 1], item.id); // or after what needs it
+        later.disabled = index === items.length - 1 || waitsOn(tree(), items[index + 1], item); // or after what needs it
         later.title = index === items.length - 1 ? "Already last"
             : later.disabled ? `${items[index + 1].name} needs this first` : `Buy ${item.name} later`;
         const arrows = el("span", sooner, later);

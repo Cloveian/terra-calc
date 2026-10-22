@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { TREES, PRESETS } from "../src/data.js";
 import {
     withPrereqs, nodeCost, nextPrice, limitOf, goalCost, nodeHours,
-    dependentsOf, unpick, clampToLimits, normalize, buyOrder, displayOrder, treeLayout,
+    dependentsOf, unpick, clampToLimits, normalize, buyOrder, displayOrder, treeLayout, waitsOn, prioFrom,
 } from "../src/tree.js";
 
 const fw = TREES.framework_12;
@@ -140,21 +140,56 @@ test("buyOrder: prerequisites first, then cheapest", () => {
 
 test("buyOrder: owned things are skipped and count as done", () => {
     const order = buyOrder(fw, { framework_12_diy: 1, ram_12: 3 }, { framework_12_diy: 1, ram_12: 1 });
-    assert.deepEqual(order, [{ id: "ram_12", name: "RAM", qty: 2, cost: 3400 }]);
+    assert.deepEqual(order, [
+        { key: "ram_12:2", id: "ram_12", unit: 2, name: "RAM 32 GB", qty: 1, cost: 1300 },
+        { key: "ram_12:3", id: "ram_12", unit: 3, name: "RAM 48 GB", qty: 1, cost: 2100 },
+    ]);
 });
 
-test("buyOrder: `first` pulls a pick (and its prerequisites) forward", () => {
-    const order = buyOrder(fw, PRESETS.framework_12["Max 13"], {}, ["cpu_ryzen_ai7_350"]).map((item) => item.id);
+test("buyOrder: a priority pulls a pick (and its prerequisites) forward", () => {
+    const order = buyOrder(fw, PRESETS.framework_12["Max 13"], {}, { cpu_ryzen_ai7_350: 1 }).map((item) => item.id);
     assert.deepEqual(order.slice(0, 6), [
         "framework_12_diy", "cpu_12", "cpu_i5_1334u", "cpu_core5_320", "framework_13_upgrade", "cpu_ryzen_ai7_350",
     ]);
 });
 
-test("buyOrder: `first` ignores picks you don't want", () => {
+test("buyOrder: priorities on picks you don't want do nothing", () => {
     const want = PRESETS.framework_12["Up to Framework 13"];
-    assert.deepEqual(buyOrder(fw, want, {}, ["cpu_ryzen_ai7_350"]), buyOrder(fw, want));
+    assert.deepEqual(buyOrder(fw, want, {}, { cpu_ryzen_ai7_350: 1 }), buyOrder(fw, want));
     // Max 12 has no FW13: wanting the Ryzen first must not pull DIY ahead of the 100-coin USB card
-    assert.equal(buyOrder(fw, PRESETS.framework_12["Max 12"], {}, ["cpu_ryzen_ai7_350"])[0].id, "expansion_card_12");
+    assert.equal(buyOrder(fw, PRESETS.framework_12["Max 12"], {}, { cpu_ryzen_ai7_350: 1 })[0].id, "expansion_card_12");
+});
+
+test("buyOrder: tiers are rows of their own, stacking cards aren't", () => {
+    const keys = buyOrder(fw, { framework_12_diy: 1, ram_12: 3, fancy_expansion_card_12: 4 }).map((item) => item.key);
+    // all 4 Fancy cards are one 400 coin row, so DIY at 250 goes first
+    assert.deepEqual(keys, ["framework_12_diy", "fancy_expansion_card_12", "ram_12:1", "ram_12:2", "ram_12:3"]);
+});
+
+test("buyOrder: a tier's priority pulls the tiers under it along, not the ones above", () => {
+    const want = { framework_12_diy: 1, ram_12: 3, ssd_12: 2 };
+    // RAM 32 GB first: 16 GB has to come before it, 48 GB stays wherever cheapest puts it
+    const keys = buyOrder(fw, want, {}, { "ram_12:2": 1 }).map((item) => item.key);
+    assert.deepEqual(keys, ["framework_12_diy", "ram_12:1", "ram_12:2", "ssd_12:1", "ssd_12:2", "ram_12:3"]);
+});
+
+test("buyOrder: a plain id counts for every tier, blanks go after numbers, ties stay cheapest first", () => {
+    const want = { framework_12_diy: 1, ram_12: 2, ssd_12: 2 };
+    const keys = (prio) => buyOrder(fw, want, {}, prio).map((item) => item.key);
+    assert.deepEqual(keys({ ssd_12: 1 }), ["framework_12_diy", "ssd_12:1", "ssd_12:2", "ram_12:1", "ram_12:2"]);
+    assert.deepEqual(keys({ "ssd_12:2": 2, "ram_12:2": 2 }), keys({}));
+});
+
+test("waitsOn: prerequisites further up, and lower tiers of the same node", () => {
+    const row = (key) => buyOrder(fw, { framework_12_diy: 1, ram_12: 2, cpu_12: 1 }).find((item) => item.key === key);
+    assert.ok(waitsOn(fw, row("ram_12:2"), row("ram_12:1")));
+    assert.ok(!waitsOn(fw, row("ram_12:1"), row("ram_12:2")));
+    assert.ok(waitsOn(fw, row("ram_12:2"), row("framework_12_diy")));
+    assert.ok(!waitsOn(fw, row("cpu_12"), row("ram_12:1")));
+});
+
+test("prioFrom: the site's arrow order as numbers", () => {
+    assert.deepEqual(prioFrom(["ram_12:2", "cpu_12"]), { "ram_12:2": 1, cpu_12: 2 });
 });
 
 test("displayOrder puts children under their first prerequisite", () => {

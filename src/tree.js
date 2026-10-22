@@ -104,42 +104,69 @@ export function goalCost(tree, want, owned = {}) {
     return total;
 }
 
-// The order to buy the picks in: one item per node ({ id, name, qty, cost }).
-// A node only comes after its prerequisites. Among the ones that are ready:
-// the earliest in `first` (a prerequisite counts as early as anything that needs it), then cheapest, then tree order.
-export function buyOrder(tree, want, owned = {}, first = []) {
-    const items = tree.nodes
-        .filter((node) => (want[node.id] ?? 0) > (owned[node.id] ?? 0))
-        .map((node) => ({
-            id: node.id,
-            name: node.name,
-            qty: want[node.id] - (owned[node.id] ?? 0),
-            cost: nodeCost(node, want[node.id], owned[node.id] ?? 0),
-        }));
+// wanted picks as rows to buy, a row per tier for tiered ones (16 GB way sooner than 48)
+function wantedRows(tree, want, owned) {
+    const rows = [];
+    for (const node of tree.nodes) {
+        const have = owned[node.id] ?? 0;
+        const qty = (want[node.id] ?? 0) - have;
+        if (qty <= 0) continue;
+        if (!node.tiers) {
+            // one row for all of it (Fancy *4)
+            rows.push({ key: node.id, id: node.id, unit: null, name: node.name, qty, cost: nodeCost(node, have + qty, have) });
+            continue;
+        }
+        // unit counts what i own too, so ram_12:2 stays the 2nd stick after the 1st gets bought
+        for (let unit = have + 1; unit <= have + qty; unit++) {
+            // what i have after that buy ("16 GB")
+            const total = node.totals?.[unit];
+            const name = total ? `${node.name} ${total}` : `${node.name} ${unit}/${node.tiers.length}`;
+            rows.push({ key: `${node.id}:${unit}`, id: node.id, unit, name, qty: 1, cost: node.tiers[unit - 1] });
+        }
+    }
+    return rows;
+}
 
-    const wanted = new Set(items.map((item) => item.id));
-    const rank = (id) => {
-        const ranks = [id, ...dependentsOf(tree, id).filter((other) => wanted.has(other))]
-            .map((other) => first.indexOf(other))
-            .filter((index) => index !== -1);
-        return ranks.length ? Math.min(...ranks) : first.length;
-    };
+// other is a prerequisite of row (any level up) or a lower tier of the same node
+export function waitsOn(tree, row, other) {
+    if (row.id === other.id) return row.unit !== null && row.unit > other.unit;
+    return dependentsOf(tree, other.id).includes(row.id);
+}
+
+// rows from wantedRows in buy order, each after what it waits on
+export function buyOrder(tree, want, owned = {}, prio = {}) {
+    const rows = wantedRows(tree, want, owned);
+    // prio lowest first, a plain id counts for every tier, no number goes last
+    const numberOf = (row) => prio[row.key] ?? prio[row.id] ?? Infinity;
+    // as early as anything waiting on it
+    const rank = new Map(rows.map((row) => [
+        row, Math.min(numberOf(row), ...rows.filter((other) => waitsOn(tree, other, row)).map(numberOf)),
+    ]));
     const treeIndex = (id) => tree.nodes.findIndex((node) => node.id === id);
+    // a - b breaks on Infinity - Infinity (NaN), sort goes weird
+    const byRank = (a, b) => (rank.get(a) === rank.get(b) ? 0 : rank.get(a) < rank.get(b) ? -1 : 1);
 
-    const bought = new Set(Object.keys(owned).filter((id) => owned[id] > 0));
+    const have = { ...owned };
+    const ready = (row) => byId(tree, row.id).requires.every((req) => (have[req] ?? 0) > 0)
+        && (row.unit === null || (have[row.id] ?? 0) === row.unit - 1);
     const order = [];
-    let left = items;
+    let left = rows;
     while (left.length) {
-        const ready = left.filter((item) => byId(tree, item.id).requires.every((req) => bought.has(req)));
+        const now = left.filter(ready);
         // only empty if `want` is missing a prerequisite; put the rest in tree order rather than loop forever
-        const next = ready.length
-            ? ready.sort((a, b) => rank(a.id) - rank(b.id) || a.cost - b.cost || treeIndex(a.id) - treeIndex(b.id))[0]
+        const next = now.length
+            ? now.sort((a, b) => byRank(a, b) || a.cost - b.cost || treeIndex(a.id) - treeIndex(b.id))[0]
             : left[0];
         order.push(next);
-        bought.add(next.id);
-        left = left.filter((item) => item !== next);
+        have[next.id] = (have[next.id] ?? 0) + next.qty;
+        left = left.filter((row) => row !== next);
     }
     return order;
+}
+
+// sites arrow order (keys, most wanted first) as prio numbers for buyOrder
+export function prioFrom(first) {
+    return Object.fromEntries(first.map((key, index) => [key, index + 1]));
 }
 
 // Nodes in display order: each one under its first prerequisite.

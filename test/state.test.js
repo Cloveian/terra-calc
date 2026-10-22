@@ -19,6 +19,12 @@ test("a good hash round-trips", () => {
     assert.deepEqual(clean(raw(toHash(state, TODAY)), TODAY).state, state);
 });
 
+test("buy order: a tier of a tiered node is fine, a tier of anything else or past the last isn't", () => {
+    const { state, problems } = clean(raw("first=ram_12:2,ssd_12:3,cpu_12:1,ram_12:0,ram_12:2:1,cpu_12"), TODAY);
+    assert.deepEqual(state.first, ["ram_12:2", "cpu_12"]);
+    assert.equal(problems.length, 4);
+});
+
 test("toHash leaves out today's date and empty things, keeps : and , readable", () => {
     const state = { ...defaults(TODAY), want: { ram_12: 2, framework_12_diy: 1 } };
     assert.equal(toHash(state, TODAY), "coins=25&plots=10&seeds=0&m=1&cap=10&device=framework_12&want=ram_12:2,framework_12_diy:1");

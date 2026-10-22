@@ -1,6 +1,6 @@
 // my goal (site state fields) checked against live trees from /device-upgrades
 import { clean, formatSelection } from "../src/state.js";
-import { goalCost, buyOrder } from "../src/tree.js";
+import { goalCost, buyOrder, prioFrom } from "../src/tree.js";
 
 // null till trees are in. nodes terra renamed or dropped get cut n turn into problems
 export function cleanGoal(saved, trees, owned) {
@@ -42,5 +42,5 @@ export function goalCoins(goal, trees, own) {
 // picks in buy order for milestones, none with a custom coin goal
 export function goalItems(goal, trees, own) {
     if (!goal || goal.goal !== null) return [];
-    return buyOrder(trees[goal.device], goal.want, own, goal.first);
+    return buyOrder(trees[goal.device], goal.want, own, prioFrom(goal.first));
 }
