@@ -185,4 +185,4 @@ export function shopProblems(shop, plots) {
     return problems;
 }
 
-// TODO: seedsFrom(shopStock) from bonus_seeds once data.js has SEEDS
+// TODO: seedsFrom(shopStock) from bonus_seeds, the bonus: true ones in CROPS

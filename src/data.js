@@ -16,8 +16,11 @@ export const RENT = 10;           // crops, main weeks only
 export const RENT_PAY = 20;       // coins for a whole week's rent (all 10 crops together), × m (dev, 10 Oct)
 
 export const CROPS = {
-    carrot: { buy: null, sell: 25 }, // base seed, strawberries since week 1 (same numbers)
-    apple:  { buy: 5,    sell: 30 },
+    carrot: { buy: null, sell: 25, water: 1 }, // base seed, strawberries since week 1 (same numbers)
+    apple:  { buy: 5,    sell: 30, water: 1 },
+    // bonus seeds, only in heidi's shop on the days she offers them
+    bokchoy:  { name: "Bok Choy", buy: 10, sell: 37, water: 1, bonus: true },
+    eggplant: { name: "Eggplant", buy: 15, sell: 75, water: 2, bonus: true },
 };
 
 export const MULTIPLIER = { min: 0.8, max: 1.5 };

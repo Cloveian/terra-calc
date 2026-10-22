@@ -60,6 +60,53 @@ test("hoursNeeded totalHours adds up the route", () => {
     assert.equal(result.totalHours, result.route.reduce((sum, row) => sum + row.hours, 0));
 });
 
+test("simulateRoute with an empty thisWeek is the old route", () => {
+    // no bonus seeds -> bestMix only has apples, takes min(cap - 10, wMax - 10) of them, same as w = min(cap, wMax)
+    const empty = { seeds: [], onHand: {} };
+    const strip = (route) => route.map(({ mix, ...row }) => row);
+    // m 1.1 too, that's where m * a + m * b comes out a last digit off
+    for (const m of [1, 1.1]) {
+        for (const [state, t] of [[PREP2, 1], [{ coins: 300, plots: 20, seeds: 0 }, 5]]) {
+            for (let cap = 10; cap <= 45; cap++) {
+                const route = simulateRoute(state, t, cap, m, empty);
+                assert.ok(route[0].mix, `mix on the first row, cap ${cap}`);
+                assert.ok(route.slice(1).every((row) => !("mix" in row)), `mix only on the first row, cap ${cap}`);
+                assert.deepEqual(strip(route), simulateRoute(state, t, cap, m), `m ${m} t ${t} cap ${cap}`);
+            }
+        }
+    }
+});
+
+test("simulateRoute first week with eggplants", () => {
+    // main week (t = 5), 300 coins, 20 plots, cap 30 -> k = 20, plots up to 20 crops are free.
+    // apples only: wMax(300, 20, 0) = 36, so 30 h, 20 apples (100) + 10 plots (10 each, 100) = 200
+    // spent, sold 20 + 20 * 30 = 620.
+    // with eggplants: 2e + a <= 20, crops 10 + e + a, plots past 20 cost 10 each.
+    // e = 10, a = 0: 20 crops, no plots, cost 150, value 750 - 150 = 600 (apples: 600 - 200 = 400)
+    const route = simulateRoute({ coins: 300, plots: 20, seeds: 0 }, 5, 30, 1, { seeds: ["eggplant"], onHand: {} });
+    const row = route[0];
+    assert.deepEqual(row.mix, { eggplant: 10 });
+    assert.equal(row.wMax, 36);
+    assert.equal(row.hours, 30); // 10 + 2 * 10
+    assert.equal(row.newPlots, 0);
+    assert.equal(row.spent, 150);
+    assert.equal(row.sold, 770); // rent 20 + 750
+    assert.equal(row.endCoins, 920); // 300 - 150 + 770
+    // week after is apples only again, from 920 coins and still 20 plots
+    assert.equal(route[1].startCoins, 920);
+    assert.equal(route[1].plots, 20);
+    assert.ok(!("mix" in route[1]));
+});
+
+test("hoursNeeded with eggplants in the shop is never worse", () => {
+    assert.equal(hoursNeeded(PREP2, 1, 3050, 1).cap, 17); // apples only
+    // 4 coins can't buy an eggplant (15) or a 4th apple (5), so week one is the same 3 free apples
+    // and it's still 17
+    const result = hoursNeeded(PREP2, 1, 3050, 1, 10, { seeds: ["eggplant"], onHand: {} });
+    assert.equal(result.cap, 17);
+    assert.deepEqual(result.route[0].mix, { apple: 3 });
+});
+
 test("milestones", () => {
     const route = simulateRoute(PREP2, 1, 35, 1); // ends at 8760
     const items = [
