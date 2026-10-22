@@ -39,13 +39,22 @@ test("cleanGoal: a node Terra dropped goes, too many RAM gets cut, both say so",
 
 test("cleanGoal: priorities keep real rows and numbers, the rest go and say so", () => {
     const prio = { "ram_12:2": 1, "ram_12:7": 2, cpu_12: "soon", banana_12: 3, framework_13_upgrade: 2.5 };
-    const { goal, problems } = cleanGoal({ device: "framework_12", want: { ram_12: 2 }, prio }, trees, owned);
+    const want = { ram_12: 2, framework_13_upgrade: 1 };
+    const { goal, problems } = cleanGoal({ device: "framework_12", want, prio }, trees, owned);
     assert.deepEqual(goal.prio, { "ram_12:2": 1, framework_13_upgrade: 2.5 });
     assert.deepEqual(problems, [
         `Priorities: "ram_12:7" isn't one of RAM's 3 tiers`,
         `the priority on "cpu_12" isn't a number, so it's gone`,
         `Priorities: there's no upgrade called "banana_12"`,
     ]);
+});
+
+test("cleanGoal: numbers on things you don't want anymore just go, a plain id stays while any tier's wanted", () => {
+    const prio = { "ram_12:2": 1, ram_12: 4, cpu_12: 2, framework_12_diy: 3 };
+    const { goal, problems } = cleanGoal({ device: "framework_12", want: { ram_12: 1 }, prio }, trees, owned);
+    // RAM 32 GB isn't wanted, Core 3 isn't, DIY's owned
+    assert.deepEqual(goal.prio, { ram_12: 4 });
+    assert.deepEqual(problems, []);
 });
 
 test("goalItems: in priority order, RAM 32 GB pulls 16 GB ahead of the Core 3", () => {

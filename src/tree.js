@@ -105,7 +105,7 @@ export function goalCost(tree, want, owned = {}) {
 }
 
 // wanted picks as rows to buy, a row per tier for tiered ones (16 GB way sooner than 48)
-function wantedRows(tree, want, owned) {
+export function wantedRows(tree, want, owned = {}) {
     const rows = [];
     for (const node of tree.nodes) {
         const have = owned[node.id] ?? 0;
@@ -136,8 +136,7 @@ export function waitsOn(tree, row, other) {
 // rows from wantedRows in buy order, each after what it waits on
 export function buyOrder(tree, want, owned = {}, prio = {}) {
     const rows = wantedRows(tree, want, owned);
-    // prio lowest first, a plain id counts for every tier, no number goes last
-    const numberOf = (row) => prio[row.key] ?? prio[row.id] ?? Infinity;
+    const numberOf = (row) => rowPrio(prio, row) ?? Infinity;
     // as early as anything waiting on it
     const rank = new Map(rows.map((row) => [
         row, Math.min(numberOf(row), ...rows.filter((other) => waitsOn(tree, other, row)).map(numberOf)),
@@ -162,6 +161,11 @@ export function buyOrder(tree, want, owned = {}, prio = {}) {
         left = left.filter((row) => row !== next);
     }
     return order;
+}
+
+// a row's own number or its node's, null for none
+export function rowPrio(prio, row) {
+    return prio[row.key] ?? prio[row.id] ?? null;
 }
 
 // sites arrow order (keys, most wanted first) as prio numbers for buyOrder

@@ -1,13 +1,13 @@
 // want bits under each card on terra's own device tree
-import { limitOf, unpick, normalize, dependentsOf } from "../src/tree.js";
+import { limitOf, unpick, normalize, dependentsOf, wantedRows, rowPrio } from "../src/tree.js";
 import { weekName } from "../src/week.js";
 
 const BIT = "terra-calc-want";
 const WATCH = { childList: true, subtree: true };
 
 // one node's tag, null on limit-1 stuff i already own (terra's badge covers it)
-// milestone = its row from milestones(), if wanted
-export function wantBit(tree, own, want, id, milestone = null) {
+// milestones = plan rows by key (milestones() + rowHours), empty till there's a plan
+export function wantBit(tree, own, want, id, milestones = new Map(), prio = {}) {
     const node = tree.nodes.find((n) => n.id === id);
     if (!node) return null;
     const limit = limitOf(node, want);
@@ -16,14 +16,30 @@ export function wantBit(tree, own, want, id, milestone = null) {
     if (limit === 1 && owned >= 1) return null;
     // only wanted cuz somthing further up needs it
     const needed = count > owned && dependentsOf(tree, id).some((other) => (want[other] ?? 0) > (own[other] ?? 0));
+    // a priority box per buyOrder row, one per tier on tiered nodes
+    const rows = wantedRows(tree, want, own).filter((row) => row.id === id).map((row) => ({
+        key: row.key,
+        label: row.unit === null ? null : row.name,
+        prio: rowPrio(prio, row),
+        when: whenFor(milestones.get(row.key)),
+    }));
     return {
         stepper: limit !== 1,
         text: limit === 1 ? (count > 0 ? "wanted" : "want") : `want ${count}`,
         canAdd: count < limit,
         canRemove: count > owned,
         needed,
-        when: milestone && (milestone.now ? "can buy now" : milestone.week === null ? "doesn't fit" : weekName(milestone.week)),
+        rows,
     };
+}
+
+// "Week 4, 22 h/wk", or null with no plan yet
+function whenFor(milestone) {
+    if (!milestone) return null;
+    if (milestone.now) return "can buy now";
+    if (milestone.week === null) return "doesn't fit";
+    if (milestone.hours === null) return weekName(milestone.week);
+    return `${weekName(milestone.week)}, ${milestone.hours} h/wk`;
 }
 
 // + or - on one node like site tree, prereqs tag along n dependents go with it
@@ -46,11 +62,13 @@ export function openTree() {
 let observer = null;
 let last = null; // last drawWantBits state, for cards that show up later
 let onPick = null;
+let onPrio = null;
 
-// pick = pickWant(device, id, delta) in main.js
-export function mountWantBits(pick) {
+// pick = pickWant(device, id, delta), setPrio = pickPrio(device, rowKey, n) in main.js
+export function mountWantBits(pick, setPrio) {
     if (observer) return;
     onPick = pick;
+    onPrio = setPrio;
     observer = new MutationObserver(() => {
         if (document.querySelector("[data-node=root]")) fillBits();
     });
@@ -79,12 +97,15 @@ function fillBits() {
     const onGoal = last.goal?.device === device;
     const own = onGoal ? last.goal.own : device === last.owned?.device ? last.owned.own : {};
     const want = onGoal ? last.goal.want : own;
-    const rows = new Map((onGoal ? last.milestones : []).map((row) => [row.id, row]));
+    const rows = new Map((onGoal ? last.milestones : []).map((row) => [row.key, row]));
+    const prio = onGoal ? last.goal.prio : {};
     // unwatched while drawing, our own tags set it off n it redrew forver
     observer?.disconnect();
     for (const card of cards) {
-        const bit = wantBit(tree, own, want, card.dataset.node, rows.get(card.dataset.node));
+        const bit = wantBit(tree, own, want, card.dataset.node, rows, prio);
         let tag = card.querySelector(`:scope > .${BIT}`);
+        // typing in this one, a redraw would throw the box away. only the box tho, a clicked + has focus too and still redraws
+        if (tag?.querySelector("input:focus")) continue;
         if (!bit) {
             tag?.remove();
             continue;
@@ -100,12 +121,16 @@ function makeTag(card) {
     const tag = document.createElement("div");
     tag.className = BIT;
     tag.style.cssText = "position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;"
-        + "display:flex;gap:4px;align-items:center;white-space:nowrap;padding:1px 6px;border-radius:6px;"
+        + "display:flex;flex-direction:column;gap:2px;align-items:center;white-space:nowrap;padding:1px 6px;border-radius:6px;"
         + "background:#fffbe8;color:#222;border:1px solid #6a9a3a;font:12px/1.4 sans-serif;z-index:2";
     // game opens its buy popup on any click in a node n pans on pointerdown
     for (const type of ["pointerdown", "mousedown", "touchstart", "click", "dblclick"]) {
         tag.addEventListener(type, (event) => event.stopPropagation());
     }
+    // catches up once out of the box. not on its own + tho, redrawing on that mousedown swapped the button out n the click never landed
+    tag.addEventListener("focusout", (event) => {
+        if (!tag.contains(event.relatedTarget)) fillBits();
+    });
     card.append(tag);
     return tag;
 }
@@ -127,8 +152,40 @@ function drawTag(tag, bit, device) {
         parts.push(bit.canRemove ? button(bit.text, -1, true) : button(bit.text, 1, bit.canAdd));
     }
     if (bit.needed) parts.push(text("needed", "opacity:.6"));
-    if (bit.when) parts.push(text(bit.when, "opacity:.8"));
-    tag.replaceChildren(...parts);
+    // want controls, then a line per box
+    tag.replaceChildren(line(parts), ...bit.rows.map((row) => line([
+        ...(row.label ? [text(row.label)] : []),
+        prioBox(row, device),
+        ...(row.when ? [text(row.when, "opacity:.8")] : []),
+    ])));
+}
+
+function line(parts) {
+    const div = document.createElement("div");
+    div.style.cssText = "display:flex;gap:4px;align-items:center";
+    div.append(...parts);
+    return div;
+}
+
+// 1 = want most, empty = no number. saved on change (enter or clicking off)
+function prioBox(row, device) {
+    const box = document.createElement("input");
+    box.type = "number";
+    box.min = "1";
+    box.step = "any";
+    box.placeholder = "#";
+    box.title = "priority, 1 is what you want most";
+    box.value = row.prio ?? "";
+    box.style.cssText = "font:inherit;width:3em;padding:0 2px";
+    // game walks you around n opens build mode off keys on the page
+    for (const type of ["keydown", "keyup", "keypress"]) {
+        box.addEventListener(type, (event) => event.stopPropagation());
+    }
+    box.addEventListener("change", () => {
+        const n = box.value === "" ? null : Number(box.value);
+        onPrio?.(device, row.key, Number.isFinite(n) ? n : null);
+    });
+    return box;
 }
 
 function text(words, style = "") {

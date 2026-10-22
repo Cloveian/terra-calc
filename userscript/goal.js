@@ -1,6 +1,6 @@
 // my goal (site state fields + prio) checked against live trees from /device-upgrades
 import { clean, formatSelection, rowKeyProblem } from "../src/state.js";
-import { goalCost, buyOrder } from "../src/tree.js";
+import { goalCost, buyOrder, wantedRows } from "../src/tree.js";
 
 // null till trees are in. nodes terra renamed or dropped get cut n turn into problems
 export function cleanGoal(saved, trees, owned) {
@@ -23,13 +23,14 @@ export function cleanGoal(saved, trees, owned) {
     };
     if (saved?.goal != null) raw.goal = String(saved.goal);
     const { state, problems: cleaned } = clean(raw, null, trees);
-    // prio is ours only, site keeps its arrow order in first
+    // prio is ours only, site keeps its arrow order in first. ones on unwanted rows just go quietly
     const prio = {};
+    const wanted = wantedRows(trees[device], state.want, state.own);
     for (const [key, n] of Object.entries(saved?.prio ?? {})) {
         const problem = rowKeyProblem(trees[device], key);
         if (problem) problems.push(`Priorities: ${problem}`);
         else if (!Number.isFinite(n)) problems.push(`the priority on "${key}" isn't a number, so it's gone`);
-        else prio[key] = n;
+        else if (wanted.some((row) => row.key === key || row.id === key)) prio[key] = n;
     }
     return {
         goal: { device, want: state.want, goal: state.goal, prio },

@@ -51,7 +51,7 @@ window.terraCalc = {
     game,
     settings,
     plan,
-    // terraCalc.goal({ want: { ram_12: 2 } }) or ({ goal: 5000 }), null clears. prio like { "ram_12:2": 1 } till the tree has number boxes
+    // terraCalc.goal({ want: { ram_12: 2 } }) or ({ goal: 5000 }), null clears. prio like { "ram_12:2": 1 }
     goal: setGoal,
     debug(on = true) {
         settings.debug = on;
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", start);
 async function start() {
     if (settings.panel) mountCard(openTree);
     if (!settings.fill) return drawCard(null);
-    mountWantBits(pickWant);
+    mountWantBits(pickWant, pickPrio);
     await readRest();
     if (settings.debug) {
         liveBuild().then((build) => debug("live build", build), (err) => debug("no live build", err));
@@ -149,6 +149,17 @@ function pickWant(device, id, delta) {
     const { want, removed } = changeWant(trees[device], current.own, current.goal.want, id, delta);
     debug("picked", { device, id, delta, removed });
     setGoal({ ...current.goal, want, goal: null }); // any pick ends a custom coin goal, like site
+}
+
+// number from a priority box, null = emptied. boxes only show on goal device, anything else is a stale tree
+function pickPrio(device, key, n) {
+    const current = cleanGoal(savedGoal, treesFrom(game.deviceUpgrades), ownedFrom(game.deviceUpgrades));
+    if (!current || device !== current.goal.device) return;
+    const prio = { ...current.goal.prio };
+    if (n === null) delete prio[key];
+    else prio[key] = n;
+    debug("priority", { key, n });
+    setGoal({ ...current.goal, prio });
 }
 
 // unchecked here, junk turns into problems in plan()
@@ -247,7 +258,10 @@ function plan() {
         ? rowHours(start, t, milestones(target.route, goalItems(goal.goal, trees, goal.own)), m)
         : [];
     // set even if plan comes back null, can pick before farm loads
-    treeBits = { trees, owned, goal: goal && { device: goal.goal.device, want: goal.goal.want, own: goal.own }, milestones: rows };
+    treeBits = {
+        trees, owned, milestones: rows,
+        goal: goal && { device: goal.goal.device, want: goal.goal.want, own: goal.own, prio: goal.goal.prio },
+    };
     const parts = {
         trees,
         owned,
