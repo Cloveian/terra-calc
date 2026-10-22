@@ -309,7 +309,7 @@ const COLUMNS = [
     ["Start coins", (row) => coins(row.startCoins)],
     ["Plots", (row) => row.plots, "dirt-plot"],
     ["Can use (h)", (row) => row.wMax], // the most hours you can afford seeds and plots for
-    ["Planned (h)", plannedHours, "water-drop"],
+    ["Planned (h)", (row) => (row.out ? `${row.hours} (under 10 h: out)` : row.hours), "water-drop"],
     ["New plots", (row) => row.newPlots],
     ["Spent", (row) => coins(row.spent)],
     ["Sold", (row) => coins(row.sold)],
@@ -333,6 +333,11 @@ function mixText(mix) {
 
 function drawTable(route) {
     const table = $("route");
+    // first weeks seeds go above the table, in a cell they made it scroll sideways
+    const mix = mixText(route[0]?.mix);
+    const note = $("mix-note");
+    note.hidden = !mix;
+    note.textContent = mix && `${weekName(route[0].week)} plants ${mix}, then it's apples only (Heidi's bonus seeds change every day).`;
     if (route.length === 0) {
         table.replaceChildren();
         return;

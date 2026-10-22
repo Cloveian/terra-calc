@@ -36,7 +36,7 @@ Eggplant wins per hour *and* per plot, by a lot per plot. Bok choy only beats ap
 - `data.js`: Bok Choy and Eggplant rows in `CROPS` with `water`, marked as bonus (today only)
 - inventory: seeds on hand for each seed, not just apples
 - an "in Heidi's shop today" tick per bonus seed, off by default
-- the week table's first row says the mix ("8 eggplant + 14 apple")
+- a note above the week table says the first week's mix ("Week 1 plants 8 eggplant + 14 apple")
 
 ## Userscript (after the site)
 
