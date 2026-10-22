@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekTarget, stepsFrom, routeState } from "../userscript/next.js";
+import { weekTarget, stepsFrom, routeState, rowHours } from "../userscript/next.js";
 import { stuckFrom } from "../userscript/fill.js";
 import { hoursNeeded } from "../src/route.js";
 
@@ -27,6 +27,12 @@ test("weekTarget: with a goal it's the first week of hoursNeeded's route", () =>
 
 test("weekTarget: a goal you can't reach still goes as hard as it can", () => {
     assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, 1e6, 1.1), { w: 18, cap: 45, reachable: false, out: false });
+});
+
+test("rowHours: each row's h/week, same as hoursNeeded on its own (build plan numbers)", () => {
+    const prep2 = { coins: 4, plots: 13, seeds: 3 };
+    const rows = rowHours(prep2, 1, [{ total: 3050 }, { total: 10700 }, { total: 13850 }], 1);
+    assert.deepEqual(rows.map((row) => row.hours), [17, 42, null]);
 });
 
 test("routeState: this week's planted apples count as seeds you've got", () => {

@@ -59,6 +59,17 @@ function parseSelection(text, tree, label, problems) {
     return selection;
 }
 
+// what's wrong with a buyOrder row key (node id, or id:n for one tier), null if fine
+export function rowKeyProblem(tree, key) {
+    const [id, unit, extra] = key.split(":");
+    const node = tree.nodes.find((n) => n.id === id);
+    if (!node) return `there's no upgrade called "${id}"`;
+    if (unit === undefined) return null;
+    if (!node.tiers) return `${node.name} doesn't come in tiers ("${key}")`;
+    if (extra === undefined && /^\d+$/.test(unit) && unit >= 1 && unit <= node.tiers.length) return null;
+    return `"${key}" isn't one of ${node.name}'s ${node.tiers.length} tiers`;
+}
+
 export function formatSelection(selection) {
     return Object.entries(selection)
         .filter(([, qty]) => qty > 0)
@@ -109,13 +120,9 @@ export function clean(raw, today, trees = TREES) {
     const first = [];
     for (const key of (raw.first ?? "").split(",")) {
         if (key === "") continue;
-        // node id, or id:n for one tier of a tiered one (row keys from buyOrder)
-        const [id, unit, extra] = key.split(":");
-        const node = tree.nodes.find((n) => n.id === id);
-        const tierOk = unit === undefined
-            || (extra === undefined && node?.tiers && /^\d+$/.test(unit) && unit >= 1 && unit <= node.tiers.length);
-        if (node && tierOk) first.push(key);
-        else problems.push(`${LABELS.first}: there's no upgrade called "${key}"`);
+        const problem = rowKeyProblem(tree, key);
+        if (problem) problems.push(`${LABELS.first}: ${problem}`);
+        else first.push(key);
     }
 
     const state = {

@@ -22,7 +22,12 @@ test("a good hash round-trips", () => {
 test("buy order: a tier of a tiered node is fine, a tier of anything else or past the last isn't", () => {
     const { state, problems } = clean(raw("first=ram_12:2,ssd_12:3,cpu_12:1,ram_12:0,ram_12:2:1,cpu_12"), TODAY);
     assert.deepEqual(state.first, ["ram_12:2", "cpu_12"]);
-    assert.equal(problems.length, 4);
+    assert.deepEqual(problems, [
+        `Buy order: "ssd_12:3" isn't one of SSD's 2 tiers`,
+        `Buy order: Core 3 304 doesn't come in tiers ("cpu_12:1")`,
+        `Buy order: "ram_12:0" isn't one of RAM's 3 tiers`,
+        `Buy order: "ram_12:2:1" isn't one of RAM's 3 tiers`,
+    ]);
 });
 
 test("toHash leaves out today's date and empty things, keeps : and , readable", () => {

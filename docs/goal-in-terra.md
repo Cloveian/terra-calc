@@ -70,7 +70,7 @@ Same idea as the saved farm (`terra-calc-farm`): `localStorage`, tagged with you
 
 ```js
 // terra-calc-goal
-{ userId, goal: { device: "framework_12", want: { ram_12: 2, ... }, goal: null, first: [], cap: null, mode: "need" } }
+{ userId, goal: { device: "framework_12", want: { ram_12: 2, ... }, goal: null, prio: { "ram_12:1": 1 }, cap: null, mode: "need" } }
 ```
 
 - `goal: null` means "use the want picks", a number means custom coins, like the site's state

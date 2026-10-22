@@ -20,6 +20,16 @@ export function weekTarget(state, t, goal, m) {
     return { w: row?.hours ?? 0, cap, reachable, out: row?.out ?? false, route };
 }
 
+// h/week from now to have each milestone row (n everything above it) by Week 12, null past 45 h. totals only go up so each search starts at the last cap, ~36 route runs for the whole list
+export function rowHours(state, t, rows, m) {
+    let from = RENT;
+    return rows.map((row) => {
+        const result = hoursNeeded(state, t, row.total, m, from);
+        from = result?.cap ?? MAX_PLOTS + 1;
+        return { ...row, hours: result?.cap ?? null };
+    });
+}
+
 // route state from mid-week. planted apples are paid for, counted back as seeds or route buys them agian n comes out low. coins + plots already have this weeks spending
 export function routeState(inventory, plots, farm, weekKey) {
     const planted = (farm?.crops ?? []).filter((crop) => crop.week === weekKey && crop.seed === APPLE_SEED).length;

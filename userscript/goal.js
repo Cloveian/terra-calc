@@ -1,6 +1,6 @@
-// my goal (site state fields) checked against live trees from /device-upgrades
-import { clean, formatSelection } from "../src/state.js";
-import { goalCost, buyOrder, prioFrom } from "../src/tree.js";
+// my goal (site state fields + prio) checked against live trees from /device-upgrades
+import { clean, formatSelection, rowKeyProblem } from "../src/state.js";
+import { goalCost, buyOrder } from "../src/tree.js";
 
 // null till trees are in. nodes terra renamed or dropped get cut n turn into problems
 export function cleanGoal(saved, trees, owned) {
@@ -20,12 +20,19 @@ export function cleanGoal(saved, trees, owned) {
         device,
         own: formatSelection(own),
         want: formatSelection(saved?.want ?? {}),
-        first: (saved?.first ?? []).join(","),
     };
     if (saved?.goal != null) raw.goal = String(saved.goal);
     const { state, problems: cleaned } = clean(raw, null, trees);
+    // prio is ours only, site keeps its arrow order in first
+    const prio = {};
+    for (const [key, n] of Object.entries(saved?.prio ?? {})) {
+        const problem = rowKeyProblem(trees[device], key);
+        if (problem) problems.push(`Priorities: ${problem}`);
+        else if (!Number.isFinite(n)) problems.push(`the priority on "${key}" isn't a number, so it's gone`);
+        else prio[key] = n;
+    }
     return {
-        goal: { device, want: state.want, goal: state.goal, first: state.first },
+        goal: { device, want: state.want, goal: state.goal, prio },
         own: state.own,
         problems: [...problems, ...cleaned],
     };
@@ -42,5 +49,5 @@ export function goalCoins(goal, trees, own) {
 // picks in buy order for milestones, none with a custom coin goal
 export function goalItems(goal, trees, own) {
     if (!goal || goal.goal !== null) return [];
-    return buyOrder(trees[goal.device], goal.want, own, prioFrom(goal.first));
+    return buyOrder(trees[goal.device], goal.want, own, goal.prio);
 }

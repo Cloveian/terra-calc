@@ -49,8 +49,9 @@ export function milestones(route, items) {
 }
 
 // Lowest flat h/week cap that ends with at least goalCoins, or null if 45 h isn't enough.
-export function hoursNeeded(state, t, goalCoins, m) {
-    for (let cap = RENT; cap <= MAX_PLOTS; cap++) {
+// `from` skips caps already known too low (a smaller goal needed that much)
+export function hoursNeeded(state, t, goalCoins, m, from = RENT) {
+    for (let cap = from; cap <= MAX_PLOTS; cap++) {
         const route = simulateRoute(state, t, cap, m);
         const last = route[route.length - 1];
         if (last?.out) continue;

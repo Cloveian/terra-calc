@@ -9,7 +9,7 @@ import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom,
 } from "./fill.js";
-import { weekTarget, stepsFrom, routeState } from "./next.js";
+import { weekTarget, stepsFrom, routeState, rowHours } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { milestones } from "../src/route.js";
@@ -51,7 +51,7 @@ window.terraCalc = {
     game,
     settings,
     plan,
-    // terraCalc.goal({ want: { ram_12: 2 } }) or ({ goal: 5000 }), null clears
+    // terraCalc.goal({ want: { ram_12: 2 } }) or ({ goal: 5000 }), null clears. prio like { "ram_12:2": 1 } till the tree has number boxes
     goal: setGoal,
     debug(on = true) {
         settings.debug = on;
@@ -240,11 +240,12 @@ function plan() {
     // own is per goal device, maybe not my main one
     const goal = cleanGoal(savedGoal, trees, owned);
     const coinsGoal = goal && goalCoins(goal.goal, trees, goal.own);
-    const target = t !== null && plots !== null
-        ? weekTarget(routeState(inventory, plots, game.farm, game.hours?.weekKey), t, coinsGoal, m)
-        : null;
+    const start = t !== null && plots !== null ? routeState(inventory, plots, game.farm, game.hours?.weekKey) : null;
+    const target = start && weekTarget(start, t, coinsGoal, m);
     for (const problem of goal?.problems ?? []) showNotice(`Your goal changed: ${problem}`);
-    const rows = goal && target ? milestones(target.route, goalItems(goal.goal, trees, goal.own)) : [];
+    const rows = goal && target
+        ? rowHours(start, t, milestones(target.route, goalItems(goal.goal, trees, goal.own)), m)
+        : [];
     // set even if plan comes back null, can pick before farm loads
     treeBits = { trees, owned, goal: goal && { device: goal.goal.device, want: goal.goal.want, own: goal.own }, milestones: rows };
     const parts = {
