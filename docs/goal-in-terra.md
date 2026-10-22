@@ -147,7 +147,7 @@ Rules for every button: it says exactly what it's about to do and what it costs 
 
 Random things that came up, roughly in how much i want them:
 
-- **hours left this week.** The code step already subtracts `creditedSeconds`. A line like "7.5 h left, 4 days to go" would be nice, the week ends Sunday night US Eastern (from `hours.update` / `current-week`)
+- **hours left this week.** The code step already subtracts `creditedSeconds`. ~~A line like "7.5 h left, 4 days to go" would be nice~~ done 22 Oct, on the code step itself: "code 28.3 h (3 days left, about 9.4 h a day)", from `current-week`'s `endDate`
 - **/admin guard.** The `@exclude` only works on a full page load. If Terra ever navigates to /admin inside the page, `main.js` should notice (`history.pushState` hook or just checking `location.pathname` on each draw) and hide the panel
 - **settings ~~popup~~.** ~~A little gear on the panel~~ our own section in Terra's own settings tab now (22 Oct), above their logout: your own multiplier, fill, the This Week steps, debug. The Want bits and buttons get a box once they're switchable
 - **looking native.** Terra's CSS module names change per build, but we could find its panel/badge styles by the stable part of the name (`_panel_`, `_nodeBadge_`) in `document.styleSheets` and copy the computed look. Low priority, ugly hack, prolly worth it eventually

@@ -19,8 +19,8 @@ const FARM_KEY = "terra-calc-farm";
 const GOAL_KEY = "terra-calc-goal";
 const STEPS_KEY = "terra-calc-week-steps";
 
-// can stay null: plots (card asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one)
-const OPTIONAL = new Set(["farm", "stuck", "target", "goal"]);
+// can stay null: plots (card asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one), weekEnds (just extra words on code step)
+const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
 const M_GUESS = 1.1;
@@ -303,6 +303,8 @@ function plan() {
         inventory: inventory && { ...inventory, plots },
         m,
         mGuessed: mRead === null,
+        // ms, for h a day on code step
+        weekEnds: Date.parse(game.currentWeek?.endDate ?? "") || null,
         loans,
         farm: game.farm,
         stuck,

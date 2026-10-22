@@ -26,7 +26,8 @@ const STEP_LINES = {
     place: (n) => `place ${some(n, "plot")}`,
     plantBase: (n, plan) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}`,
     plantApples: (n) => `plant ${some(n, "apple seed")}`,
-    code: (n) => `code ${n} h`,
+    // ticked one keeps its saved n, pace would be off
+    code: (n, plan, now, done) => `code ${n} h${done ? "" : pace(n, plan.weekEnds, now)}`,
     ship: (n) => `ship this week's project so the ${n} grow`,
 };
 
@@ -63,8 +64,9 @@ export function showNotice(text) {
     redrawCard?.();
 }
 
-// plan = what main.js works out, null = not enough to go on yet (terra's checklist stays unless there's a notice)
-// TODO: hours left this week, progress bar to goal
+// plan = what main.js works out, or null when there isn't enough to go on yet (then Terra's own
+// checklist stays, unless there's a notice to show)
+// TODO: progress bar to goal
 export function drawCard(plan) {
     lastPlan = plan;
     redrawCard?.();
@@ -188,7 +190,7 @@ export function cardFor(plan, now = Date.now()) {
     const { loans, farm, stuck, target, steps, goal, inventory } = plan;
     // ticked ones still count for the indent, list doesnt jump around
     const tasks = nestSteps(steps).map((step) => ({
-        text: STEP_LINES[step.do](step.n, plan),
+        text: STEP_LINES[step.do](step.n, plan, now, step.done),
         depth: step.depth,
         done: step.done ?? false,
     }));
@@ -247,6 +249,15 @@ function cropKinds(crops) {
     }
     if (counts.size === 1) return ` (${[...counts.keys()][0]})`;
     return ` (${[...counts].map(([name, n]) => `${n} ${name}`).join(", ")})`;
+}
+
+// " (3 days left, about 9.4 h a day)". weekEnds from current-week endDate, sunday night US eastern
+function pace(n, weekEnds, now) {
+    if (!weekEnds || weekEnds <= now) return "";
+    const days = (weekEnds - now) / 86400000;
+    if (days < 1 / 24) return " (under an hour left in the week)";
+    if (days < 1) return ` (${Math.floor(days * 24)} h left in the week)`;
+    return ` (${some(Math.floor(days), "day")} left, about ${Math.round((n / days) * 10) / 10} h a day)`;
 }
 
 function some(n, word) {

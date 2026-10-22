@@ -126,6 +126,21 @@ test("a crop with no name goes by its seed id", () => {
     assert.deepEqual(cardFor(plan, NOW).details, ["1 waiting on last week's review (mystery_seed)"]);
 });
 
+test("the code step says how many days are left and the h a day, under a day just the hours", () => {
+    const plan = (weekEnds) => ({
+        t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1.1,
+        farm: { plots: 10, empty: 0, crops: [], seenAt: NOW }, stuck: null, steps: [{ do: "code", n: 28 }], weekEnds,
+    });
+    const code = (weekEnds) => cardFor(plan(weekEnds), NOW).tasks[0].text;
+    assert.equal(code(NOW + 3.5 * 86400000), "code 28 h (3 days left, about 8 h a day)");
+    assert.equal(code(NOW + 5 * 3600000), "code 28 h (5 h left in the week)");
+    assert.equal(code(NOW + 20 * 60000), "code 28 h (under an hour left in the week)");
+    assert.equal(code(null), "code 28 h");
+    assert.equal(code(NOW - 1), "code 28 h");
+    const ticked = { ...plan(NOW + 3.5 * 86400000), steps: [{ do: "code", n: 28, done: true }] };
+    assert.equal(cardFor(ticked, NOW).tasks[0].text, "code 28 h");
+});
+
 test("free seeds go by name, both kinds when prep carrots are still good", () => {
     const farm = { plots: 16, empty: 16, crops: [], seenAt: NOW };
     const plan = {

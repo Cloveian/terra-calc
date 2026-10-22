@@ -59,7 +59,7 @@ const SHAPES = {
         mainDevice: "string",
         owned: "object",
     },
-    [REST.currentWeek]: { number: "number", label: "string", rentRequired: "boolean" },
+    [REST.currentWeek]: { number: "number", label: "string", rentRequired: "boolean", endDate: "string?" },
     [IN.currency]: { coins: "number" },
     [IN.inventory]: {
         usableWeeks: ["number"],
