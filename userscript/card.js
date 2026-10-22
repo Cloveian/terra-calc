@@ -199,6 +199,8 @@ export function cardFor(plan, now = Date.now()) {
 
     const details = [];
     if (target?.out) details.push("can't afford 10 crops this week, that's rent");
+    const mix = mixLine(target?.mix, plan.crops);
+    if (mix) details.push(mix);
     // stuck = from before this week (all of them if week unkown)
     for (const why of Object.keys(stuck?.why ?? {})) {
         const these = stuck.crops.filter((crop) => (crop.review ?? "review") === why);
@@ -230,6 +232,15 @@ function goalLines(goal, target, coins) {
     if (next) lines.push(`next pick: ${pickName(next)} ${when(next)}`);
     if (next && next !== picks.at(-1)) lines.push(`all of it ${when(picks.at(-1))}`);
     return lines;
+}
+
+// first weeks mix, biggest first. null for apples only, the steps say that already
+function mixLine(mix, crops) {
+    const counts = Object.entries(mix ?? {}).filter(([, n]) => n > 0);
+    if (!counts.some(([id]) => id !== "apple")) return null;
+    const name = (id) => (crops?.[id]?.name ?? id).toLowerCase();
+    const seeds = counts.sort((a, b) => b[1] - a[1]).map(([id, n]) => `${n} ${name(id)}`);
+    return `today's best: ${seeds.join(" + ")}`;
 }
 
 function pickName({ name, qty }) {

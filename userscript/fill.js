@@ -66,12 +66,14 @@ export function inventoryFrom(currency, inventory) {
     const sum = (items) => items.reduce((total, item) => total + item.quantity, 0);
     // subtype "base", carrots in prep and strawberries from week 1. model assumes 10, steps need real count
     const base = usable.filter((item) => item.type === "seed" && item.subtype === "base");
-    // per kind for card, prep 3 carrots still usuable in week 1 so can be both
-    const baseKinds = {};
-    for (const item of base) {
-        const kind = item.itemId.replace(/_seed$/, "");
-        baseKinds[kind] = (baseKinds[kind] ?? 0) + item.quantity;
-    }
+    const bySeed = (items) => {
+        const counts = {};
+        for (const item of items) {
+            const kind = item.itemId.replace(/_seed$/, "");
+            counts[kind] = (counts[kind] ?? 0) + item.quantity;
+        }
+        return counts;
+    };
     return {
         coins: currency.coins,
         // placed ones, only in farm room state. main.js fills it from farmFrom after farm visit or shopFrom before (under 19 plots)
@@ -80,7 +82,10 @@ export function inventoryFrom(currency, inventory) {
         unplaced: sum(inventory.items.filter((item) => item.itemId === DIRT_PLOT)),
         seeds: sum(usable.filter((item) => item.itemId === APPLE_SEED)),
         baseSeeds: sum(base),
-        baseKinds,
+        // per kind for card, prep 3 carrots still usuable in week 1 so can be both
+        baseKinds: bySeed(base),
+        // every other seed, { eggplant: 4 }. havent seen a bought one yet, guessed to look like apple seeds with their own itemId
+        bonus: bySeed(usable.filter((item) => item.type === "seed" && item.subtype !== "base" && item.itemId !== APPLE_SEED)),
     };
 }
 
@@ -185,4 +190,17 @@ export function shopProblems(shop, plots) {
     return problems;
 }
 
-// TODO: seedsFrom(shopStock) from bonus_seeds, the bonus: true ones in CROPS
+// todays bonus seeds from shop.stock, [] when closed. apples left out (always there), and entries without cropValue and waterNeeded
+export function seedsFrom(shopStock) {
+    if (shopStock?.status !== "available" || !Array.isArray(shopStock.entries)) return [];
+    return shopStock.entries
+        .filter((entry) => entry.category === "bonus_seeds" && entry.itemId && entry.itemId !== APPLE_SEED
+            && typeof entry.cropValue === "number" && typeof entry.waterNeeded === "number")
+        .map((entry) => ({
+            id: entry.itemId.replace(/_seed$/, ""),
+            name: (entry.name ?? entry.itemId).replace(/\s+Seeds?$/, ""),
+            buy: entry.priceCoins,
+            sell: entry.cropValue,
+            water: entry.waterNeeded,
+        }));
+}

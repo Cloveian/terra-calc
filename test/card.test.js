@@ -52,6 +52,19 @@ test("the steps are the tasks, indented under what they wait on", () => {
     ]);
 });
 
+test("a mix with bonus seeds gets a line, biggest first, apples only doesn't", () => {
+    const farm = { plots: 36, empty: 0, crops: [], seenAt: NOW };
+    const plan = (mix) => ({
+        t: 5, inventory: { coins: 300, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1, farm, steps: [],
+        target: { w: 30, cap: 30, reachable: null, out: false, mix },
+        crops: { bokchoy: { name: "Bok Choy", buy: 10, sell: 37, water: 1 } },
+    });
+    assert.deepEqual(cardFor(plan({ eggplant: 6, apple: 8, bokchoy: 0 }), NOW).details, ["today's best: 8 apple + 6 eggplant"], "not in crops, so it's the id");
+    assert.deepEqual(cardFor(plan({ apple: 3, bokchoy: 5 }), NOW).details, ["today's best: 5 bok choy + 3 apple"]);
+    assert.deepEqual(cardFor(plan({ apple: 10 }), NOW).details, []);
+    assert.deepEqual(cardFor(plan(null), NOW).details, []);
+});
+
 test("a goal shows before the farm's been seen, with the next pick and when it's all done", () => {
     const goal = {
         device: "Framework 12", coins: 2800, custom: false,

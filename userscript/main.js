@@ -7,12 +7,13 @@ import { setDebug, debug } from "./debug.js";
 import { mountCard, drawCard, showNotice } from "./card.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
-    shopFrom, shopProblems, farmSchemaProblems, loansFrom,
+    shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom,
 } from "./fill.js";
 import { weekTarget, stepsFrom, routeState, rowHours, tickSteps } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { milestones } from "../src/route.js";
+import { easternDay } from "../src/week.js";
 import { byId } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
@@ -33,7 +34,7 @@ const game = {
     inventory: null,
     marketItems: null,
     hours: null,
-    shop: null, // shopFrom, last time heidi's shop was open
+    shop: null, // shopFrom + seedsFrom, last time heidi's shop was open
     farmOwnerId: null, // whose farm this room is (joinComplete)
     roomState: null,
     farmReadable: true, // false = room FarmItem missing fields farmFrom needs
@@ -78,7 +79,7 @@ onGameMessage(IN.hours, (body) => {
 
 onGameMessage(IN.shopStock, (body) => {
     const shop = shopFrom(body);
-    if (shop) game.shop = { ...shop, seenAt: Date.now() };
+    if (shop) game.shop = { ...shop, seeds: seedsFrom(body), dateKey: body?.dateKey ?? null, seenAt: Date.now() };
     checkShop();
     draw();
 });
@@ -286,10 +287,15 @@ function plan() {
     const goal = cleanGoal(savedGoal, trees, owned);
     const coinsGoal = goal && goalCoins(goal.goal, trees, goal.own);
     const start = t !== null && plots !== null ? routeState(inventory, plots, game.farm, game.hours?.weekKey) : null;
-    const target = start && weekTarget(start, t, coinsGoal, m);
+    // bonus seeds for this weeks mix, my bag + heidi's shop. shop ones are TODAY only, its dateKey is the US Eastern day like easternDay
+    const shopSeeds = game.shop?.dateKey === easternDay(new Date()) ? game.shop.seeds : [];
+    // by id, names for the mix line
+    const crops = Object.fromEntries(shopSeeds.map(({ id, ...crop }) => [id, crop]));
+    const thisWeek = inventory && { seeds: shopSeeds.map((seed) => seed.id), onHand: inventory.bonus, crops };
+    const target = start && weekTarget(start, t, coinsGoal, m, thisWeek);
     for (const problem of goal?.problems ?? []) showNotice(`Your goal changed: ${problem}`);
     const rows = goal && target
-        ? rowHours(start, t, milestones(target.route, goalItems(goal.goal, trees, goal.own)), m)
+        ? rowHours(start, t, milestones(target.route, goalItems(goal.goal, trees, goal.own)), m, thisWeek)
         : [];
     // set even if plan comes back null, can pick before farm loads
     treeBits = {
@@ -309,6 +315,7 @@ function plan() {
         farm: game.farm,
         stuck,
         target,
+        crops,
         // for card goal lines, null = rent week
         goal: coinsGoal === null ? null : {
             device: trees[goal.goal.device].device,

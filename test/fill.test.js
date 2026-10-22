@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { TREES } from "../src/data.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
-    shopFrom, shopProblems, farmSchemaProblems, loansFrom,
+    shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom,
 } from "../userscript/fill.js";
 
 // most fixtures hand made from capture shapes. device-upgrades-real is a real response, owned + purchases emptied, coins and address swapped for made up ones
@@ -91,11 +91,25 @@ test("multiplyerFrom: nothing to sell -> null", () => {
 test("inventoryFrom: coins, and apple seeds from the usable weeks only", () => {
     // 3 this week + 2 from week 8 (still usable), 4 from week 7 expired, the 10 strawberrys are base seeds, 36 plots are loans like in a capture (no week)
     const inventory = inventoryFrom(fixture("player-currency"), fixture("inventory-sync"));
-    assert.deepEqual(inventory, { coins: 42, plots: null, unplaced: 36, seeds: 5, baseSeeds: 10, baseKinds: { strawberry: 10 } });
+    assert.deepEqual(inventory, { coins: 42, plots: null, unplaced: 36, seeds: 5, baseSeeds: 10, baseKinds: { strawberry: 10 }, bonus: {} });
 });
 
 test("inventoryFrom: no seeds -> 0s", () => {
-    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, unplaced: 0, seeds: 0, baseSeeds: 0, baseKinds: {} });
+    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, unplaced: 0, seeds: 0, baseSeeds: 0, baseKinds: {}, bonus: {} });
+});
+
+test("inventoryFrom: bonus seeds by id, apples and base seeds aren't in there, old ones expire", () => {
+    // no bought ones in a capture yet, shaped like the apple seeds in inventory-sync.json
+    const seed = (itemId, quantity, weekNumber = 9, subtype = "") => ({ itemId, type: "seed", subtype, quantity, weekNumber });
+    const inventory = {
+        usableWeeks: [9],
+        items: [seed("eggplant_seed", 4), seed("eggplant_seed", 2), seed("bokchoy_seed", 3), seed("bokchoy_seed", 7, 8),
+            seed("apple_seed", 5), seed("strawberry_seed", 10, 9, "base")],
+    };
+    const result = inventoryFrom({ coins: 0 }, inventory);
+    assert.deepEqual(result.bonus, { eggplant: 6, bokchoy: 3 });
+    assert.equal(result.seeds, 5);
+    assert.equal(result.baseSeeds, 10);
 });
 
 test("inventoryFrom: base seeds by subtype, so prep carrots count too, and expire like the rest", () => {
@@ -223,6 +237,35 @@ test("shopFrom: closed or missing bits", () => {
     assert.equal(shopFrom({ status: "closed", entries: [] }), null);
     assert.equal(shopFrom(null), null);
     assert.deepEqual(shopFrom({ status: "available", entries: [] }), { applePrice: null, plotPrice: null, plots: null });
+});
+
+// shop.stock like the 22 Oct capture, the first one with bonus seeds
+const stock22 = {
+    status: "available",
+    dateKey: "2026-10-22",
+    entries: [
+        { id: "admin-a1", category: "bonus_seeds", itemId: "apple_seed", name: "Apple Seed", priceCoins: 5, waterNeeded: 1, cropValue: 30 },
+        { id: "water", category: "water", itemId: null, name: "Water", priceCoins: 50, waterNeeded: null, cropValue: null },
+        { id: "dirt", category: "dirt_plots", itemId: "dirt_plot", name: "Dirt Plot", priceCoins: 10, waterNeeded: null, cropValue: null },
+        { id: "blahaj", category: "prizes", itemId: "blahaj", name: "Blahaj", priceCoins: 400, waterNeeded: null, cropValue: null },
+        { id: "admin-341c", category: "bonus_seeds", itemId: "eggplant_seed", name: "Eggplant Seeds", priceCoins: 15, waterNeeded: 2, cropValue: 75 },
+        { id: "admin-b2", category: "bonus_seeds", itemId: "bokchoy_seed", name: "Bok Choy Seeds", priceCoins: 10, waterNeeded: 1, cropValue: 37 },
+    ],
+};
+
+test("seedsFrom: today's bonus seeds, apples left out", () => {
+    assert.deepEqual(seedsFrom(stock22), [
+        { id: "eggplant", name: "Eggplant", buy: 15, sell: 75, water: 2 },
+        { id: "bokchoy", name: "Bok Choy", buy: 10, sell: 37, water: 1 },
+    ]);
+});
+
+test("seedsFrom: closed shop, no numbers on the entry, or nothing at all -> []", () => {
+    assert.deepEqual(seedsFrom({ ...stock22, status: "closed" }), []);
+    assert.deepEqual(seedsFrom(null), []);
+    // the 19 Oct entries had no waterNeeded or cropValue
+    const old = { category: "bonus_seeds", itemId: "eggplant_seed", name: "Eggplant Seeds", priceCoins: 15 };
+    assert.deepEqual(seedsFrom({ status: "available", entries: [old] }), []);
 });
 
 test("shopProblems: nothing when the shop matches the model", () => {

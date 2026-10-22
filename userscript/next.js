@@ -3,28 +3,28 @@ import { hoursNeeded, simulateRoute } from "../src/route.js";
 import { RENT, MAX_PLOTS } from "../src/data.js";
 import { APPLE_SEED } from "./fill.js";
 
-// this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent). route for milestones
-export function weekTarget(state, t, goal, m) {
+// this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent). route for milestones, mix = first weeks seeds with thisWeek
+export function weekTarget(state, t, goal, m, thisWeek = null) {
     let cap = RENT;
     let route;
     let reachable = null;
     if (goal > 0) {
-        const result = hoursNeeded(state, t, goal, m);
+        const result = hoursNeeded(state, t, goal, m, RENT, thisWeek);
         reachable = result !== null;
         cap = result?.cap ?? MAX_PLOTS;
-        route = result?.route ?? simulateRoute(state, t, cap, m);
+        route = result?.route ?? simulateRoute(state, t, cap, m, thisWeek);
     } else {
-        route = simulateRoute(state, t, cap, m);
+        route = simulateRoute(state, t, cap, m, thisWeek);
     }
     const row = route[0];
-    return { w: row?.hours ?? 0, cap, reachable, out: row?.out ?? false, route };
+    return { w: row?.hours ?? 0, cap, reachable, out: row?.out ?? false, route, mix: row?.mix ?? null };
 }
 
 // h/week from now to have each milestone row (n everything above it) by Week 12, null past 45 h. totals only go up so each search starts at the last cap, ~36 route runs for the whole list
-export function rowHours(state, t, rows, m) {
+export function rowHours(state, t, rows, m, thisWeek = null) {
     let from = RENT;
     return rows.map((row) => {
-        const result = hoursNeeded(state, t, row.total, m, from);
+        const result = hoursNeeded(state, t, row.total, m, from, thisWeek);
         from = result?.cap ?? MAX_PLOTS + 1;
         return { ...row, hours: result?.cap ?? null };
     });

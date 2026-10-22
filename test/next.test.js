@@ -15,18 +15,36 @@ const target = (...args) => {
 
 test("weekTarget: no goal plans the rent week, like the site with nothing picked", () => {
     // 42 coins = 18 crops, capped at 10
-    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1), { w: 10, cap: 10, reachable: null, out: false });
+    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1), { w: 10, cap: 10, reachable: null, out: false, mix: null });
 });
 
 test("weekTarget: with a goal it's the first week of hoursNeeded's route", () => {
     const state = { coins: 42, plots: 36, seeds: 0 };
     const result = hoursNeeded(state, 3, 2000, 1.1);
-    assert.deepEqual(target(state, 3, 2000, 1.1), { w: result.route[0].hours, cap: result.cap, reachable: true, out: false });
+    assert.deepEqual(target(state, 3, 2000, 1.1), { w: result.route[0].hours, cap: result.cap, reachable: true, out: false, mix: null });
     assert.deepEqual(weekTarget(state, 3, 2000, 1.1).route, result.route);
 });
 
 test("weekTarget: a goal you can't reach still goes as hard as it can", () => {
-    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, 1e6, 1.1), { w: 18, cap: 45, reachable: false, out: false });
+    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, 1e6, 1.1), { w: 18, cap: 45, reachable: false, out: false, mix: null });
+});
+
+test("weekTarget: eggplants in the bag and the shop go in the first week's mix", () => {
+    const state = { coins: 300, plots: 20, seeds: 0 };
+    const thisWeek = { seeds: ["eggplant", "bokchoy"], onHand: { eggplant: 6 }, crops: {} };
+    const result = hoursNeeded(state, 5, 3000, 1, 10, thisWeek);
+    const { w, mix, route } = weekTarget(state, 5, 3000, 1, thisWeek);
+    assert.ok(mix.eggplant > 0);
+    assert.deepEqual(mix, result.route[0].mix);
+    assert.equal(w, result.route[0].hours);
+    assert.ok(route.slice(1).every((row) => !("mix" in row)), "apples only after this week");
+});
+
+test("rowHours: thisWeek goes on to hoursNeeded", () => {
+    const state = { coins: 300, plots: 20, seeds: 0 };
+    const thisWeek = { seeds: ["eggplant"], onHand: { eggplant: 6 }, crops: {} };
+    const rows = rowHours(state, 5, [{ total: 3000 }, { total: 8000 }], 1, thisWeek);
+    assert.deepEqual(rows.map((row) => row.hours), [3000, 8000].map((total) => hoursNeeded(state, 5, total, 1, 10, thisWeek)?.cap ?? null));
 });
 
 test("rowHours: each row's h/week, same as hoursNeeded on its own (build plan numbers)", () => {
