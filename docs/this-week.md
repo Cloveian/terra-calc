@@ -106,10 +106,10 @@ Ours **replace** their checklist (decided 22 Oct). Their header stays ("This Wee
 ```
 This Week                                     ▼
 ● harvest 10                                  <- current
+○ buy 29 apple seeds from Heidi
 ○ buy 4 plots from Heidi
    ○ place 4 plots
       ○ plant 10 strawberry seeds
-○ buy 29 apple seeds from Heidi
       ○ plant 30 apple seeds
 ○ code 28.3 h  (11h 47m done)
    ○ ship this week's project so the 40 grow
@@ -127,7 +127,7 @@ What waits on what, a table in next.js next to the steps (the steps' own `requir
 | ship | code |
 | "or wait for Ratticus" | buy plots (it's the other way to get them) |
 
-A step's indent is one more than the deepest step it waits on that's still on the list, and it goes right after the last of them. So once the plots are placed, planting moves back up by itself. Everything without a "waits on" stays top level in the order it's in now.
+A step's indent is one more than the deepest step it waits on that's still on the list, and the order doesn't change, same as the site's milestone list (built 22 Oct, `nestSteps`). For that to read right, buy seeds now comes before buy plots, so place sits right under the plots. Once the plots are placed, planting moves back left by itself.
 
 - **hiding theirs:** a `data-terra-calc` attribute on their `._questBody_`, and one `<style>` rule, `[data-terra-calc] > :not(.terra-calc-steps) { display: none }`. Solid only rewrites the classes it set itself, an attribute it never set stays put. No touching their elements' classes or inline styles
 - **their countdown** is the one bit of theirs we don't have, the game knows deadlines we don't. **Decision:** hide it too, or keep it under ours? Default: keep it

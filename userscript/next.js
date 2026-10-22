@@ -60,8 +60,9 @@ export function stepsFrom({ farm, inventory, stuck, loans, weekKey, hoursDone, w
     const want = w === null ? have : Math.max(0, w - planted);
     const buySeeds = Math.max(0, want - have);
     const buyPlots = Math.max(0, want - free - inventory.unplaced);
-    add({ do: "buyPlots", n: buyPlots });
+    // seeds first, place n the "or wait" go right under buyPlots in nestSteps
     add({ do: "buySeeds", n: buySeeds });
+    add({ do: "buyPlots", n: buyPlots });
     // stuck crops with nothing lent yet, ratticus might cover some plots for free
     if (loans === 0) add({ do: "waitForLoans", n: Math.min(buyPlots, stuck.count) });
     add({ do: "place", n: Math.min(inventory.unplaced + buyPlots, Math.max(0, want - free)) });
@@ -77,4 +78,23 @@ export function stepsFrom({ farm, inventory, stuck, loans, weekKey, hoursDone, w
     const unshipped = count((crop) => crop.week === weekKey && (crop.stage === "dry" || crop.stage === "watered"));
     add({ do: "ship", n: unshipped + want });
     return steps;
+}
+
+// what each step waits on, like tree node requires. clear + harvest free plots for planting, the "or wait" is the other way to get plots
+const STEP_NEEDS = {
+    place: ["buyPlots"],
+    waitForLoans: ["buyPlots"],
+    plantBase: ["place", "clear", "harvest"],
+    plantApples: ["place", "buySeeds", "clear", "harvest"],
+    ship: ["code"],
+};
+
+// depth for checklist indent, one past the deepest step it waits on thats still to do. order kept like sites milestone list, works cuz stepsFrom puts every step after its needs (a need further down never counts)
+export function nestSteps(steps) {
+    const depth = {};
+    return steps.map((step) => {
+        const under = (STEP_NEEDS[step.do] ?? []).filter((need) => need in depth).map((need) => depth[need] + 1);
+        depth[step.do] = Math.max(0, ...under);
+        return { ...step, depth: depth[step.do] };
+    });
 }

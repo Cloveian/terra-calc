@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekTarget, stepsFrom, routeState, rowHours } from "../userscript/next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, nestSteps } from "../userscript/next.js";
 import { stuckFrom } from "../userscript/fill.js";
 import { hoursNeeded } from "../src/route.js";
 
@@ -90,14 +90,24 @@ test("stepsFrom: a busy week, harvesting last week's pays the loans back", () =>
         { do: "clear", n: 1 },
         { do: "harvest", n: 2 },
         { do: "reship", n: 1 },
-        { do: "buyPlots", n: 13 },
         { do: "buySeeds", n: 2 },
+        { do: "buyPlots", n: 13 },
         { do: "place", n: 15 },
         { do: "plantBase", n: 10 },
         { do: "plantApples", n: 7 },
         { do: "code", n: 17.5 },
         { do: "ship", n: 20 },
     ]);
+    // place under buyPlots, planting under place, ship under code
+    assert.deepEqual(nestSteps(steps).map((step) => step.depth), [0, 0, 0, 0, 0, 1, 2, 2, 0, 1]);
+});
+
+test("nestSteps: a step goes back left when what it waits on is done", () => {
+    const depths = (...names) => nestSteps(names.map((name) => ({ do: name, n: 1 }))).map((step) => step.depth);
+    // plots already placed, apples only wait on the seeds now
+    assert.deepEqual(depths("buySeeds", "plantApples", "code"), [0, 1, 0]);
+    assert.deepEqual(depths("buyPlots", "waitForLoans", "place"), [0, 1, 1]);
+    assert.deepEqual(depths("plantApples", "ship"), [0, 0]);
 });
 
 test("stepsFrom: no target just plants what you've got and waters the dry ones", () => {
