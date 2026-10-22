@@ -16,6 +16,7 @@ export function simulateRoute(state, t, cap, m, thisWeek = null) {
         const max = wMax(state.coins, state.plots, state.seeds);
         // hours = water, crops = what takes plots, only dihfrent with a mix
         let hours, crops, spent, sold, mix;
+        let canUse = max;
         if (thisWeek && rows.length === 0) {
             mix = bestMix(Math.max(0, cap - BASE_SEEDS), state.coins, state.plots,
                 { apple: state.seeds, ...thisWeek.onHand }, ["apple", ...thisWeek.seeds], m,
@@ -24,6 +25,8 @@ export function simulateRoute(state, t, cap, m, thisWeek = null) {
             crops = mix.crops;
             spent = mix.cost;
             sold = m * (baseSales(hours, 1, prep) + mix.sales); // m once, same as weekSales
+            // wMax is apples only, a mix can use more. short of the cap = coins ran out right there, else its at least the cap
+            canUse = hours < cap ? hours : Math.max(max, hours);
         } else {
             hours = crops = Math.min(cap, max);
             spent = weekCost(hours, state.plots, state.seeds);
@@ -33,7 +36,7 @@ export function simulateRoute(state, t, cap, m, thisWeek = null) {
             week,
             startCoins: state.coins,
             plots: state.plots,
-            wMax: max,
+            wMax: canUse,
             hours,
             newPlots: Math.max(0, crops - state.plots),
             spent,

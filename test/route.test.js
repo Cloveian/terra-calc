@@ -123,3 +123,10 @@ test("milestones", () => {
         [13703, false, null],
     ]);
 });
+
+test("the mix week's wMax is what the mix can use, not apples only (it said 36 while planning 45)", () => {
+    const thisWeek = { seeds: ["eggplant"], onHand: { eggplant: 3 } };
+    const row = simulateRoute({ coins: 300, plots: 20, seeds: 0 }, 5, 45, 1, thisWeek)[0];
+    assert.ok(row.wMax >= row.hours);
+    assert.ok(row.wMax >= 45 || row.wMax === row.hours);
+});
