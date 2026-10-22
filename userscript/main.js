@@ -2,7 +2,7 @@
 import { REST, IN, TOKEN_KEY } from "./endpoints.js";
 import { apiGet, liveBuild } from "./api.js";
 import { hookWebSocket, onGameMessage, ROOM } from "./socket.js";
-import { loadSettings, saveSettings } from "./settings.js";
+import { loadSettings, saveSettings, mountSettings } from "./settings.js";
 import { setDebug, debug } from "./debug.js";
 import { mountCard, drawCard, showNotice } from "./card.js";
 import {
@@ -107,6 +107,12 @@ onGameMessage(ROOM.broken, () => {
 document.addEventListener("DOMContentLoaded", start);
 
 async function start() {
+    // before the fill check, its where i'd turn fill back on
+    mountSettings(settings, () => {
+        saveSettings(settings);
+        setDebug(settings.debug);
+        draw();
+    });
     if (settings.panel) mountCard(openTree);
     if (!settings.fill) return drawCard(null);
     mountWantBits(pickWant, pickPrio);
@@ -178,6 +184,7 @@ function farmTouched(state, touched) {
 }
 
 // plan rerun every change, same src/ as site. card only gets plan
+// plan rerun every change, same src/ as site. panel only gets plan
 function changed(key, body) {
     game[key] = body;
     draw();
@@ -237,7 +244,8 @@ function saveMine(key, value) {
 // todo: reward-estimate water = hours done this week
 function plan() {
     const inventory = inventoryFrom(game.currency, game.inventory);
-    const mRead = multiplyerFrom(game.marketItems);
+    // mine beats the games, for "what if i get 1.3" planning
+    const mRead = settings.m ?? multiplyerFrom(game.marketItems);
     const m = mRead ?? M_GUESS;
     const stuck = game.farm && stuckFrom(game.farm, game.hours?.weekKey);
     const loans = loansFrom(inventory, stuck);

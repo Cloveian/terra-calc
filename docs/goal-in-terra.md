@@ -149,7 +149,7 @@ Random things that came up, roughly in how much i want them:
 
 - **hours left this week.** The code step already subtracts `creditedSeconds`. A line like "7.5 h left, 4 days to go" would be nice, the week ends Sunday night US Eastern (from `hours.update` / `current-week`)
 - **/admin guard.** The `@exclude` only works on a full page load. If Terra ever navigates to /admin inside the page, `main.js` should notice (`history.pushState` hook or just checking `location.pathname` on each draw) and hide the panel
-- **settings popup.** A little gear on the panel: fill on/off, panel on/off, debug, Want bits on the tree, buttons. `settings.js` already saves them
+- **settings ~~popup~~.** ~~A little gear on the panel~~ our own section in Terra's own settings tab now (22 Oct), above their logout: your own multiplier, fill, the This Week steps, debug. The Want bits and buttons get a box once they're switchable
 - **looking native.** Terra's CSS module names change per build, but we could find its panel/badge styles by the stable part of the name (`_panel_`, `_nodeBadge_`) in `document.styleSheets` and copy the computed look. Low priority, ugly hack, prolly worth it eventually
 - **moving the panel.** It sits on top of stuff in the bottom right. Draggable, or collapse to a little tab
 - **seed shop badges.** "profit per hour at your m" on each seed in Heidi's shop, and a warning before buying more seeds than you have plots for this week (both from feature-ideas)

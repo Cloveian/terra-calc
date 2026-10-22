@@ -33,7 +33,7 @@ Possible features for the userscript
 - [ ] "Affordable in Week N" labels on the device tree nodes
 - [ ] Profit-per-hour badges on shop seeds at your multiplier
 - [ ] A warning before buying seeds you can't plant this week
-- [ ] A settings popup to turn each part on or off
+- [x] A settings popup to turn each part on or off (ended up as a section in Terra's own settings tab)
 - [ ] Try to make look like it is native terra (reuse it's css and stuff)
 
 ## Plumbing
