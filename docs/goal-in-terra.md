@@ -62,7 +62,7 @@ The tree has nowhere sensible for preset buttons, so those go in the panel.
 | Presets | The site's `PRESETS` (Framework 13, Max 12, Max 13, the no-USB ones, iPad / Galaxy "Everything"), in the panel under "pick your goal". Replaces `want`, like the site |
 | Custom coins | A number box in the panel. Typing in it switches to a custom goal and greys the Want bits out, same as the site |
 | Clear | In the panel. Goes back to the rent week |
-| Buy order (`first`) | **Decision:** a "buy first" toggle on wanted nodes, or skip it in Terra and leave that to the site? Default: skip for now |
+| Buy order (`first`) | ~~skip for now~~ not skipped anymore, it's priorities now, per tier too. See [this-week.md](this-week.md) |
 
 ## Saving it
 
