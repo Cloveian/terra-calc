@@ -46,7 +46,10 @@ export function weekSales(w, m, prep) {
 
 // best seeds for k extra hours past the 10 free crops, from seedIds (always has apple). onHand ones are free, table = the game's prices when the userscript knows them
 export function bestMix(k, coins, plots, onHand, seedIds, m, table = CROPS) {
-    const rest = seedIds.filter((id) => id !== "apple"); // apples fill whatever's left at the end
+    // seedIds = buyable today, seeds already in the bag get planted either way
+    const buyable = new Set(seedIds);
+    const held = Object.keys(onHand).filter((id) => onHand[id] > 0 && table[id]);
+    const rest = [...new Set([...seedIds, ...held])].filter((id) => id !== "apple"); // apples fill whatever's left at the end
     const counts = {};
     let best = null;
     let bestValue = -Infinity;
@@ -58,7 +61,9 @@ export function bestMix(k, coins, plots, onHand, seedIds, m, table = CROPS) {
         if (i < rest.length) {
             const id = rest[i];
             const crop = table[id];
-            for (let x = 0; water + crop.water * x <= k && BASE_SEEDS + extra + x <= MAX_PLOTS; x++) {
+            // not in the shop today = only whats in the bag
+            const limit = buyable.has(id) ? Infinity : onHand[id];
+            for (let x = 0; x <= limit && water + crop.water * x <= k && BASE_SEEDS + extra + x <= MAX_PLOTS; x++) {
                 // seeds and plots only get dearer with x, so once its over budget its over
                 if (cost + seedCost(id, x) + plotCost(BASE_SEEDS + extra + x, plots) > coins) break;
                 counts[id] = x;

@@ -104,3 +104,10 @@ test("bestMix takes the game's own seed table, for seeds data.js doesn't know ye
     assert.deepEqual(mix.counts, { pumpkin: 10 });
     assert.equal(mix.cost, 200);
 });
+
+test("bestMix plants eggplants you've got even when the shop doesn't have them today, but can't buy more", () => {
+    // 6 on hand, shop has apples only, k = 20, plenty of coins: 6 eggplants (12 water, free) + 8 apples
+    const mix = bestMix(20, 1000, 30, { eggplant: 6 }, ["apple"], 1);
+    assert.deepEqual(mix.counts, { eggplant: 6, apple: 8 });
+    assert.equal(mix.cost, 40);
+});
