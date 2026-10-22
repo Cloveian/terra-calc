@@ -66,7 +66,7 @@ export function inventoryFrom(currency, inventory) {
     const sum = (items) => items.reduce((total, item) => total + item.quantity, 0);
     // subtype "base", carrots in prep and strawberries from week 1. model assumes 10, steps need real count
     const base = usable.filter((item) => item.type === "seed" && item.subtype === "base");
-    // per kind for panel, prep 3 carrots still usuable in week 1 so can be both
+    // per kind for card, prep 3 carrots still usuable in week 1 so can be both
     const baseKinds = {};
     for (const item of base) {
         const kind = item.itemId.replace(/_seed$/, "");
@@ -125,7 +125,7 @@ function stageOf(crop) {
     return "watered";
 }
 
-// crops stuck in review from before weekKey (hours.update, like "2026-W43"), all of them without one. week keys compare fine as strings, always 2 digit weeks. crops kept so panel can name them
+// crops stuck in review from before weekKey (hours.update, like "2026-W43"), all of them without one. week keys compare fine as strings, always 2 digit weeks. crops kept so card can name them
 export function stuckFrom(farm, weekKey) {
     const stuck = (farm?.crops ?? []).filter((crop) => crop.stage === "review" && (!weekKey || crop.week < weekKey));
     const why = {};

@@ -5,7 +5,8 @@ const KEY = "terra-calc-settings"; // in terra's localStorage
 // mostly off by default (buttons spend coins)
 export const FEATURES = {
     fill: { name: "Fill in from the game", on: true },
-    panel: { name: "What to do next panel", on: true },
+    // still panel, its the key in everyones saved settings
+    panel: { name: "What to do next, in the This Week card", on: true },
     treeLabels: { name: "\"Affordable in Week N\" on the tree", on: false },
     seedBadges: { name: "Profit per hour on shop seeds", on: false },
     buttons: { name: "Buy and sell buttons", on: false },
@@ -29,4 +30,4 @@ export function saveSettings(settings) {
     }
 }
 
-// TODO: settings popup opened from panel probably
+// TODO: settings popup opened from card probably

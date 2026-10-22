@@ -4,7 +4,7 @@ import { apiGet, liveBuild } from "./api.js";
 import { hookWebSocket, onGameMessage, ROOM } from "./socket.js";
 import { loadSettings, saveSettings } from "./settings.js";
 import { setDebug, debug } from "./debug.js";
-import { mountPanel, drawPanel, showNotice } from "./panel.js";
+import { mountCard, drawCard, showNotice } from "./card.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom,
@@ -17,7 +17,7 @@ import { milestones } from "../src/route.js";
 const FARM_KEY = "terra-calc-farm";
 const GOAL_KEY = "terra-calc-goal";
 
-// can stay null: plots (panel asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one)
+// can stay null: plots (card asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one)
 const OPTIONAL = new Set(["farm", "stuck", "target", "goal"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
@@ -107,8 +107,8 @@ onGameMessage(ROOM.broken, () => {
 document.addEventListener("DOMContentLoaded", start);
 
 async function start() {
-    if (settings.panel) mountPanel(openTree);
-    if (!settings.fill) return drawPanel(null);
+    if (settings.panel) mountCard(openTree);
+    if (!settings.fill) return drawCard(null);
     mountWantBits(pickWant);
     await readRest();
     if (settings.debug) {
@@ -129,7 +129,7 @@ async function readRest() {
 }
 
 function draw() {
-    drawPanel(plan());
+    drawCard(plan());
     drawWantBits(treeBits);
 }
 
@@ -166,7 +166,7 @@ function farmTouched(state, touched) {
     return items instanceof Map && (touched.has(items) || [...items.values()].some((item) => touched.has(item)));
 }
 
-// plan rerun every change, same src/ as site. panel only gets plan
+// plan rerun every change, same src/ as site. card only gets plan
 function changed(key, body) {
     game[key] = body;
     draw();
@@ -222,7 +222,7 @@ function saveMine(key, value) {
     }
 }
 
-// everthing panel needs, fill.js reads + saved goal
+// everthing card needs, fill.js reads + saved goal
 // todo: reward-estimate water = hours done this week
 function plan() {
     const inventory = inventoryFrom(game.currency, game.inventory);
@@ -259,7 +259,7 @@ function plan() {
         farm: game.farm,
         stuck,
         target,
-        // for panel goal lines, null = rent week
+        // for card goal lines, null = rent week
         goal: coinsGoal === null ? null : {
             device: trees[goal.goal.device].device,
             coins: coinsGoal,

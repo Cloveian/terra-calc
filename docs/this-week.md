@@ -146,10 +146,10 @@ A step's indent is one more than the deepest step it waits on that's still on th
 
 ## Order to build it
 
-1. `buyOrder` per row with `prio` numbers (the site's `first` turned into numbers), tests. Everything else sits on this
-2. `prio` in the saved goal + per-row hours, tests (no page stuff yet, `terraCalc.goal({ prio: {...} })` works for trying it)
-3. the steps' "waits on" table and the indent, tests
-4. our steps in Terra's This Week card, hiding theirs, the observer, the no-card fallback. Panel goes
+1. ~~`buyOrder` per row with `prio` numbers (the site's `first` turned into numbers), tests~~ done 22 Oct
+2. ~~`prio` in the saved goal + per-row hours, tests~~ done 22 Oct (`terraCalc.goal({ prio: {...} })` to try it till the boxes exist)
+3. ~~the steps' "waits on" table and the indent, tests~~ done 22 Oct (`nestSteps`)
+4. ~~our steps in Terra's This Week card, hiding theirs, the observer, the no-card fallback. Panel goes~~ done 22 Oct (`card.js`, was panel.js). Checked against the dumped css with a fake card (`research/terra-js/card-test.html`), not in the real game yet
 5. the number boxes on the tree tags
 6. ticking, if that's a yes
 
