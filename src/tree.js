@@ -1,7 +1,7 @@
 // Upgrade trees. `selection` / `owned` / `want` are { id: qty }.
 import { CROPS } from "./data.js";
 
-function byId(tree, id) {
+export function byId(tree, id) {
     return tree.nodes.find((node) => node.id === id);
 }
 

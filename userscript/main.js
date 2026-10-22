@@ -13,6 +13,7 @@ import { weekTarget, stepsFrom, routeState, rowHours } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { milestones } from "../src/route.js";
+import { byId } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
 const GOAL_KEY = "terra-calc-goal";
@@ -139,8 +140,7 @@ function draw() {
     drawWantBits(treeBits);
 }
 
-// + or - from terra's tree. picking on another device moves the goal there
-// todo: say what got taken out with it (removed). notices stick around forever tho
+// + or - from terra's tree. picking on another device moves the goal there. taking out what other picks need asks first (DIY takes the whole Framework 13 path)
 function pickWant(device, id, delta) {
     const trees = treesFrom(game.deviceUpgrades);
     const owned = ownedFrom(game.deviceUpgrades);
@@ -152,8 +152,18 @@ function pickWant(device, id, delta) {
         if (picked && !window.confirm(ask)) return;
         current = cleanGoal({ device }, trees, owned);
     }
-    const { want, removed } = changeWant(trees[device], current.own, current.goal.want, id, delta);
+    const tree = trees[device];
+    const { want, removed } = changeWant(tree, current.own, current.goal.want, id, delta);
     debug("picked", { device, id, delta, removed });
+    if (removed.length > 0) {
+        // gone entirely or only dropped (Fancy cards when USB goes down)
+        const name = (nodeId) => byId(tree, nodeId).name;
+        const gone = removed.filter((other) => !(want[other] > 0)).map(name);
+        const dropped = removed.filter((other) => want[other] > 0).map((other) => `${name(other)} to ${want[other]}`);
+        const what = [...(gone.length ? [`takes out ${gone.join(", ")}`] : []), ...(dropped.length ? [`drops ${dropped.join(", ")}`] : [])];
+        const doing = want[id] > 0 ? `One less ${name(id)}` : `Taking out ${name(id)}`;
+        if (!window.confirm(`${doing} ${what.join(" and ")} too. Go ahead?`)) return;
+    }
     setGoal({ ...current.goal, want, goal: null }); // any pick ends a custom coin goal, like site
 }
 
