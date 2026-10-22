@@ -1,6 +1,7 @@
 // what to do next, inside terra's own This Week card
 import { weekName, isPrep } from "../src/week.js";
 import { nestSteps } from "./next.js";
+import { cssModule, watchPage } from "./page.js";
 
 // 10 min
 const FARM_OLD = 10 * 60000;
@@ -34,67 +35,44 @@ const STEP_LINES = {
 const BLOCK = "terra-calc-steps";
 const OURS = "terra-calc-card";
 const OURS_COLUMN = "terra-calc-column";
-const CARD_WATCH = { childList: true, subtree: true };
 // their tasks hidden by a data attribute, Solid never touches one it didnt set
 const CARD_CSS = `[data-terra-calc] > :not(.${BLOCK}):not([class*="_objectiveCountdown_"]) { display: none }
 .${BLOCK} .terra-calc-link { text-decoration: underline; cursor: pointer }
 .${BLOCK} .terra-calc-notice { color: #c0392b }`;
 
-let cardObserver = null;
+let redrawCard = null; // from watchPage
 let pickGoal = null;
 let lastPlan = null;
 let notices = [];
-let classes = null; // local name -> real class
 
 // watched cuz the body only exists while the card's open, rebuilt every expand. pickGoal opens terra's tree
 export function mountCard(onPickGoal) {
-    if (cardObserver) return;
+    if (redrawCard) return;
     pickGoal = onPickGoal;
     const style = document.createElement("style");
     style.textContent = CARD_CSS;
     document.head.append(style);
-    cardObserver = new MutationObserver(queueFill);
-    cardObserver.observe(document.body, CARD_WATCH);
-    fill();
+    redrawCard = watchPage(fill);
+    redrawCard();
 }
 
 // red line under plan like "Couldn't read Terra", no dupes
 export function showNotice(text) {
     if (notices.includes(text)) return;
     notices = [...notices, text];
-    fill();
+    redrawCard?.();
 }
 
 // plan = what main.js works out, null = not enough to go on yet (terra's checklist stays unless there's a notice)
 // TODO: hours left this week, progress bar to goal
 export function drawCard(plan) {
     lastPlan = plan;
-    fill();
+    redrawCard?.();
 }
 
-// quest card class by local name, "quest" -> "_quest_k6rzi_16". k6rzi is new every build. null till game css is in
+// quest card class by local name, "quest" -> "_quest_k6rzi_16". null till game css is in
 function questClass(local) {
-    if (!classes) {
-        const modules = {}; // hash -> { local: class }
-        for (const sheet of document.styleSheets) {
-            let rules;
-            try {
-                rules = sheet.cssRules;
-            } catch {
-                // other origins (fonts) throw on cssRules
-                continue;
-            }
-            for (const rule of rules) {
-                for (const [, name, part, hash] of (rule.selectorText ?? "").matchAll(/\.(_([A-Za-z]+)_([a-z0-9]+)_\d+)/g)) {
-                    (modules[hash] ??= {})[part] ??= name;
-                }
-            }
-        }
-        // _container_ and _task_ are in lots of modules, quest card's has these two
-        classes = Object.values(modules).find((names) => names.questInner && names.questTitle) ?? null;
-        if (!classes) return null;
-    }
-    return classes[local] ?? null;
+    return cssModule("questInner", "questTitle")?.[local] ?? null;
 }
 
 // no body when collapsed. told apart by "This Week", all quest cards share classes
@@ -104,22 +82,9 @@ function weeklyCard() {
     return { card, body: card?.querySelector(`.${questClass("questBody")}`) ?? null };
 }
 
-// game DOM changes a lot (timers, hud), one fill a frame max
-let queued = false;
-function queueFill() {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(() => {
-        queued = false;
-        fill();
-    });
-}
-
 function fill() {
-    if (!cardObserver || !questClass("quest")) return;
+    if (!questClass("quest")) return;
     const card = toDraw(lastPlan);
-    // our own drawing would set it off again
-    cardObserver.disconnect();
     const { card: theirs, body } = weeklyCard();
     let ours = document.getElementById(OURS);
     // own card only with no weekly one (no objective), its column goes too if it made one
@@ -140,7 +105,6 @@ function fill() {
         drawBlock(ours.querySelector(`.${BLOCK}`), card);
     }
     // theirs collapsed = nothing to do, our block went with their body
-    cardObserver.observe(document.body, CARD_WATCH);
 }
 
 function toDraw(plan) {

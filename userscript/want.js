@@ -1,9 +1,9 @@
 // want bits under each card on terra's own device tree
 import { limitOf, unpick, normalize, dependentsOf, wantedRows, rowPrio } from "../src/tree.js";
 import { weekName } from "../src/week.js";
+import { watchPage } from "./page.js";
 
 const BIT = "terra-calc-want";
-const WATCH = { childList: true, subtree: true };
 
 // one node's tag, null on limit-1 stuff i already own (terra's badge covers it)
 // milestones = plan rows by key (milestones() + rowHours), empty till there's a plan
@@ -59,25 +59,22 @@ export function openTree() {
     window.dispatchEvent(new CustomEvent("open_device_upgrades"));
 }
 
-let observer = null;
+let redrawBits = null; // from watchPage
 let last = null; // last drawWantBits state, for cards that show up later
 let onPick = null;
 let onPrio = null;
 
 // pick = pickWant(device, id, delta), setPrio = pickPrio(device, rowKey, n) in main.js
 export function mountWantBits(pick, setPrio) {
-    if (observer) return;
+    if (redrawBits) return;
     onPick = pick;
     onPrio = setPrio;
-    observer = new MutationObserver(() => {
-        if (document.querySelector("[data-node=root]")) fillBits();
-    });
-    observer.observe(document.body, WATCH);
+    redrawBits = watchPage(fillBits);
 }
 
 export function drawWantBits(state) {
     last = state;
-    fillBits();
+    redrawBits?.();
 }
 
 // guessed off node ids, nothing else on page says which device
@@ -99,8 +96,6 @@ function fillBits() {
     const want = onGoal ? last.goal.want : own;
     const rows = new Map((onGoal ? last.milestones : []).map((row) => [row.key, row]));
     const prio = onGoal ? last.goal.prio : {};
-    // unwatched while drawing, our own tags set it off n it redrew forver
-    observer?.disconnect();
     for (const card of cards) {
         const bit = wantBit(tree, own, want, card.dataset.node, rows, prio);
         let tag = card.querySelector(`:scope > .${BIT}`);
@@ -113,7 +108,6 @@ function fillBits() {
         if (!tag) tag = makeTag(card);
         drawTag(tag, bit, device);
     }
-    observer?.observe(document.body, WATCH);
 }
 
 // hung under card, resizing it would move tree lines (they go to its middle)
@@ -129,7 +123,7 @@ function makeTag(card) {
     }
     // catches up once out of the box. not on its own + tho, redrawing on that mousedown swapped the button out n the click never landed
     tag.addEventListener("focusout", (event) => {
-        if (!tag.contains(event.relatedTarget)) fillBits();
+        if (!tag.contains(event.relatedTarget)) redrawBits?.();
     });
     card.append(tag);
     return tag;
