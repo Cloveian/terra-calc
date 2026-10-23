@@ -70,7 +70,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 
 ## Daily shop and deadlines
 
-- [ ] A heads up when today's shop has a seed that beats apples: "Heidi has eggplant today, buy up to 12 before midnight"
+- [x] A heads up when today's shop has a seed that beats apples. Ended up as a "check what Heidi has today" step when you haven't opened the shop today, and once you have, the steps buy whatever's best ("buy 12 eggplant seeds from Heidi")
 - [ ] Seeds about to die: "6 eggplant seeds not planted, 1 day 4 h left" (they go Monday 11:59 PM EDT)
 - [ ] Ship and devlog reminders before the week ends, like "devlog now, 59 min aren't counting" (that's `unclaimed`)
 - [ ] A recap when the week rolls over: what you coded, what you sold, ahead or behind the plan

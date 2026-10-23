@@ -62,8 +62,13 @@ export function bonusOnHand(inventory, farm, weekKey) {
     return counts;
 }
 
-// steps in doing order, n = crops, plots, seeds or hours, seed on per seed ones. nothing without farm (no spots to count). w null = no target, plants what you have
-export function stepsFrom({ farm, inventory, stuck, loans, weekKey, unclaimed = 0, w, mix = null, table = CROPS }) {
+// the steps in the order you'd do them -> [{ do, n, seed }], n being crops, plots, seeds or hours, seed
+// the seed id on the ones that buy or plant one kind. needs the farm, without it there's nothing to
+// count spots from (the card says go look at it). w is this week's hours from the route, null for no
+// target, then it just plants what you've got. loans from loansFrom
+export function stepsFrom({
+    farm, inventory, stuck, loans, weekKey, unclaimed = 0, w, mix = null, table = CROPS, shopToday = true,
+}) {
     if (!farm || !inventory) return [];
     const steps = [];
     const add = (step) => step.n > 0 && steps.push(step);
@@ -95,6 +100,8 @@ export function stepsFrom({ farm, inventory, stuck, loans, weekKey, unclaimed = 
         : Math.min(inventory.baseSeeds, Math.max(0, Math.min(BASE_SEEDS, w) - plantedBase));
     const going = base + Object.values(toPlant).reduce((total, n) => total + n, 0);
     const buyPlots = Math.max(0, going - free - inventory.unplaced);
+    // mix only knows todays bonus seeds once the shop has been open today. not with no target or only free ones left to plant
+    if (!shopToday && w !== null && going > base) add({ do: "checkShop", n: 1 });
     // seeds first, place n the "or wait" go right under buyPlots in nestSteps
     for (const [id, n] of Object.entries(toPlant)) add({ do: "buySeeds", seed: id, n: Math.max(0, n - (bag[id] ?? 0)) });
     add({ do: "buyPlots", n: buyPlots });
@@ -159,6 +166,7 @@ const STEP_NEEDS = {
     waitForLoans: ["buyPlots"],
     plantBase: ["place", "clear", "harvest"],
     plant: ["place", "buySeeds", "clear", "harvest"],
+    buySeeds: ["checkShop"],
     ship: ["code"],
 };
 

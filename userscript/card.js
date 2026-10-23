@@ -22,6 +22,7 @@ const STEP_LINES = {
     reship: (n) => `reship last week's project, ${n} waiting on changes`,
     devlog: (n) => `devlog and reship last week's project, ${n} short on hours`,
     buyPlots: (n) => `buy ${some(n, "plot")} from Heidi`,
+    checkShop: () => "check what Heidi has today, the seeds change every day",
     buySeeds: (n, plan, now, step) => `buy ${some(n, seedName(step.seed, plan))} from Heidi`,
     waitForLoans: (n) => `(or wait, if last week's review isn't back by wednesday Ratticus lends up to ${n})`,
     place: (n) => `place ${some(n, "plot")}`,

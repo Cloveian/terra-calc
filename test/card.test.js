@@ -160,11 +160,12 @@ test("per seed steps say which seed, the shop's name first, and the devlog step 
         t: 3, inventory: { coins: 0, plots: 14, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm, stuck: null,
         crops: { eggplant: { name: "Eggplant" } },
         steps: [
-            { do: "buySeeds", seed: "eggplant", n: 1 }, { do: "buySeeds", seed: "bokchoy", n: 2 },
+            { do: "checkShop", n: 1 }, { do: "buySeeds", seed: "eggplant", n: 1 }, { do: "buySeeds", seed: "bokchoy", n: 2 },
             { do: "plant", seed: "apple", n: 1 }, { do: "claim", n: 0.8 }, { do: "claim", n: 1 },
         ],
     };
     assert.deepEqual(texts(cardFor(plan, NOW).tasks), [
+        "check what Heidi has today, the seeds change every day",
         "buy 1 eggplant seed from Heidi",
         "buy 2 bok choy seeds from Heidi",
         "plant 1 apple seed",

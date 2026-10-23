@@ -18,6 +18,7 @@ import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
+const SHOP_KEY = "terra-calc-shop";
 const GOAL_KEY = "terra-calc-goal";
 const STEPS_KEY = "terra-calc-week-steps";
 
@@ -37,7 +38,7 @@ const game = {
     inventory: null,
     marketItems: null,
     hours: null,
-    shop: null, // shopFrom + seedsFrom, last time heidi's shop was open
+    shop: loadMine(SHOP_KEY), // shopFrom + seedsFrom, last time heidi's shop was open
     farmOwnerId: null, // whose farm this room is (joinComplete)
     roomState: null,
     farmReadable: true, // false = room FarmItem missing fields farmFrom needs
@@ -82,8 +83,12 @@ onGameMessage(IN.hours, (body) => {
 
 onGameMessage(IN.shopStock, (body) => {
     const shop = shopFrom(body);
-    if (shop) game.shop = { ...shop, seeds: seedsFrom(body), dateKey: body?.dateKey ?? null, seenAt: Date.now() };
-    checkShop();
+    if (shop) {
+        game.shop = { ...shop, seeds: seedsFrom(body), dateKey: body?.dateKey ?? null, seenAt: Date.now() };
+        // saved like the farm, for reloads
+        saveMine(SHOP_KEY, game.shop);
+    }
+    checkShopPrices();
     draw();
 });
 
@@ -254,12 +259,12 @@ function readFarm() {
     game.farm = { ...farm, seenAt: Date.now() };
     saveMine(FARM_KEY, game.farm);
     debug("farm", { plots: farm.plots, empty: farm.empty, stuck: stuckFrom(farm, game.hours?.weekKey) });
-    checkShop();
+    checkShopPrices();
     draw();
 }
 
 // shop prices vs model, again on every new plot count. notice for apples only, off plot price just as likley old farm so logged only
-function checkShop() {
+function checkShopPrices() {
     const problems = shopProblems(game.shop, game.farm?.plots ?? null);
     if (problems.length > 0) debug("shop doesn't match the plan", problems);
     for (const { kind, text } of problems) {
@@ -337,7 +342,8 @@ function plan() {
     const coinsGoal = goal && goalCoins(goal.goal, trees, goal.own);
     const start = t !== null && plots !== null ? routeState(inventory, plots, game.farm, game.hours?.weekKey) : null;
     // bonus seeds for this weeks mix, heidi's shop + mine (bag or planted this week). shop ones are today only, its dateKey is the US Eastern day like easternDay
-    const shopSeeds = game.shop?.dateKey === easternDay(new Date()) ? game.shop.seeds : [];
+    const shopToday = game.shop?.dateKey === easternDay(new Date());
+    const shopSeeds = shopToday ? game.shop.seeds : [];
     // by id, for the maths n card names
     const crops = Object.fromEntries(shopSeeds.map(({ id, ...crop }) => [id, crop]));
     const thisWeek = inventory && {
@@ -389,6 +395,7 @@ function plan() {
             w: target?.w ?? null,
             mix: target?.mix ?? null,
             table: { ...CROPS, ...crops },
+            shopToday,
         }), target?.w ?? null),
     };
     const missing = Object.keys(parts).filter((key) => parts[key] === null);

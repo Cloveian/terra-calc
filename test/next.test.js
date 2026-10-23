@@ -221,6 +221,26 @@ test("stepsFrom: mid week, eggplants already planted count off the mix and their
     ]);
 });
 
+test("stepsFrom: without today's shop it says to check it first, and the buying waits on that", () => {
+    const farm = { plots: 14, empty: 14, crops: [] };
+    const steps = stepsFrom({
+        farm, inventory: bag({ baseSeeds: 10 }), stuck: stuckFrom(farm, "2026-W43"), loans: 0, weekKey: "2026-W43", w: 12, mix: { eggplant: 1 }, shopToday: false,
+    });
+    assert.deepEqual(steps.slice(0, 2), [{ do: "checkShop", n: 1 }, { do: "buySeeds", seed: "eggplant", n: 1 }]);
+    assert.deepEqual(nestSteps(steps).slice(0, 2).map((step) => step.depth), [0, 1]);
+});
+
+test("stepsFrom: no shop check once the week's all planted, or with no target", () => {
+    const eggplant = { seed: "eggplant_seed", id: "eggplant", name: "Eggplant", stage: "dry", water: 2, week: "2026-W43" };
+    const planted = { plots: 14, empty: 13, crops: [eggplant] };
+    const checks = (farm, inventory, w) => stepsFrom({
+        farm, inventory, stuck: stuckFrom(farm, "2026-W43"), loans: 0, weekKey: "2026-W43", w, mix: { eggplant: 1 }, shopToday: false,
+    }).filter((step) => step.do === "checkShop");
+    assert.deepEqual(checks(planted, bag(), 1), []);
+    // 3 apples to plant, but with no target the mix isn't what it plants
+    assert.deepEqual(checks({ plots: 14, empty: 14, crops: [] }, bag({ seeds: 3 }), null), []);
+});
+
 test("stepsFrom: nothing to go on without the farm", () => {
     assert.deepEqual(stepsFrom({ farm: null, inventory: { seeds: 3, baseSeeds: 0, unplaced: 0 } }), []);
 });
