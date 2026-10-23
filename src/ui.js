@@ -6,7 +6,7 @@ import {
     goalCost, nextPrice, nodeHours, unpick, dependentsOf, normalize, buyOrder, displayOrder, treeLayout,
     waitsOn, prioFrom, sameSelection, byId,
 } from "./tree.js";
-import { clean, toHash, canAdd, clamp } from "./state.js";
+import { clean, toHash, canAdd, clamp, BONUS_KEYS } from "./state.js";
 import { wobblyRect, wobblyLine, seedOf, outlineMargin } from "./sketch.js";
 import { zoomAt, clampView, fitView } from "./view.js";
 
@@ -17,9 +17,7 @@ const CARD = { w: 168, h: 150 };
 const SVG = "http://www.w3.org/2000/svg";
 
 // inputs read through clean(), like the hash
-const FORM_FIELDS = ["coins", "plots", "seeds", "bok", "egg", "date", "m", "cap", "goal"];
-// heidi's shop ticks, checkbox ids are shop-<id>
-const SHOP_SEEDS = BONUS_SEEDS;
+const FORM_FIELDS = ["coins", "plots", "seeds", ...BONUS_KEYS, "date", "m", "cap", "goal"];
 
 // kaomoji for the result messages (found with `emoticond search`)
 const FACES = {
@@ -311,17 +309,12 @@ const COLUMNS = [
     ["End coins", (row) => coins(row.endCoins), "coin"],
 ];
 
-function plannedHours(row) {
-    if (row.out) return `${row.hours} (under 10 h: out)`;
-    const mix = mixText(row.mix);
-    return mix ? `${row.hours} (${mix})` : row.hours;
-}
-
-// first weeks seeds, "10 eggplant + 14 apple". "" for apples only or no mix
+// first weeks seeds, "14 apple + 10 eggplant". "" for apples only or no mix
 function mixText(mix) {
-    if (!mix || !SHOP_SEEDS.some((id) => mix[id] > 0)) return "";
-    return ["eggplant", "bokchoy", "apple"]
+    if (!mix || !BONUS_SEEDS.some((id) => mix[id] > 0)) return "";
+    return Object.keys(mix)
         .filter((id) => mix[id] > 0)
+        .sort((a, b) => mix[b] - mix[a])
         .map((id) => `${mix[id]} ${(CROPS[id].name ?? id).toLowerCase()}`)
         .join(" + ");
 }
@@ -510,7 +503,7 @@ function render() {
     const goal = state.goal ?? total;
     const inventory = { coins: state.coins, plots: state.plots, seeds: state.seeds };
     // bonus seeds, first week only (route.js)
-    const thisWeek = { seeds: state.shop, onHand: { bokchoy: state.bok, eggplant: state.egg } };
+    const thisWeek = { seeds: state.shop, onHand: Object.fromEntries(BONUS_SEEDS.map((id) => [id, state[CROPS[id].key]])) };
     let route;
     let cap = state.cap;
     if (goal > 0) {
@@ -731,7 +724,7 @@ function fillForm() {
         if (key !== "goal") $(key).value = state[key];
         else if (state.goal !== null) $(key).value = state.goal; // the picks' total is filled in by render()
     }
-    for (const id of SHOP_SEEDS) $(`shop-${id}`).checked = state.shop.includes(id);
+    for (const id of BONUS_SEEDS) $(`shop-${id}`).checked = state.shop.includes(id);
 }
 
 // state → raw strings, so form edits go through clean() just like the hash
@@ -828,6 +821,20 @@ function showErrors(problems) {
 
 $("prices-as-of").textContent = new Date(`${PRICES_AS_OF}T00:00:00Z`)
     .toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }); // "9 Oct 2026"
+// seed box after the apple one + shop tick (shop-<id>) per bonus seed, has to be in ahead of addNumberButtons
+$("seeds").closest("label").after(...BONUS_SEEDS.map((id) => {
+    const box = el("input");
+    box.id = CROPS[id].key;
+    box.type = "number";
+    box.min = 0;
+    return el("label", icon("apple-seed"), ` ${CROPS[id].name} seeds `, box);
+}));
+$("shop-ticks").append(...BONUS_SEEDS.map((id) => {
+    const tick = el("input");
+    tick.id = `shop-${id}`;
+    tick.type = "checkbox";
+    return el("label", tick, ` ${CROPS[id].name} in Heidi's shop today`);
+}));
 document.querySelectorAll("input[type=number]").forEach(addNumberButtons);
 addDateButton($("date"));
 
@@ -1052,10 +1059,10 @@ fillForm();
 update();
 
 document.addEventListener("input", (event) => {
-    const shopTick = SHOP_SEEDS.some((id) => event.target.id === `shop-${id}`);
+    const shopTick = BONUS_SEEDS.some((id) => event.target.id === `shop-${id}`);
     if (!FORM_FIELDS.includes(event.target.id) && !shopTick) return;
     const form = Object.fromEntries(FORM_FIELDS.map((key) => [key, $(key).value]));
-    form.shop = SHOP_SEEDS.filter((id) => $(`shop-${id}`).checked).join(",");
+    form.shop = BONUS_SEEDS.filter((id) => $(`shop-${id}`).checked).join(",");
     // the goal box shows the picks' total unless you typed your own: only read it when it's
     // what you're editing, or editing anything else would turn that total into a custom goal
     if (event.target.id !== "goal") form.goal = state.goal ?? "";

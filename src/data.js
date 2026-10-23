@@ -20,8 +20,9 @@ export const CROPS = {
     carrot: { buy: null, sell: 25, water: 1 }, // base seed, strawberries since week 1 (same numbers)
     apple:  { buy: 5,    sell: 30, water: 1 },
     // bonus seeds, only in heidi's shop on the days she offers them
-    bokchoy:  { name: "Bok Choy", buy: 10, sell: 37, water: 1, bonus: true },
-    eggplant: { name: "Eggplant", buy: 15, sell: 75, water: 2, bonus: true },
+    // key = short name in links and the seed box id, stuck once links are out there
+    bokchoy:  { name: "Bok Choy", buy: 10, sell: 37, water: 1, bonus: true, key: "bok" },
+    eggplant: { name: "Eggplant", buy: 15, sell: 75, water: 2, bonus: true, key: "egg" },
 };
 export const BONUS_SEEDS = Object.keys(CROPS).filter((id) => CROPS[id].bonus);
 
