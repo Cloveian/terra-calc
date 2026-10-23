@@ -12,6 +12,7 @@ import {
 import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, readyIds, toSell } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
+import { mountShopBadges, drawShopBadges } from "./shop.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, LAST_WEEK } from "../src/week.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
@@ -50,6 +51,7 @@ const game = {
 // cleaned against live trees every plan(), null = rent week
 let savedGoal = loadMine(GOAL_KEY);
 let treeBits = null; // set in plan(), for drawWantBits
+let shopBits = null; // and drawShopBadges
 let savedSteps = loadMine(STEPS_KEY); // week checklist as it first came out, for the ticks
 
 const settings = loadSettings();
@@ -141,6 +143,7 @@ async function start() {
     if (settings.panel) mountCard(openTree);
     if (!settings.fill) return drawCard(null);
     mountWantBits(pickWant, pickPrio);
+    if (settings.seedBadges) mountShopBadges();
     // typed numbers need a redraw, nothing else does one if the game sends nothing
     setTimeout(draw, TYPED_AFTER);
     await readRest();
@@ -164,6 +167,7 @@ async function readRest() {
 function draw() {
     drawCard(plan());
     drawWantBits(treeBits);
+    drawShopBadges(shopBits);
 }
 
 // + or - from terra's tree. picking on another device moves the goal there. taking out what other picks need asks first (DIY takes the whole Framework 13 path)
@@ -376,6 +380,8 @@ function plan() {
     // by id, for the maths n card names
     const crops = Object.fromEntries(shopSeeds.map(({ id, ...crop }) => [id, crop]));
     const table = { ...CROPS, ...crops };
+    // apples arent in shopSeeds, always stocked
+    shopBits = { m, seeds: [{ name: "Apple", ...CROPS.apple }, ...shopSeeds] };
     // ready crops are from older shops, any days sell price does
     const sellTable = { ...CROPS, ...Object.fromEntries((game.shop?.seeds ?? []).map(({ id, sell }) => [id, { sell }])) };
     const selling = inventory && toSell(

@@ -149,10 +149,10 @@ Random things that came up, roughly in how much i want them:
 
 - **hours left this week.** The code step already subtracts `creditedSeconds`. ~~A line like "7.5 h left, 4 days to go" would be nice~~ done 22 Oct, on the code step itself: "code 28.3 h (3 days left, about 9.4 h a day)", from `current-week`'s `endDate`
 - **/admin guard.** The `@exclude` only works on a full page load. If Terra ever navigates to /admin inside the page, `main.js` should notice (`history.pushState` hook or just checking `location.pathname` on each draw) and hide the panel
-- **settings ~~popup~~.** ~~A little gear on the panel~~ our own section in Terra's own settings tab now (22 Oct), above their logout: your own multiplier, fill, the This Week steps, debug. The Want bits and buttons get a box once they're switchable
+- **settings ~~popup~~.** ~~A little gear on the panel~~ our own section in Terra's own settings tab now (22 Oct), above their logout: your own multiplier, fill, the This Week steps, the shop's per hour badges (off till you tick it), debug. The Want bits and buttons get a box once they're switchable
 - **looking native.** Terra's CSS module names change per build, but we could find its panel/badge styles by the stable part of the name (`_panel_`, `_nodeBadge_`) in `document.styleSheets` and copy the computed look. ~~Low priority, ugly hack, prolly worth it eventually~~ done 22 Oct without the hack: the card and the settings use Terra's own classes found by name, the tree tags use its colours copied by hand
 - **moving the panel.** It sits on top of stuff in the bottom right. Draggable, or collapse to a little tab
-- **seed shop badges.** "profit per hour at your m" on each seed in Heidi's shop, and a warning before buying more seeds than you have plots for this week (both from feature-ideas)
+- **seed shop badges.** ~~"profit per hour at your m" on each seed in Heidi's shop~~ done 23 Oct, a "30/h" on each one, plots not counted. Still want a warning before buying more seeds than you have plots for this week (both from feature-ideas)
 
 ## Known gaps (from the loan plot stuff, still open)
 

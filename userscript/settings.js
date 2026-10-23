@@ -58,9 +58,9 @@ export function saveSettings(settings) {
 const OUR_SECTION = "terra-calc-settings";
 
 // the ones that do something yet, rest of FEATURES are still ideas
-const SHOWN = ["fill", "panel", "debug"];
+const SHOWN = ["fill", "panel", "seedBadges", "debug"];
 // hooked up at page load
-const NEEDS_RELOAD = ["fill", "panel"];
+const NEEDS_RELOAD = ["fill", "panel", "seedBadges"];
 
 let onSettings = null;
 let current = null;
