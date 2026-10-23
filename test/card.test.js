@@ -208,7 +208,7 @@ test("per seed steps say which seed, the shop's name first, and the devlog step 
 test("plant steps count down to the seeds' deadline once it's under 2 days away", () => {
     const plan = (seedsDie) => ({
         t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {}, seedsDie }, m: 1,
-        farm: { plots: 10, empty: 10, crops: [], seenAt: NOW }, stuck: null,
+        farm: { plots: 10, empty: 10, crops: [], seenAt: NOW }, stuck: null, crops: {},
         steps: [{ do: "plant", seed: "apple", n: 4 }, { do: "plant", seed: "eggplant", n: 1, done: true }, { do: "plantBase", n: 1 }],
     });
     const lines = (seedsDie) => texts(cardFor(plan(seedsDie), NOW).tasks);

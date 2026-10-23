@@ -262,7 +262,7 @@ function seedName(id, plan) {
 
 // todays shop name if its selling it, then CROPS, then the id (apples have no name)
 function cropName(id, crops) {
-    return (crops?.[id]?.name ?? CROPS[id]?.name ?? id).toLowerCase();
+    return (crops[id]?.name ?? CROPS[id]?.name ?? id).toLowerCase();
 }
 
 // "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)
