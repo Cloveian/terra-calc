@@ -86,10 +86,8 @@ export function bonusOnHand(inventory, farm, weekKey) {
     return counts;
 }
 
-// the steps in the order you'd do them -> [{ do, n, seed }], n being crops, plots, seeds or hours, seed
-// the seed id on the ones that buy or plant one kind. needs the farm, without it there's nothing to
-// count spots from (the card says go look at it). w is this week's hours from the route, null for no
-// target, then it just plants what you've got. loans from loansFrom
+// steps in the order i'd do them, n in crops, plots, seeds or hours. buy and plant ones carry their seed, sell its coins
+// needs the farm to count spots from (card says go look). w = this weeks h from route, null = no target, then it plants whats in the bag
 export function stepsFrom({
     farm, inventory, stuck, loans, weekKey, unclaimed = 0, w, mix = null, table = CROPS, shopToday = true, selling = { crops: 0, coins: 0 },
 }) {

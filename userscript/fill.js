@@ -125,6 +125,7 @@ export function farmFrom(state, farmOwnerId, myId) {
             // water still needed, all goes on in one go (eggplant takes 2)
             water: crop.fedAt ? 0 : Math.max(0, crop.waterRequired - crop.waterApplied),
             stage: stageOf(crop),
+            // why its waiting, "review", "changes", "short" or "rejected"
             review: crop.reviewState || null,
             week: crop.plantWeek,
         })),
