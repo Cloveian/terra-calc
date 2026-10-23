@@ -100,7 +100,8 @@ function fill() {
         ours = null;
     }
     if (body && card) {
-        body.setAttribute("data-terra-calc", "");
+        if (folded) body.removeAttribute("data-terra-calc");
+        else body.setAttribute("data-terra-calc", "");
         const block = body.querySelector(`:scope > .${BLOCK}`) ?? body.appendChild(makeBlock());
         drawBlock(block, card);
     } else if (body) {
@@ -160,6 +161,22 @@ function makeOwnCard() {
 }
 
 function drawBlock(block, { tasks, details }) {
+    const detail = (text, extra = "") => {
+        const line = document.createElement("div");
+        line.className = `${questClass("objectiveDetail")} ${extra}`;
+        line.textContent = text;
+        return line;
+    };
+    const link = (text, go) => {
+        const line = detail(text, "terra-calc-link");
+        line.addEventListener("click", go);
+        return line;
+    };
+    // folded = just the show link, fill takes our attribute off so terra's checklist shows
+    if (folded) {
+        block.replaceChildren(link("show Terra Calc", () => setFolded(false)));
+        return;
+    }
     const current = tasks.find((task) => !task.done);
     const rows = tasks.map((task) => {
         const row = document.createElement("div");
@@ -174,17 +191,6 @@ function drawBlock(block, { tasks, details }) {
         row.append(box, label);
         return row;
     });
-    const detail = (text, extra = "") => {
-        const line = document.createElement("div");
-        line.className = `${questClass("objectiveDetail")} ${extra}`;
-        line.textContent = text;
-        return line;
-    };
-    const link = (text, go) => {
-        const line = detail(text, "terra-calc-link");
-        line.addEventListener("click", go);
-        return line;
-    };
     // only off my own farm, there it just drops me back at the dock
     const island = lastPlan && !lastPlan.onFarm ? [link("go to your island", goToIsland)] : [];
     block.replaceChildren(
@@ -193,7 +199,28 @@ function drawBlock(block, { tasks, details }) {
         ...details.map((text) => detail(text)),
         link("pick your goal", () => pickGoal?.()),
         ...island,
+        link("hide Terra Calc", () => setFolded(true)),
     );
+}
+
+// ours folded away, kept per broswer
+const FOLD_KEY = "terra-calc-folded";
+let folded = (() => {
+    try {
+        return localStorage.getItem(FOLD_KEY) === "1";
+    } catch {
+        return false;
+    }
+})();
+
+function setFolded(on) {
+    folded = on;
+    try {
+        localStorage.setItem(FOLD_KEY, on ? "1" : "0");
+    } catch {
+        // not saved, it unfolds again next load
+    }
+    redrawCard?.();
 }
 
 // same event as friends list "visit their farm", no user = my own
