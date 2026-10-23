@@ -37,6 +37,7 @@
 - All seeds expire at the end of the week, so only buy apple seeds you'll plant that week
 - A crop gets the multiplier of the week it's planted
 - More seed types are coming: "we're hoping to release a few more before next week :3" (dev, 10 Oct). Nothing known about them yet. The notes and tables are carrots + apples only
+- They showed up 22 Oct: Bok Choy and Eggplant, today-only bonus seeds in Heidi's shop (22 Oct HAR, `shop.stock`, numbers in [new-seeds.md](../docs/new-seeds.md)). And from Week 1 the free base seeds are strawberries, not carrots (a Week 1 inventory capture, `test/fixtures/inventory-sync.json`). Nobody's checked what a strawberry sells for. Doesn't matter while all 10 are rent, the site and userscript never sell one
 - Prices of things already in the game are "not that likely to change", but "there might be some small adjustments before the required weeks start" (dev, 10 Oct). Re-check everything on 19 Oct
 - Code 15 hours during prep weeks = free Terra t-shirt (from the game's text)
 - Buying, planting and watering are instant and can wait until the last day, but crops only grow once the ship is approved, so ship early enough to fix a reviewer cut
