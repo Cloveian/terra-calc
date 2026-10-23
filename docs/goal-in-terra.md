@@ -164,7 +164,7 @@ Random things that came up, roughly in how much i want them:
 ## Order to build it
 
 1. ~~`clean` takes the trees as an argument, goal saving/loading in the userscript, tests~~ done 20 Oct (`goal.js`)
-2. presets + custom coins in the panel, `weekTarget` gets the real goal. Already useful with no tree stuff at all. ~~the goal part~~ done, presets + the coin box still todo (`terraCalc.goal({ goal: 5000 })` in the console for now)
+2. presets + custom coins in the panel, `weekTarget` gets the real goal. Already useful with no tree stuff at all. ~~the goal part~~ done, ~~presets + the coin box~~ done 22 Oct, in our settings section instead of the panel
 3. ~~the "pick your goal" button~~ done
 4. Want bits on Terra's tree (observer, `data-node`, click blocking). ~~the logic~~ done and tested (`want.js`), the DOM half hasn't been run in the real game yet *at all*, no fake tree DOM test either
 5. "Week N" labels on the tree from `milestones`

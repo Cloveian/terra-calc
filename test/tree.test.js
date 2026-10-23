@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { TREES, PRESETS } from "../src/data.js";
 import {
-    withPrereqs, nodeCost, nextPrice, limitOf, goalCost, nodeHours,
+    withPrereqs, nodeCost, nextPrice, limitOf, goalCost, nodeHours, sameSelection,
     dependentsOf, unpick, clampToLimits, normalize, buyOrder, displayOrder, treeLayout, waitsOn, prioFrom,
 } from "../src/tree.js";
 
@@ -124,6 +124,13 @@ test("normalize", () => {
         own: {},
         want: { fancy_expansion_card_12: 4 },
     });
+});
+
+test("sameSelection ignores order and zeros", () => {
+    assert.ok(sameSelection({ ram_12: 2, cpu_12: 1 }, { cpu_12: 1, ram_12: 2 }));
+    assert.ok(sameSelection({ ram_12: 0 }, {}));
+    assert.ok(!sameSelection({ ram_12: 2 }, { ram_12: 3 }));
+    assert.ok(!sameSelection(PRESETS.framework_12["Max 13"], PRESETS.framework_12["Max 13 (no USB card)"]));
 });
 
 test("buyOrder: prerequisites first, then cheapest", () => {

@@ -51,31 +51,34 @@ const NEEDS_RELOAD = ["fill", "panel"];
 
 let onSettings = null;
 let current = null;
+let onGoal = null;
 
-// settings changed in place, onChange after every change
-export function mountSettings(settings, onChange) {
+// settings changed in place, onChange after every change. goal = goalHooks from main.js
+export function mountSettings(settings, onChange, goal) {
     if (onSettings) return;
     current = settings;
     onSettings = onChange;
+    onGoal = goal;
     watchPage(fillSettings)();
 }
 
 function fillSettings() {
     const c = cssModule("settingsSection", "logoutBtn");
     const section = c && document.querySelector(`.${c.settingsSection}`);
-    // built once per tab, nothing in it comes from the plan
+    // built once per tab, goal row shows the goal as of when it opened
     if (!section || section.querySelector(`:scope > .${OUR_SECTION}`)) return;
     const bottom = c.helpLogoutRow ? section.querySelector(`:scope > .${c.helpLogoutRow}`) : null;
     section.insertBefore(makeSection(c), bottom);
 }
 
+function el(tag, cls, text = null) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== null) node.textContent = text;
+    return node;
+}
+
 function makeSection(c) {
-    const el = (tag, cls, text = null) => {
-        const node = document.createElement(tag);
-        if (cls) node.className = cls;
-        if (text !== null) node.textContent = text;
-        return node;
-    };
     const ours = el("div", OUR_SECTION);
     // game opens build mode off keys on the page
     for (const type of ["keydown", "keyup", "keypress"]) {
@@ -114,5 +117,53 @@ function makeSection(c) {
     const row = el("div", c.settingsRow);
     row.append(mCol, togglesCol);
     ours.append(el("div", c.sectionTitle, "Terra Calc"), row);
+    const goal = onGoal?.now();
+    if (goal) ours.append(goalRow(c, goal));
     return ours;
+}
+
+// preset for the goal device, or a goal in coins
+function goalRow(c, goal) {
+    // whole column, "Max 13 (no USB card)" doesnt fit a quarter one like the multiplier box
+    const pickCol = el("div", c.settingsCol);
+    const select = el("select", c.select);
+    const option = (value, text) => {
+        const o = el("option", null, text);
+        o.value = value;
+        return o;
+    };
+    // picks match no preset, so they're my own
+    if (!goal.picked) select.append(option("", goal.empty ? "Nothing picked yet" : "Your picks on the tree"));
+    select.append(...goal.presets.map((name) => option(name, name)));
+    select.value = goal.picked ?? "";
+    select.addEventListener("change", () => {
+        if (!select.value) return;
+        onGoal.preset(select.value);
+        // preset ends a coin goal, and the picks are that preset now
+        coins.value = "";
+        select.querySelector('option[value=""]')?.remove();
+    });
+    const selectRow = el("div", c.settingsSelectRow);
+    selectRow.append(select);
+    pickCol.append(el("div", c.formLabel, "Goal"), selectRow);
+
+    const coinsCol = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
+    const coins = el("input", c.input);
+    coins.type = "number";
+    coins.min = "0";
+    coins.step = "1";
+    coins.value = goal.coins ?? "";
+    coins.addEventListener("change", () => {
+        const n = Math.round(Number(coins.value));
+        const cleaned = coins.value === "" || !Number.isFinite(n) ? null : Math.max(0, n);
+        coins.value = cleaned ?? "";
+        onGoal.coins(cleaned);
+    });
+    coinsCol.append(el("div", c.formLabel, "Goal in coins (empty uses your picks)"), coins);
+
+    const row = el("div", c.settingsRow);
+    // terra's section puts 1em between its rows, ours is one block
+    row.style.marginTop = "1em";
+    row.append(pickCol, coinsCol);
+    return row;
 }

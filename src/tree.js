@@ -84,6 +84,12 @@ export function withoutZeros(selection) {
     return Object.fromEntries(Object.entries(selection).filter(([, qty]) => qty > 0));
 }
 
+// missing ids count as 0
+export function sameSelection(a, b) {
+    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+    return [...keys].every((key) => (a[key] ?? 0) === (b[key] ?? 0));
+}
+
 // Make own and want consistent: prerequisites added, limits respected, want ≥ own for every node
 export function normalize(tree, own, want) {
     const fixedOwn = withoutZeros(clampToLimits(tree, withPrereqs(tree, own)));

@@ -14,8 +14,8 @@ import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { milestones } from "../src/route.js";
 import { easternDay } from "../src/week.js";
-import { CROPS } from "../src/data.js";
-import { byId } from "../src/tree.js";
+import { RENT, CROPS, PRESETS } from "../src/data.js";
+import { byId, sameSelection } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
 const GOAL_KEY = "terra-calc-goal";
@@ -117,7 +117,7 @@ async function start() {
         saveSettings(settings);
         setDebug(settings.debug);
         draw();
-    });
+    }, goalHooks);
     if (settings.panel) mountCard(openTree);
     if (!settings.fill) return drawCard(null);
     mountWantBits(pickWant, pickPrio);
@@ -173,7 +173,7 @@ function pickWant(device, id, delta) {
 
 // number from a priority box, null = emptied. boxes only show on goal device, anything else is a stale tree
 function pickPrio(device, key, n) {
-    const current = cleanGoal(savedGoal, treesFrom(game.deviceUpgrades), ownedFrom(game.deviceUpgrades));
+    const current = currentGoal();
     if (!current || device !== current.goal.device) return;
     const prio = { ...current.goal.prio };
     if (n === null) delete prio[key];
@@ -190,6 +190,38 @@ function setGoal(goal) {
     draw();
     return savedGoal;
 }
+
+// goal cleaned against live trees, null till they're in
+function currentGoal(saved = savedGoal) {
+    return cleanGoal(saved, treesFrom(game.deviceUpgrades), ownedFrom(game.deviceUpgrades));
+}
+
+// for the goal row in our settings. a preset replaces the want, like site quick picks
+const goalHooks = {
+    now() {
+        const current = currentGoal();
+        if (!current) return null;
+        const { device, want, goal } = current.goal;
+        const presets = PRESETS[device] ?? {};
+        // preset cleaned same way, so prereqs and owned line up with the picks
+        const wantOf = (name) => currentGoal({ device, want: presets[name] }).goal.want;
+        return {
+            presets: Object.keys(presets),
+            picked: Object.keys(presets).find((name) => sameSelection(wantOf(name), want)) ?? null,
+            coins: goal,
+            // nothing wanted past what i own and no coins, its the rent week
+            empty: goalCoins(current.goal, treesFrom(game.deviceUpgrades), current.own) === null,
+        };
+    },
+    preset(name) {
+        const current = currentGoal();
+        if (current) setGoal({ ...current.goal, want: PRESETS[current.goal.device][name], goal: null });
+    },
+    coins(n) {
+        const current = currentGoal();
+        if (current) setGoal({ ...current.goal, goal: n });
+    },
+};
 
 // most patches = players walking, true only on farm item changes
 function farmTouched(state, touched) {

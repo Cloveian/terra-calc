@@ -4,7 +4,7 @@ import { easternDay, weekIndex, weekName, LAST_WEEK } from "./week.js";
 import { simulateRoute, hoursNeeded, milestones } from "./route.js";
 import {
     goalCost, nextPrice, nodeHours, unpick, dependentsOf, normalize, buyOrder, displayOrder, treeLayout,
-    waitsOn, prioFrom,
+    waitsOn, prioFrom, sameSelection,
 } from "./tree.js";
 import { clean, toHash, canAdd } from "./state.js";
 import { wobblyRect, wobblyLine, seedOf, outlineMargin } from "./sketch.js";
@@ -138,11 +138,6 @@ function applyPreset(preset, name = null) {
 }
 
 // ---- drawing -------------------------------------------------------------
-
-function sameSelection(a, b) {
-    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-    return [...keys].every((key) => (a[key] ?? 0) === (b[key] ?? 0));
-}
 
 function drawDevicePicker() {
     const select = $("device");
