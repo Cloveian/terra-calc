@@ -1,5 +1,6 @@
 // what to do next, inside terra's own This Week card
 import { weekName, isPrep } from "../src/week.js";
+import { CROPS } from "../src/data.js";
 import { nestSteps } from "./next.js";
 import { cssModule, watchPage } from "./page.js";
 
@@ -14,20 +15,21 @@ const WHY_LINES = {
     rejected: "won't grow, last week's ship was rejected",
 };
 
-// next.js steps, n = whatever that step counts. plan for ones needing more words
+// next.js steps, n = whatever that step counts. plan for ones needing more words, step for its seed n done
 const STEP_LINES = {
     clear: (n) => `clear ${n} withered`,
     harvest: (n) => `harvest ${n}`,
     reship: (n) => `reship last week's project, ${n} waiting on changes`,
     devlog: (n) => `devlog and reship last week's project, ${n} short on hours`,
     buyPlots: (n) => `buy ${some(n, "plot")} from Heidi`,
-    buySeeds: (n) => `buy ${some(n, "apple seed")} from Heidi`,
+    buySeeds: (n, plan, now, step) => `buy ${some(n, seedName(step.seed, plan))} from Heidi`,
     waitForLoans: (n) => `(or wait, if last week's review isn't back by wednesday Ratticus lends up to ${n})`,
     place: (n) => `place ${some(n, "plot")}`,
     plantBase: (n, plan) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}`,
-    plantApples: (n) => `plant ${some(n, "apple seed")}`,
+    plant: (n, plan, now, step) => `plant ${some(n, seedName(step.seed, plan))}`,
+    claim: (n) => `devlog so the ${n} h since your last one count${n === 1 ? "s" : ""} as water`,
     // ticked one keeps its saved n, pace would be off
-    code: (n, plan, now, done) => `code ${n} h${done ? "" : pace(n, plan.weekEnds, now)}`,
+    code: (n, plan, now, step) => `code ${n} h${step.done ? "" : pace(n, plan.weekEnds, now)}`,
     ship: (n) => `ship this week's project so the ${n} grow`,
 };
 
@@ -190,7 +192,7 @@ export function cardFor(plan, now = Date.now()) {
     const { loans, farm, stuck, target, steps, goal, inventory } = plan;
     // ticked ones still count for the indent, list doesnt jump around
     const tasks = nestSteps(steps).map((step) => ({
-        text: STEP_LINES[step.do](step.n, plan, now, step.done),
+        text: STEP_LINES[step.do](step.n, plan, now, step),
         depth: step.depth,
         done: step.done ?? false,
     }));
@@ -220,6 +222,16 @@ function baseSeedName({ baseKinds }, t) {
     return `${kinds.join(" or ")} seed`;
 }
 
+// "eggplant seed"
+function seedName(id, plan) {
+    return `${cropName(id, plan.crops)} seed`;
+}
+
+// "bok choy", todays shop name if its there, then CROPS, then the id (apples have no name)
+function cropName(id, crops) {
+    return (crops?.[id]?.name ?? CROPS[id]?.name ?? id).toLowerCase();
+}
+
 // "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)
 function goalLines(goal, target, coins) {
     const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins))} to go`];
@@ -238,8 +250,7 @@ function goalLines(goal, target, coins) {
 function mixLine(mix, crops) {
     const counts = Object.entries(mix ?? {}).filter(([, n]) => n > 0);
     if (!counts.some(([id]) => id !== "apple")) return null;
-    const name = (id) => (crops?.[id]?.name ?? id).toLowerCase();
-    const seeds = counts.sort((a, b) => b[1] - a[1]).map(([id, n]) => `${n} ${name(id)}`);
+    const seeds = counts.sort((a, b) => b[1] - a[1]).map(([id, n]) => `${n} ${cropName(id, crops)}`);
     return `today's best: ${seeds.join(" + ")}`;
 }
 

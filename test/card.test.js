@@ -154,6 +154,25 @@ test("the code step says how many days are left and the h a day, under a day jus
     assert.equal(cardFor(ticked, NOW).tasks[0].text, "code 28 h");
 });
 
+test("per seed steps say which seed, the shop's name first, and the devlog step says why", () => {
+    const farm = { plots: 14, empty: 14, crops: [], seenAt: NOW };
+    const plan = {
+        t: 3, inventory: { coins: 0, plots: 14, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm, stuck: null,
+        crops: { eggplant: { name: "Eggplant" } },
+        steps: [
+            { do: "buySeeds", seed: "eggplant", n: 1 }, { do: "buySeeds", seed: "bokchoy", n: 2 },
+            { do: "plant", seed: "apple", n: 1 }, { do: "claim", n: 0.8 }, { do: "claim", n: 1 },
+        ],
+    };
+    assert.deepEqual(texts(cardFor(plan, NOW).tasks), [
+        "buy 1 eggplant seed from Heidi",
+        "buy 2 bok choy seeds from Heidi",
+        "plant 1 apple seed",
+        "devlog so the 0.8 h since your last one count as water",
+        "devlog so the 1 h since your last one counts as water",
+    ]);
+});
+
 test("free seeds go by name, both kinds when prep carrots are still good", () => {
     const farm = { plots: 16, empty: 16, crops: [], seenAt: NOW };
     const plan = {

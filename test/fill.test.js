@@ -91,11 +91,11 @@ test("multiplyerFrom: nothing to sell -> null", () => {
 test("inventoryFrom: coins, and apple seeds from the usable weeks only", () => {
     // 3 this week + 2 from week 8 (still usable), 4 from week 7 expired, the 10 strawberrys are base seeds, 36 plots are loans like in a capture (no week)
     const inventory = inventoryFrom(fixture("player-currency"), fixture("inventory-sync"));
-    assert.deepEqual(inventory, { coins: 42, plots: null, unplaced: 36, seeds: 5, baseSeeds: 10, baseKinds: { strawberry: 10 }, bonus: {} });
+    assert.deepEqual(inventory, { coins: 42, plots: null, unplaced: 36, seeds: 5, baseSeeds: 10, baseKinds: { strawberry: 10 }, bonus: {}, water: 2.8633 });
 });
 
 test("inventoryFrom: no seeds -> 0s", () => {
-    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, unplaced: 0, seeds: 0, baseSeeds: 0, baseKinds: {}, bonus: {} });
+    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, unplaced: 0, seeds: 0, baseSeeds: 0, baseKinds: {}, bonus: {}, water: 0 });
 });
 
 test("inventoryFrom: bonus seeds by id, apples and base seeds aren't in there, old ones expire", () => {
@@ -127,7 +127,7 @@ test("inventoryFrom: missing either message -> null", () => {
 
 // farm like schema.js gives it back, real FarmItem fields. p1-p6 plots, five with crops
 const plot = (id) => ({ id, itemId: "dirt_plot", name: "Dirt Plot", isCrop: false, fedAt: 0, shippedAt: 0, grownAt: 0, witheredAt: 0, plantWeek: "", plotId: "", reviewState: "" });
-const crop = (plotId, more) => ({ id: `c-${plotId}`, itemId: "apple_seed", name: "Apple", isCrop: true, fedAt: 0, shippedAt: 0, grownAt: 0, witheredAt: 0, plantWeek: "2026-W43", plotId, reviewState: "", ...more });
+const crop = (plotId, more) => ({ id: `c-${plotId}`, itemId: "apple_seed", name: "Apple", isCrop: true, fedAt: 0, shippedAt: 0, grownAt: 0, witheredAt: 0, plantWeek: "2026-W43", plotId, reviewState: "", waterRequired: 1, waterApplied: 0, ...more });
 const farmState = {
     levelId: "farm-island",
     farmItems: new Map([
@@ -151,6 +151,14 @@ test("farmFrom: plots, empty ones, and each crop's stage the way the game works 
         ["apple_seed", "review", "changes"],
         ["apple_seed", "ready", "review"],
     ]);
+});
+
+test("farmFrom: the water each crop still needs, an eggplant takes its 2 in one go", () => {
+    const eggplant = (more) => crop("p", { itemId: "eggplant_seed", name: "Eggplant", waterRequired: 2, ...more });
+    const water = (c) => farmFrom({ farmItems: new Map([["p", plot("p")], ["c", c]]) }, "me", "me").crops[0];
+    assert.deepEqual([water(eggplant({})).id, water(eggplant({})).water], ["eggplant", 2]);
+    assert.equal(water(eggplant({ waterApplied: 2, fedAt: 5 })).water, 0);
+    assert.equal(water(crop("p", {})).water, 1);
 });
 
 test("farmFrom: withered beats everything", () => {

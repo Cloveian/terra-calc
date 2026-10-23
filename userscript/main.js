@@ -9,11 +9,12 @@ import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom,
 } from "./fill.js";
-import { weekTarget, stepsFrom, routeState, rowHours, tickSteps } from "./next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { milestones } from "../src/route.js";
 import { easternDay } from "../src/week.js";
+import { CROPS } from "../src/data.js";
 import { byId } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
@@ -268,7 +269,6 @@ function saveMine(key, value) {
 }
 
 // everthing card needs, fill.js reads + saved goal
-// todo: reward-estimate water = hours done this week
 function plan() {
     const inventory = inventoryFrom(game.currency, game.inventory);
     // mine beats the games, for "what if i get 1.3" planning
@@ -287,11 +287,15 @@ function plan() {
     const goal = cleanGoal(savedGoal, trees, owned);
     const coinsGoal = goal && goalCoins(goal.goal, trees, goal.own);
     const start = t !== null && plots !== null ? routeState(inventory, plots, game.farm, game.hours?.weekKey) : null;
-    // bonus seeds for this weeks mix, my bag + heidi's shop. shop ones are TODAY only, its dateKey is the US Eastern day like easternDay
+    // bonus seeds for this weeks mix, heidi's shop + mine (bag or planted this week). shop ones are today only, its dateKey is the US Eastern day like easternDay
     const shopSeeds = game.shop?.dateKey === easternDay(new Date()) ? game.shop.seeds : [];
-    // by id, names for the mix line
+    // by id, for the maths n card names
     const crops = Object.fromEntries(shopSeeds.map(({ id, ...crop }) => [id, crop]));
-    const thisWeek = inventory && { seeds: shopSeeds.map((seed) => seed.id), onHand: inventory.bonus, crops };
+    const thisWeek = inventory && {
+        seeds: shopSeeds.map((seed) => seed.id),
+        onHand: bonusOnHand(inventory, game.farm, game.hours?.weekKey),
+        crops,
+    };
     const target = start && weekTarget(start, t, coinsGoal, m, thisWeek);
     for (const problem of goal?.problems ?? []) showNotice(`Your goal changed: ${problem}`);
     const rows = goal && target
@@ -329,8 +333,11 @@ function plan() {
             stuck,
             loans,
             weekKey: game.hours?.weekKey,
-            hoursDone: (game.hours?.week.creditedSeconds ?? 0) / 3600,
+            // coded but not devlogged yet, no water till then
+            unclaimed: (game.hours?.unclaimed?.creditedSeconds ?? 0) / 3600,
             w: target?.w ?? null,
+            mix: target?.mix ?? null,
+            table: { ...CROPS, ...crops },
         }), target?.w ?? null),
     };
     const missing = Object.keys(parts).filter((key) => parts[key] === null);

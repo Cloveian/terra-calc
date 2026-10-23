@@ -6,7 +6,7 @@ Possible features for the userscript
 
 What makes it feel finished, before anything new. In order:
 
-1. The steps go by the mix ("buy 12 eggplant seeds", "plant 12 eggplants"), and "code N h" is the water your crops still need minus what's in your pool
+1. ~~The steps go by the mix ("buy 12 eggplant seeds", "plant 12 eggplants"), and "code N h" is the water your crops still need minus what's in your pool~~ done 22 Oct
 2. People can install and update the userscript: the built file where its update URL points, and an install bit in the README
 3. Goals without the console: presets and a custom coin box in our settings section
 4. The fallback, when reading Terra fails you type the numbers in by hand (Plumbing)
@@ -19,12 +19,13 @@ What makes it feel finished, before anything new. In order:
 - [x] Device trees, prices, tiers and what you own from `GET /device-upgrades`
 - [x] Current week from `/ysws/current-week`
 - [x] week's real multiplier: `unitPriceCoins / baseUnitCoins` from the market (once that week is reviewed)
-- [ ] Water earned this week `reward-estimate` (plan can count those hours as already done)
+- [x] Water earned this week counts as hours already done (ended up as the water pool plus `unclaimed`, not `reward-estimate`)
 - [x] New seeds picked up automatically from the `bonus_seeds` category in `shop.stock`, and the ones already in your bag
 - [x] Your farm: what's ready, dry, withered, or stuck on review and why (changes asked, short on hours, rejected)
 - [x] Ratticus's loan plots
-- [ ] Your water pool (`player.currency` `water`, it's your devlogged credited hours minus what you've watered with, decimals and all)
-- [ ] Hours not devlogged yet, `hours.update`'s `unclaimed`
+- [x] Your water pool (`player.currency` `water`, it's your devlogged credited hours minus what you've watered with, decimals and all)
+- [x] Hours not devlogged yet, `hours.update`'s `unclaimed`
+- [x] How much water each planted crop still needs (`waterRequired` - `waterApplied`)
 - [ ] Plot prices read from the shop instead of the formula, with a warning if they don't match
 - [ ] A "Terra updated" notice when `version.json`'s build id changes (maybe but probably just if something doesnt work)
 
@@ -35,7 +36,7 @@ What makes it feel finished, before anything new. In order:
 - [x] Simple plan summary: "this week: buy 5 plots + 25 apple seeds, code 35 h"
 - [x] Priorities: a number per pick, RAM and SSD tiers each their own, with the week it's covered and the h/week to get that far
 - [x] This week's best seed mix out of today's shop and your bag, the most profit that fits your hours, coins and plots (apples fill the rest)
-- [ ] Steps that go by the mix, and a code step that counts the water pool (First, 1)
+- [x] Steps that go by the mix, and a code step that counts the water pool, plus a devlog step when there's water waiting on one
 - [ ] Presets and a custom coin goal inside Terra (First, 3)
 - [ ] A refund planner: what you'd get back by switching device or refunding a pick
 - [ ] Real-money value on each upgrade, from [real-prices.md](../research/real-prices.md)

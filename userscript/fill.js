@@ -6,6 +6,11 @@ import { plotCost } from "../src/farm.js";
 export const APPLE_SEED = "apple_seed"; // terra's item ids
 const DIRT_PLOT = "dirt_plot";
 
+// "eggplant_seed" -> "eggplant", ids like CROPS and the mix
+export function seedId(itemId) {
+    return itemId.replace(/_seed$/, "");
+}
+
 // GET /device-upgrades -> trees like TREES
 // totals[0] (none bought) not in response so null, site fills it from data.js
 // tiered nodes titled like their first tier ("+8GB RAM"), amount cut off -> "RAM"
@@ -57,7 +62,7 @@ export function weekFrom(currentWeek) {
     return match[1] ? n - 1 : PREP_WEEKS + n - 1;
 }
 
-// coins and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with, always bought), baseSeeds = free ones from ratticus, baseKinds = same by seed
+// coins, water and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with, always bought), baseSeeds = free ones from ratticus, baseKinds = same by seed
 export function inventoryFrom(currency, inventory) {
     if (typeof currency?.coins !== "number" || !Array.isArray(inventory?.items)) return null;
     // game expiry rule, counts while weekNumber is in usableWeeks
@@ -69,7 +74,7 @@ export function inventoryFrom(currency, inventory) {
     const bySeed = (items) => {
         const counts = {};
         for (const item of items) {
-            const kind = item.itemId.replace(/_seed$/, "");
+            const kind = seedId(item.itemId);
             counts[kind] = (counts[kind] ?? 0) + item.quantity;
         }
         return counts;
@@ -84,8 +89,10 @@ export function inventoryFrom(currency, inventory) {
         baseSeeds: sum(base),
         // per kind for card, prep 3 carrots still usuable in week 1 so can be both
         baseKinds: bySeed(base),
-        // every other seed, { eggplant: 4 }. havent seen a bought one yet, guessed to look like apple seeds with their own itemId
+        // every other seed, { eggplant: 4 }. bought ones look like apple seeds with their own itemId
         bonus: bySeed(usable.filter((item) => item.type === "seed" && item.subtype !== "base" && item.itemId !== APPLE_SEED)),
+        // water pool, devlogged hours minus what ive watered with. coded but not devlogged hours arent in it
+        water: currency.water ?? 0,
     };
 }
 
@@ -102,7 +109,10 @@ export function farmFrom(state, farmOwnerId, myId) {
         empty: plots.filter((plot) => !used.has(plot.id)).length,
         crops: crops.map((crop) => ({
             seed: crop.itemId,
+            id: seedId(crop.itemId),
             name: crop.name,
+            // water still needed, all goes on in one go (eggplant takes 2)
+            water: crop.fedAt ? 0 : Math.max(0, crop.waterRequired - crop.waterApplied),
             stage: stageOf(crop),
             review: crop.reviewState || null,
             week: crop.plantWeek,
@@ -111,7 +121,10 @@ export function farmFrom(state, farmOwnerId, myId) {
 }
 
 // every FarmItem field farmFrom + stageOf read. renamed one looks unset, stages n plot counts go wrong silenty. room handshake checked first
-const FARM_FIELDS = ["id", "itemId", "name", "isCrop", "plotId", "fedAt", "shippedAt", "grownAt", "witheredAt", "reviewState", "plantWeek"];
+const FARM_FIELDS = [
+    "id", "itemId", "name", "isCrop", "plotId", "fedAt", "shippedAt", "grownAt", "witheredAt", "reviewState", "plantWeek",
+    "waterRequired", "waterApplied",
+];
 
 // FarmItem fields missing from room handshake. no farmItems or no decoder (join without handshake) = nothing to flag
 export function farmSchemaProblems(decoder) {
@@ -197,7 +210,7 @@ export function seedsFrom(shopStock) {
         .filter((entry) => entry.category === "bonus_seeds" && entry.itemId && entry.itemId !== APPLE_SEED
             && typeof entry.cropValue === "number" && typeof entry.waterNeeded === "number")
         .map((entry) => ({
-            id: entry.itemId.replace(/_seed$/, ""),
+            id: seedId(entry.itemId),
             name: (entry.name ?? entry.itemId).replace(/\s+Seeds?$/, ""),
             buy: entry.priceCoins,
             sell: entry.cropValue,

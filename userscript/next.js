@@ -1,7 +1,7 @@
 // next steps: farm chores now + this weeks crops and hours from site route
 import { hoursNeeded, simulateRoute } from "../src/route.js";
-import { RENT, MAX_PLOTS } from "../src/data.js";
-import { APPLE_SEED } from "./fill.js";
+import { RENT, MAX_PLOTS, BASE_SEEDS, CROPS } from "../src/data.js";
+import { seedId } from "./fill.js";
 
 // this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent). route for milestones, mix = first weeks seeds with thisWeek
 export function weekTarget(state, t, goal, m, thisWeek = null) {
@@ -30,14 +30,40 @@ export function rowHours(state, t, rows, m, thisWeek = null) {
     });
 }
 
-// route state from mid-week. planted apples are paid for, counted back as seeds or route buys them agian n comes out low. coins + plots already have this weeks spending
-export function routeState(inventory, plots, farm, weekKey) {
-    const planted = (farm?.crops ?? []).filter((crop) => crop.week === weekKey && crop.seed === APPLE_SEED).length;
-    return { coins: inventory.coins, plots, seeds: inventory.seeds + planted };
+// this weeks crops so far by seed, { strawberry: 10, eggplant: 3 }
+export function plantedThisWeek(farm, weekKey) {
+    const counts = {};
+    for (const crop of farm?.crops ?? []) {
+        // farm saved before crops had ids, item id only
+        const id = crop.id ?? seedId(crop.seed);
+        if (crop.week === weekKey) counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return counts;
 }
 
-// steps in doing order, n = crops, plots, seeds or hours. nothing without farm (no spots to count). w null = no target, plants what you have
-export function stepsFrom({ farm, inventory, stuck, loans, weekKey, hoursDone, w }) {
+// route state from mid-week. planted apples are paid for, counted back as seeds or route buys them agian n comes out low. coins + plots already have this weeks spending
+export function routeState(inventory, plots, farm, weekKey) {
+    return { coins: inventory.coins, plots, seeds: inventory.seeds + (plantedThisWeek(farm, weekKey).apple ?? 0) };
+}
+
+// free seed ids, a crop on the farm doesnt say if it was one
+const BASE_KINDS = new Set(["carrot", "strawberry"]);
+
+function isBase(id, inventory) {
+    return BASE_KINDS.has(id) || id in inventory.baseKinds;
+}
+
+// bonus seeds the mix counts as mine already, in my bag or planted this week (paid for, like the apples in routeState)
+export function bonusOnHand(inventory, farm, weekKey) {
+    const counts = { ...inventory.bonus };
+    for (const [id, n] of Object.entries(plantedThisWeek(farm, weekKey))) {
+        if (id !== "apple" && !isBase(id, inventory)) counts[id] = (counts[id] ?? 0) + n;
+    }
+    return counts;
+}
+
+// steps in doing order, n = crops, plots, seeds or hours, seed on per seed ones. nothing without farm (no spots to count). w null = no target, plants what you have
+export function stepsFrom({ farm, inventory, stuck, loans, weekKey, unclaimed = 0, w, mix = null, table = CROPS }) {
     if (!farm || !inventory) return [];
     const steps = [];
     const add = (step) => step.n > 0 && steps.push(step);
@@ -54,50 +80,77 @@ export function stepsFrom({ farm, inventory, stuck, loans, weekKey, hoursDone, w
     const repaid = Math.min(loans, count((crop) => crop.stage === "ready" && crop.week < weekKey));
     const free = farm.empty + withered + ready - repaid;
 
-    // still to plant this week + what to buy for it. base seeds free, only apples bought
-    const planted = count((crop) => crop.week === weekKey);
-    const have = inventory.seeds + inventory.baseSeeds;
-    const want = w === null ? have : Math.max(0, w - planted);
-    const buySeeds = Math.max(0, want - have);
-    const buyPlots = Math.max(0, want - free - inventory.unplaced);
+    // still to plant this week, by seed. mix = route seeds past the free 10, planted ones included so they come off
+    const planted = plantedThisWeek(farm, weekKey);
+    const plantedBase = Object.entries(planted)
+        .filter(([id]) => isBase(id, inventory))
+        .reduce((total, [, n]) => total + n, 0);
+    const bag = { apple: inventory.seeds, ...inventory.bonus };
+    const wanted = w === null ? bag : (mix ?? { apple: Math.max(0, w - BASE_SEEDS) });
+    const toPlant = Object.fromEntries(Object.entries(wanted)
+        .map(([id, n]) => [id, w === null ? n : Math.max(0, n - (planted[id] ?? 0))]));
+    // free seeds first, model counts first 10 crops as free ones (rent in main weeks)
+    const base = w === null
+        ? inventory.baseSeeds
+        : Math.min(inventory.baseSeeds, Math.max(0, Math.min(BASE_SEEDS, w) - plantedBase));
+    const going = base + Object.values(toPlant).reduce((total, n) => total + n, 0);
+    const buyPlots = Math.max(0, going - free - inventory.unplaced);
     // seeds first, place n the "or wait" go right under buyPlots in nestSteps
-    add({ do: "buySeeds", n: buySeeds });
+    for (const [id, n] of Object.entries(toPlant)) add({ do: "buySeeds", seed: id, n: Math.max(0, n - (bag[id] ?? 0)) });
     add({ do: "buyPlots", n: buyPlots });
     // stuck crops with nothing lent yet, ratticus might cover some plots for free
     if (loans === 0) add({ do: "waitForLoans", n: Math.min(buyPlots, stuck.count) });
-    add({ do: "place", n: Math.min(inventory.unplaced + buyPlots, Math.max(0, want - free)) });
-    // free seeds first, model counts first 10 crops as free ones (rent in main weeks)
-    const base = Math.min(want, inventory.baseSeeds);
+    add({ do: "place", n: Math.min(inventory.unplaced + buyPlots, Math.max(0, going - free)) });
     add({ do: "plantBase", n: base });
-    add({ do: "plantApples", n: want - base });
+    for (const [id, n] of Object.entries(toPlant)) add({ do: "plant", seed: id, n });
 
-    // hour a crop like model. no target = dry ones + ones about to go in
-    const hours = w === null ? count((crop) => crop.stage === "dry") + want : w - hoursDone;
-    add({ do: "code", n: Math.max(0, Math.ceil(hours * 10) / 10) });
+    // water still owed, planted ones not watered yet + ones going in at table water each ({ ...CROPS, ...todays shop })
+    // farm saved before crops kept their water only has stage, dry one needs 1
+    const weekCrops = farm.crops.filter((crop) => crop.week === weekKey);
+    const owed = weekCrops.reduce((total, crop) => total + (crop.water ?? (crop.stage === "dry" ? 1 : 0)), 0)
+        + base + Object.entries(toPlant).reduce((total, [id, n]) => total + n * (table[id]?.water ?? 1), 0);
+    // pool covers some, unclaimed (coded, not devlogged yet) turns into water on devlog
+    const short = owed - inventory.water;
+    const tenths = (h) => Math.max(0, Math.ceil(h * 10) / 10);
+    // a devlog claims all of it, so the step says all of it even past whats short
+    add({ do: "claim", n: short > 0 ? tenths(unclaimed) : 0 });
+    add({ do: "code", n: tenths(short - unclaimed) });
     // this weeks not off for review yet + ones about to be planted
     const unshipped = count((crop) => crop.week === weekKey && (crop.stage === "dry" || crop.stage === "watered"));
-    add({ do: "ship", n: unshipped + want });
+    add({ do: "ship", n: unshipped + going });
     return steps;
 }
 
 // week checklist with done ones ticked, like terra's own. saved = list as it first came out, null at first
 export function tickSteps(saved, steps, weekKey, w) {
     // new target (w) starts over, steps that stopped being needed would show done
-    const list = saved?.weekKey === weekKey && saved.w === w ? [...saved.steps] : [];
+    const list = saved?.weekKey === weekKey && saved.w === w ? saved.steps.map(perSeed) : [];
+    const same = (a) => (b) => stepKey(a) === stepKey(b);
     steps.forEach((step, i) => {
-        if (list.some((kept) => kept.do === step.do)) return;
+        if (list.some(same(step))) return;
         // new ones go after the one before, always in the list by now
-        const at = i === 0 ? 0 : list.findIndex((kept) => kept.do === steps[i - 1].do) + 1;
-        list.splice(at, 0, { do: step.do, n: step.n });
+        const at = i === 0 ? 0 : list.findIndex(same(steps[i - 1])) + 1;
+        list.splice(at, 0, step.seed ? { do: step.do, seed: step.seed, n: step.n } : { do: step.do, n: step.n });
     });
     return {
         saved: { weekKey, w, steps: list },
         steps: list.map((kept) => {
             // gone from stepsFrom = done, keeps its starting count
-            const now = steps.find((step) => step.do === kept.do);
+            const now = steps.find(same(kept));
             return now ? { ...now, done: false } : { ...kept, done: true };
         }),
     };
+}
+
+// checklist name, "buySeeds:eggplant" on per seed ones
+function stepKey(step) {
+    return step.seed ? `${step.do}:${step.seed}` : step.do;
+}
+
+// lists saved before steps went per seed, apples only as buySeeds and plantApples
+function perSeed(kept) {
+    if (kept.do === "plantApples") return { do: "plant", seed: "apple", n: kept.n };
+    return kept.do === "buySeeds" && !kept.seed ? { ...kept, seed: "apple" } : kept;
 }
 
 // what each step waits on, like tree node requires. clear + harvest free plots for planting, the "or wait" is the other way to get plots
@@ -105,16 +158,19 @@ const STEP_NEEDS = {
     place: ["buyPlots"],
     waitForLoans: ["buyPlots"],
     plantBase: ["place", "clear", "harvest"],
-    plantApples: ["place", "buySeeds", "clear", "harvest"],
+    plant: ["place", "buySeeds", "clear", "harvest"],
     ship: ["code"],
 };
 
-// depth for checklist indent, one past the deepest step it waits on thats still on the list, ticked ones too. order kept like sites milestone list, works cuz stepsFrom puts every step after its needs (a need further down never counts)
+// depth for checklist indent, one past the deepest step it waits on thats still on the list, ticked ones too. per seed steps wait on the same seed (eggplants on eggplants). order kept like sites milestone list, works cuz stepsFrom puts every step after its needs (a need further down never counts)
 export function nestSteps(steps) {
     const depth = {};
     return steps.map((step) => {
-        const under = (STEP_NEEDS[step.do] ?? []).filter((need) => need in depth).map((need) => depth[need] + 1);
-        depth[step.do] = Math.max(0, ...under);
-        return { ...step, depth: depth[step.do] };
+        const under = (STEP_NEEDS[step.do] ?? [])
+            .map((need) => (`${need}:${step.seed}` in depth ? `${need}:${step.seed}` : need))
+            .filter((key) => key in depth)
+            .map((key) => depth[key] + 1);
+        depth[stepKey(step)] = Math.max(0, ...under);
+        return { ...step, depth: depth[stepKey(step)] };
     });
 }
