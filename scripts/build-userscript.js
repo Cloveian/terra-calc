@@ -2,6 +2,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ENTRY = join(ROOT, "userscript/main.js");
@@ -49,7 +50,11 @@ checkNames(files);
 const body = files.map(strip).join("\n");
 // @version from package.json whatever meta.js says, one place to bump
 const { version } = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
-const meta = readFileSync(META, "utf8").replace(/^(\/\/ @version\s+).*$/m, `$1${version}`);
+// --update-url <url> for the install / update links (wip gist raw link)
+const updateUrl = parseArgs({ options: { "update-url": { type: "string" } } }).values["update-url"];
+let meta = readFileSync(META, "utf8").replace(/^(\/\/ @version\s+).*$/m, `$1${version}`);
+// a function so a $ in the url stays a $
+if (updateUrl) meta = meta.replace(/^(\/\/ @(?:downloadURL|updateURL)\s+).*$/gm, (_, key) => key + updateUrl);
 const out = `${meta}\n(() => {\n"use strict";\n\n${body}\n})();\n`;
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, out);
