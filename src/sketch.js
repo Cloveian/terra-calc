@@ -1,5 +1,6 @@
 // Hand-drawn-looking box outlines: a rounded rectangle whose edge wobbles a little.
 // Seeded, so the same box always gets the same wobble. Pure: returns SVG path data.
+import { clamp } from "./state.js";
 
 // text → a whole-number seed (FNV-1a hash)
 export function seedOf(text) {
@@ -116,25 +117,15 @@ export function wobblyRect(w, h, r, seed, { wobble = 0.8, every = 32, cornerJitt
     });
     const count = points.length;
 
-    // Catmull-Rom through the points (round the loop, plus one more), as cubic Béziers
-    const at = (i) => points[(i + count) % count];
-    const f = (n) => Math.round(n * 10) / 10;
-    let d = `M${f(at(0)[0])},${f(at(0)[1])}`;
-    for (let i = 0; i <= count; i++) {
-        const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
-        const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-        const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-        d += ` C${f(c1[0])},${f(c1[1])} ${f(c2[0])},${f(c2[1])} ${f(p2[0])},${f(p2[1])}`;
-    }
-    return d;
+    // round the loop, plus one more
+    return catmullRom((i) => points[(i + count) % count], count + 1);
 }
 
 // SVG path from (x1, y1) to (x2, y2) that wobbles sideways by up to `wobble` px, about every
 // `every` px, like a line drawn by hand. Both ends stay exactly where they are. Seeded.
 export function wobblyLine(x1, y1, x2, y2, seed, { wobble = 1.5, every = 40 } = {}) {
     const length = Math.hypot(x2 - x1, y2 - y1);
-    const f = (n) => Math.round(n * 10) / 10;
-    if (length === 0) return `M${f(x1)},${f(y1)}`;
+    if (length === 0) return `M${tenth(x1)},${tenth(y1)}`;
     const rand = random(seed);
     const [nx, ny] = [-(y2 - y1) / length, (x2 - x1) / length]; // sideways direction
     const steps = Math.max(1, Math.round(length / every));
@@ -145,14 +136,23 @@ export function wobblyLine(x1, y1, x2, y2, seed, { wobble = 1.5, every = 40 } = 
         points.push([x1 + (x2 - x1) * t + nx * push, y1 + (y2 - y1) * t + ny * push]);
     }
 
-    // Catmull-Rom through the points, as cubic Béziers (the ends repeat for their tangents)
-    const at = (i) => points[Math.max(0, Math.min(points.length - 1, i))];
-    let d = `M${f(points[0][0])},${f(points[0][1])}`;
-    for (let i = 0; i < points.length - 1; i++) {
+    // the ends repeat for their tangents
+    return catmullRom((i) => points[clamp(i, 0, points.length - 1)], points.length - 1);
+}
+
+// Catmull-Rom through at(0), at(1)... as `segments` cubic Beziers. at() gets -1 and segments + 1 too, for the end tangents
+function catmullRom(at, segments) {
+    let d = `M${tenth(at(0)[0])},${tenth(at(0)[1])}`;
+    for (let i = 0; i < segments; i++) {
         const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
         const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
         const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-        d += ` C${f(c1[0])},${f(c1[1])} ${f(c2[0])},${f(c2[1])} ${f(p2[0])},${f(p2[1])}`;
+        d += ` C${tenth(c1[0])},${tenth(c1[1])} ${tenth(c2[0])},${tenth(c2[1])} ${tenth(p2[0])},${tenth(p2[1])}`;
     }
     return d;
+}
+
+// a tenth of a px is plenty, keeps the paths short
+function tenth(n) {
+    return Math.round(n * 10) / 10;
 }

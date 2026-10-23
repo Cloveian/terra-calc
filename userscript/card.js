@@ -1,15 +1,15 @@
 // what to do next, inside terra's own This Week card
-import { weekName, isPrep } from "../src/week.js";
-import { CROPS } from "../src/data.js";
+import { weekName, isPrep, DAY_MS } from "../src/week.js";
+import { CROPS, BASE_KINDS } from "../src/data.js";
 import { nestSteps } from "./next.js";
 import { cssModule, watchPage } from "./page.js";
 
 // 10 min
 const FARM_OLD = 10 * 60000;
 // 2 days
-const DEADLINE_SOON = 2 * 86400000;
+const DEADLINE_SOON = 2 * DAY_MS;
 // "last week" line stays 2 days into a week
-const RECAP_FOR = 2 * 86400000;
+const RECAP_FOR = 2 * DAY_MS;
 
 // why crops are stuck, "12 in review (apple)"
 const WHY_LINES = {
@@ -268,7 +268,7 @@ export function cardFor(plan, now = Date.now()) {
 // free seed name, "carrot or strawberry" if both. none left = named by week, carrots in prep
 function baseSeedName({ baseKinds }, t) {
     const kinds = Object.keys(baseKinds);
-    if (kinds.length === 0) return isPrep(t) ? "carrot seed" : "strawberry seed";
+    if (kinds.length === 0) return `${isPrep(t) ? BASE_KINDS.prep : BASE_KINDS.main} seed`;
     return `${kinds.join(" or ")} seed`;
 }
 
@@ -309,7 +309,7 @@ function mixLine(mix, crops) {
 
 // "last week: 31.2h+ (plan 40h)", the + cuz hackatime keeps counting with terra closed
 function recapLine(last, weekEnds, now) {
-    if(!last?.seenAt || !weekEnds || now >= weekEnds - 7 * 86400000 + RECAP_FOR) return null;
+    if(!last?.seenAt || !weekEnds || now >= weekEnds - 7 * DAY_MS + RECAP_FOR) return null;
     // down, 19.96 isnt "20h+"
     const coded = Math.floor(last.coded * 10) / 10;
     return `last week: ${coded}h+${last.w === null ? "" : ` (plan ${last.w}h)`}`;
@@ -345,13 +345,13 @@ function deadline(plan, now, step) {
 function pace(n, weekEnds, now) {
     if (!weekEnds || weekEnds <= now) return "";
     const left = weekEnds - now;
-    if (left < 86400000) return ` (${hoursLeft(left)} left in week)`;
-    return ` (${Math.round((n / (left / 86400000)) * 10) / 10}h/d)`;
+    if (left < DAY_MS) return ` (${hoursLeft(left)} left in week)`;
+    return ` (${Math.round((n / (left / DAY_MS)) * 10) / 10}h/d)`;
 }
 
 // rounded down, "1d 4h" / "5h" / "<1h"
 function hoursLeft(ms) {
-    const hours = Math.floor(ms / 3600000);
+    const hours = Math.floor((24 * ms) / DAY_MS);
     const days = Math.floor(hours / 24);
     if (hours < 1) return "<1h";
     if (days === 0) return `${hours}h`;

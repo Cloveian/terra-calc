@@ -1,6 +1,6 @@
 // One week of farming. Model: research/how-terra-works.md#10-the-calculators-model
 import {
-    MAX_PLOTS, FREE_PLOTS, PLOT_PRICE_MAX, BASE_SEEDS, RENT, RENT_PAY, CROPS,
+    MAX_PLOTS, FREE_PLOTS, PLOT_PRICE_MAX, BASE_SEEDS, RENT_PAY, CROPS,
 } from "./data.js";
 
 // coins to go from n plots to w plots: sum of min(p - 9, 10) for p = n … w-1
@@ -90,15 +90,4 @@ export function bestMix(k, coins, plots, onHand, seedIds, m, table = CROPS) {
 
     go(0, 0, 0, 0, 0);
     return best;
-}
-
-// state = { coins, plots, seeds }. Expects w ≤ wMax(state).
-// Returns the state for next week, or null if a main week has under 10 h (out).
-export function simulateWeek(state, w, m, prep) {
-    if (!prep && w < RENT) return null;
-    return {
-        coins: state.coins - weekCost(w, state.plots, state.seeds) + weekSales(w, m, prep),
-        plots: Math.max(state.plots, w),
-        seeds: 0, // apple seeds expire at the end of the week
-    };
 }

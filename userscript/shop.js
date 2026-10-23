@@ -1,6 +1,7 @@
 // coins an hour badges on heidi's seeds (SeedMenuUI), how many the plan buys n a warning on ones it doesnt want
 
 import { cssModule, watchPage } from "./page.js";
+import { withoutSeeds } from "./fill.js";
 
 const BADGE = "terra-calc-badge";
 const WARNING = "terra-calc-warning";
@@ -36,7 +37,7 @@ export function perHour({ buy, sell, water }, m) {
 
 // "Eggplant Seeds" and "Eggplant" both -> "eggplant", seedsFrom drops " Seeds", the row doesnt
 function plain(name) {
-    return name.trim().replace(/\s+Seeds?$/, "").toLowerCase();
+    return withoutSeeds(name.trim()).toLowerCase();
 }
 
 function fillBadges() {

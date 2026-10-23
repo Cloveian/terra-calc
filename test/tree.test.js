@@ -4,12 +4,12 @@ import { TREES, PRESETS } from "../src/data.js";
 import {
     withPrereqs, nodeCost, nextPrice, limitOf, goalCost, nodeHours, sameSelection,
     dependentsOf, unpick, clampToLimits, normalize, buyOrder, displayOrder, treeLayout, waitsOn, prioFrom,
+    byId as node,
 } from "../src/tree.js";
 
 const fw = TREES.framework_12;
 const ipad = TREES.ipad_mini;
 const galaxy = TREES.galaxy_tab_s10_fe;
-const node = (tree, id) => tree.nodes.find((n) => n.id === id);
 const everything = (tree) => Object.fromEntries(tree.nodes.map((n) => [n.id, 1]));
 
 test("nodeCost", () => {

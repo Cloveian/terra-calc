@@ -4,7 +4,7 @@
 //   own / want: { id: qty }, first: ids (or id:n for one tier) to buy first (milestone order)
 //   bok / egg: bok choy and eggplant seeds on hand, shop: bonus seed ids in heidi's shop today
 import { TREES, CROPS, FREE_PLOTS, MAX_PLOTS, RENT, MULTIPLIER, STARTING_COINS } from "./data.js";
-import { normalize, limitOf } from "./tree.js";
+import { normalize, limitOf, byId } from "./tree.js";
 
 export const DEFAULT_DEVICE = "framework_12";
 
@@ -24,7 +24,7 @@ export function defaults(today) {
     };
 }
 
-function clamp(n, min, max) {
+export function clamp(n, min, max) {
     return Math.min(max, Math.max(min, n));
 }
 
@@ -50,7 +50,7 @@ function parseSelection(text, tree, label, problems) {
         if (part === "") continue;
         const [id, qtyText = "1", extra] = part.split(":");
         const qty = Number(qtyText);
-        if (!tree.nodes.some((node) => node.id === id)) {
+        if (!byId(tree, id)) {
             problems.push(`${LABELS[label]}: there's no upgrade called "${id}"`);
         } else if (extra !== undefined || qtyText === "" || !Number.isInteger(qty) || qty < 0) {
             problems.push(`${LABELS[label]}: "${part}" isn't an amount`);
@@ -64,7 +64,7 @@ function parseSelection(text, tree, label, problems) {
 // what's wrong with a buyOrder row key (node id, or id:n for one tier), null if fine
 export function rowKeyProblem(tree, key) {
     const [id, unit, extra] = key.split(":");
-    const node = tree.nodes.find((n) => n.id === id);
+    const node = byId(tree, id);
     if (!node) return `there's no upgrade called "${id}"`;
     if (unit === undefined) return null;
     if (!node.tiers) return `${node.name} doesn't come in tiers ("${key}")`;
@@ -83,8 +83,7 @@ export function formatSelection(selection) {
 function reportClamps(tree, label, before, after, problems) {
     for (const [id, qty] of Object.entries(before)) {
         if ((after[id] ?? 0) < qty) {
-            const node = tree.nodes.find((n) => n.id === id);
-            problems.push(`${LABELS[label]}: ${qty} × ${node.name} is over the limit, used ${after[id] ?? 0}`);
+            problems.push(`${LABELS[label]}: ${qty} × ${byId(tree, id).name} is over the limit, used ${after[id] ?? 0}`);
         }
     }
 }
@@ -177,6 +176,5 @@ export function toHash(state, today) {
 
 // Is the + button allowed? (used by the UI, here so it's tested)
 export function canAdd(tree, selection, id) {
-    const node = tree.nodes.find((n) => n.id === id);
-    return (selection[id] ?? 0) < limitOf(node, selection);
+    return (selection[id] ?? 0) < limitOf(byId(tree, id), selection);
 }

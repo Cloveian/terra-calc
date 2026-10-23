@@ -11,6 +11,11 @@ export function seedId(itemId) {
     return itemId.replace(/_seed$/, "");
 }
 
+// "Eggplant Seeds" -> "Eggplant"
+export function withoutSeeds(name) {
+    return name.replace(/\s+Seeds?$/, "");
+}
+
 // GET /device-upgrades -> trees like TREES
 // totals[0] (none bought) not in response so null, site fills it from data.js
 // tiered nodes titled like their first tier ("+8GB RAM"), amount cut off -> "RAM"
@@ -227,7 +232,7 @@ export function seedsFrom(shopStock) {
             && typeof entry.cropValue === "number" && typeof entry.waterNeeded === "number")
         .map((entry) => ({
             id: seedId(entry.itemId),
-            name: (entry.name ?? entry.itemId).replace(/\s+Seeds?$/, ""),
+            name: withoutSeeds(entry.name ?? entry.itemId),
             buy: entry.priceCoins,
             sell: entry.cropValue,
             water: entry.waterNeeded,

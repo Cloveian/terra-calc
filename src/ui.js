@@ -4,9 +4,9 @@ import { easternDay, weekIndex, weekName, LAST_WEEK } from "./week.js";
 import { simulateRoute, hoursNeeded, milestones } from "./route.js";
 import {
     goalCost, nextPrice, nodeHours, unpick, dependentsOf, normalize, buyOrder, displayOrder, treeLayout,
-    waitsOn, prioFrom, sameSelection,
+    waitsOn, prioFrom, sameSelection, byId,
 } from "./tree.js";
-import { clean, toHash, canAdd } from "./state.js";
+import { clean, toHash, canAdd, clamp } from "./state.js";
 import { wobblyRect, wobblyLine, seedOf, outlineMargin } from "./sketch.js";
 import { zoomAt, clampView, fitView } from "./view.js";
 
@@ -91,7 +91,7 @@ function tree() {
 }
 
 function nameOf(id) {
-    return tree().nodes.find((node) => node.id === id).name;
+    return byId(tree(), id).name;
 }
 
 // ---- state changes -------------------------------------------------------
@@ -445,11 +445,10 @@ function drawMilestoneLines() {
         const box = name.getBoundingClientRect();
         return box.top - origin.top + box.height / 2;
     };
-    const byId = new Map(names.map((name) => [name.dataset.node, name]));
+    const nameFor = new Map(names.map((name) => [name.dataset.node, name]));
     const children = new Map(); // parent's name → its picks' names
     for (const name of names) {
-        const node = tree().nodes.find((n) => n.id === name.dataset.node);
-        const parent = byId.get(node?.requires[0]); // the one it's drawn under in the tree
+        const parent = nameFor.get(byId(tree(), name.dataset.node)?.requires[0]); // the one it's drawn under in the tree
         if (parent) children.set(parent, [...(children.get(parent) ?? []), name]);
     }
 
@@ -940,7 +939,7 @@ function currentSplit() {
 }
 
 function setSplit(percent, save = true) {
-    const split = Math.min(SPLIT.max, Math.max(SPLIT.min, percent));
+    const split = clamp(percent, SPLIT.min, SPLIT.max);
     document.querySelector(".page").style.setProperty("--split", split);
     divider.setAttribute("aria-valuenow", Math.round(split));
     if (save) {

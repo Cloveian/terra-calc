@@ -1,6 +1,6 @@
 import { PREP1_START, PREP_WEEKS, MAIN_WEEKS } from "./data.js";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+export const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const LAST_WEEK = PREP_WEEKS + MAIN_WEEKS - 1; // t = 14 is Week 12
 

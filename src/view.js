@@ -1,12 +1,9 @@
 // Zoom and pan for the upgrade tree. Pure maths; the page parts are in ui.js.
 // view = { scale, x, y }: the tree is drawn with its top-left corner at (x, y), scaled by `scale`.
 // Sizes are { w, h } in px.
+import { clamp } from "./state.js";
 
 export const ZOOM = { min: 0.35, max: 2.5 };
-
-function clamp(n, min, max) {
-    return Math.min(max, Math.max(min, n));
-}
 
 // Zoom by `factor`, keeping the point (px, py) in the viewport still (where the mouse is)
 export function zoomAt(view, factor, px, py) {

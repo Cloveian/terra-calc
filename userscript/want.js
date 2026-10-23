@@ -1,5 +1,5 @@
 // want bits under each card on terra's own device tree
-import { limitOf, unpick, normalize, dependentsOf, wantedRows, rowPrio } from "../src/tree.js";
+import { limitOf, unpick, normalize, dependentsOf, wantedRows, rowPrio, byId } from "../src/tree.js";
 import { weekName } from "../src/week.js";
 import { watchPage } from "./page.js";
 
@@ -22,7 +22,7 @@ const WANT_CSS = `.${BIT} { position: absolute; top: 100%; left: 50%; transform:
 // one node's tag, null on limit-1 stuff i already own (terra's badge covers it)
 // milestones = plan rows by key (milestones() + rowHours), empty till there's a plan
 export function wantBit(tree, own, want, id, milestones = new Map(), prio = {}) {
-    const node = tree.nodes.find((n) => n.id === id);
+    const node = byId(tree, id);
     if (!node) return null;
     const limit = limitOf(node, want);
     const count = want[id] ?? 0;
@@ -58,7 +58,7 @@ function whenFor(milestone) {
 
 // + or - on one node like site tree, prereqs tag along n dependents go with it
 export function changeWant(tree, own, want, id, delta) {
-    const node = tree.nodes.find((n) => n.id === id);
+    const node = byId(tree, id);
     const next = (want[id] ?? 0) + delta;
     if (!node || next < (own[id] ?? 0) || next > limitOf(node, want)) return { want, removed: [] };
     const picked = next === 0 ? unpick(tree, want, id) : { ...want, [id]: next };

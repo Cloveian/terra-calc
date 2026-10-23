@@ -1,5 +1,6 @@
 // which userscript parts are on, plus our own section in terra's settings tab
 import { MULTIPLIER, CROPS, BONUS_SEEDS } from "../src/data.js";
+import { clamp } from "../src/state.js";
 import { cssModule, watchPage } from "./page.js";
 
 const KEY = "terra-calc-settings"; // in terra's localStorage
@@ -41,9 +42,8 @@ function cleanCount(value) {
 
 // box or storage value kept in MULTIPLIER range, null = the games
 function cleanM(value) {
-    if (value === "" || value === null) return null;
-    const n = Number(value);
-    return Number.isFinite(n) ? Math.min(MULTIPLIER.max, Math.max(MULTIPLIER.min, n)) : null;
+    const n = value === "" || value === null ? null : Number(value);
+    return n === null || !Number.isFinite(n) ? null : clamp(n, MULTIPLIER.min, MULTIPLIER.max);
 }
 
 export function saveSettings(settings) {

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { plotCost, weekCost, wMax, weekSales, baseSales, simulateWeek, bestMix } from "../src/farm.js";
+import { plotCost, weekCost, wMax, weekSales, baseSales, bestMix } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
 
 test("plotCost", () => {
@@ -35,15 +35,6 @@ test("baseSales", () => {
     assert.equal(baseSales(13, 1, true), 250); // 10 carrots * 25, the apples aren't in it
     assert.equal(baseSales(5, 1, true), 125); // 5 carrots * 25
     assert.equal(baseSales(45, 1.5, false), 30); // rent 20 * 1.5
-});
-
-test("simulateWeek", () => {
-    // Prep 2 state → Prep 3 (344 coins, matches the route tests)
-    assert.deepEqual(simulateWeek({ coins: 4, plots: 13, seeds: 3 }, 13, 1, true), { coins: 344, plots: 13, seeds: 0 });
-    // main week under 10 h is out
-    assert.equal(simulateWeek({ coins: 0, plots: 10, seeds: 0 }, 9, 1, false), null);
-    // prep week with 0 h is fine
-    assert.deepEqual(simulateWeek({ coins: 25, plots: 10, seeds: 0 }, 0, 1, true), { coins: 25, plots: 10, seeds: 0 });
 });
 
 // all the bestMix ones have 30 plots and k = 20, so up to 30 crops the plots are free

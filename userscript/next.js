@@ -1,6 +1,6 @@
 // next steps: farm chores now + this weeks crops and hours from site route
 import { hoursNeeded, simulateRoute } from "../src/route.js";
-import { RENT, MAX_PLOTS, BASE_SEEDS, CROPS } from "../src/data.js";
+import { RENT, MAX_PLOTS, BASE_SEEDS, BASE_KINDS, CROPS } from "../src/data.js";
 import { seedId } from "./fill.js";
 import { isWeekAfter } from "../src/week.js";
 
@@ -74,10 +74,10 @@ export function toSell(ready, forSale, m, inventory, table = CROPS) {
 }
 
 // free seed ids, a crop on the farm doesnt say if it was one
-const BASE_KINDS = new Set(["carrot", "strawberry"]);
+const BASE_IDS = new Set(Object.values(BASE_KINDS));
 
 function isBase(id, inventory) {
-    return BASE_KINDS.has(id) || id in inventory.baseKinds;
+    return BASE_IDS.has(id) || id in inventory.baseKinds;
 }
 
 // bonus seeds the mix counts as mine already, in my bag or planted this week (paid for, like the apples in routeState)
