@@ -102,6 +102,8 @@ onGameMessage(ROOM.joined, ({ decoder }) => {
 onGameMessage(IN.joinComplete, (body) => {
     game.farmOwnerId = body?.farmOwnerId ?? null;
     readFarm();
+    // readFarm only draws on my own farm, leaving it changes the card too (island link)
+    draw();
 });
 onGameMessage(ROOM.state, ({ state, touched }) => {
     game.roomState = state;
@@ -362,6 +364,8 @@ function plan() {
         mGuessed: mRead === null,
         // ms, for h a day on code step
         weekEnds: Date.parse(game.currentWeek?.endDate ?? "") || null,
+        // myId() null without a readable token
+        onFarm: game.farmOwnerId !== null && game.farmOwnerId === myId(),
         loans,
         farm: game.farm,
         stuck,

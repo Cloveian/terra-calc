@@ -177,14 +177,25 @@ function drawBlock(block, { tasks, details }) {
         line.textContent = text;
         return line;
     };
-    const link = detail("pick your goal", "terra-calc-link");
-    link.addEventListener("click", () => pickGoal?.());
+    const link = (text, go) => {
+        const line = detail(text, "terra-calc-link");
+        line.addEventListener("click", go);
+        return line;
+    };
+    // only off my own farm, there it just drops me back at the dock
+    const island = lastPlan && !lastPlan.onFarm ? [link("go to your island", goToIsland)] : [];
     block.replaceChildren(
         ...rows,
         ...notices.map((text) => detail(text, "terra-calc-notice")),
         ...details.map((text) => detail(text)),
-        link,
+        link("pick your goal", () => pickGoal?.()),
+        ...island,
     );
+}
+
+// same event as friends list "visit their farm", no user = my own
+function goToIsland() {
+    window.dispatchEvent(new CustomEvent("visit_farm"));
 }
 
 // coins, plots and m left out, the steps already use them (terraCalc.plan() has em all)
@@ -197,7 +208,7 @@ export function cardFor(plan, now = Date.now()) {
         done: step.done ?? false,
     }));
     // the steps need the farm to count from, the goal doesn't
-    if (!farm) tasks.push({ text: "go to your farm so Terra Calc can count your plots", depth: 0, done: false });
+    if (!farm) tasks.push({ text: "go to your island so Terra Calc can count your plots", depth: 0, done: false });
 
     const details = [];
     if (target?.out) details.push("can't afford 10 crops this week, that's rent");

@@ -85,11 +85,11 @@ What the game sends to buy, water and plant is captured now: `shop.purchase { st
 - [ ] "Water everything planted" through `farm.interact`
 - [ ] "Buy next upgrade" through `/device-upgrades/purchase`
 - [ ] A "sell all crops" button in the market
-- [ ] "Go to your island" from anywhere. How the map travels isn't in any capture yet, needs one of the map being used
+- [x] "Go to your island" from anywhere, a link on the This Week card. It fires the game's own `visit_farm` window event (the friends list's "visit their farm"), with no user in it, that's your own farm. Not tried in the real game yet
 
 ## Inside Terra's pages
 
-- [ ] A "what to do next" panel with the plan and the buttons above (the plan half's done, it's Terra's own This Week card now, buttons still to come)
+- [ ] A "what to do next" panel with the plan and the buttons above (the plan half's done, it's Terra's own This Week card now, go to your island's on it too, the rest of the buttons still to come)
 - [x] Pick your goal on Terra's own device tree: want / wanted, steppers for RAM, SSD and the cards, prerequisites come along
 - [x] Asks first when a click would take other picks out, or move your goal to another device
 - [x] The steps nested under what they wait on, ticked off when they're done, and the h a day on the code step

@@ -12,7 +12,7 @@ const texts = (tasks) => tasks.map((task) => task.text);
 test("before the farm's been seen it just says go look", () => {
     const plan = { t: 3, inventory: { coins: 0, plots: null, seeds: 1, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, mGuessed: true, farm: null, stuck: null, steps: [] };
     assert.deepEqual(cardFor(plan, NOW), {
-        tasks: [{ text: "go to your farm so Terra Calc can count your plots", depth: 0, done: false }],
+        tasks: [{ text: "go to your island so Terra Calc can count your plots", depth: 0, done: false }],
         details: [],
     });
 });
