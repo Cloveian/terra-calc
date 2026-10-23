@@ -40,12 +40,12 @@ Eggplant wins per hour *and* per plot, by a lot per plot. Bok choy only beats ap
 
 ## Userscript (after the site)
 
-- `inventoryFrom` counts every seed in the bag, not just apples (it's wrong right now if you bought eggplants, they're invisible)
+- `inventoryFrom` counts every seed in the bag, not just apples
 - `seedsFrom(shop.stock)`: today's bonus seeds with `waterNeeded`, `cropValue`, `priceCoins`
 - the steps buy and plant the mix ("buy 8 eggplant seeds"), code is the water total
 
 ## Order to build it
 
-1. `CROPS` rows, the mix maths in `farm.js`, the route's first week using it, tests
-2. site inputs (seeds on hand, shop ticks), the hash, the mix in the table
-3. userscript: seeds in the bag, `seedsFrom`, steps
+1. ~~`CROPS` rows, the mix maths in `farm.js`, the route's first week using it, tests~~ done 22 Oct. seeds in your bag get planted even when the shop's moved on
+2. ~~site inputs (seeds on hand, shop ticks), the hash, the mix in the table~~ done 22 Oct, the mix is a note above the table
+3. userscript: ~~seeds in the bag, `seedsFrom`~~ done 22 Oct (the shop's seeds only count on the day the shop said), steps still say apples only, splitting buy/plant per seed is next
