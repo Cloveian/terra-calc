@@ -59,7 +59,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 
 ## Buying with risk
 
-"Should I buy this, and how many?" A seed you don't water by Monday night is lost at its price, so it's the newsvendor problem with your hours as the demand. It goes right after the First list, with your planned hours and a spread you set, then the full thing once Your time has your history.
+"Should I buy this, and how many?" A seed you don't water by Monday night is lost at its price, so it's the newsvendor problem with your hours as the demand. It needs the hours you'll actually give first (Your time's first item). The plan only buys what its own hours water, so with a spread around those every seed's watered at least half the time, and the break-evens are all under that (27% at most at m 1, 34% at m 0.8), so nothing's ever a gamble. With your hours and a spread you set it works, and the full thing comes once Your time has your history.
 
 - [ ] Water order for a short week: best sale per water first (at m 1 that's eggplant 37.5, bok choy 37, apple 30), so the k-th seed gets water once you've coded W_k h, the water for everything ahead of it plus its own
 - [ ] Buy the k-th seed only if P(hours >= W_k) > buy / (m \* sell). The break-even chance at m 1 is apple 17%, eggplant 20%, bok choy 27%, so apples get bought generously and bok choy carefully, even tho it's cheaper than eggplant. That's exact for the last seed in the order, one further up also pushes everything behind it later by its own water, and that counts against it
