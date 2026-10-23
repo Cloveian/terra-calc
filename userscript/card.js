@@ -264,9 +264,11 @@ function cropName(id, crops) {
 
 // "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)
 // selling = coins unsold crops bring, already in route so "now" can mean after selling
-function goalLines(goal, target, coins, selling) {
+function goalLines(goal, target, coins, selling = 0) {
+    const device = goal.custom ? "" : ` (${goal.device})`;
+    const toGo = Math.max(0, Math.ceil(goal.coins - coins - selling));
     const later = selling > 0 && coins < goal.coins ? " after selling" : "";
-    const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins - selling))} to go${later}`];
+    const lines = [`goal: ${some(goal.coins, "coin")}${device}, ${toGo} to go${later}`];
     if (goal.coins > 0) lines.push({ bar: { coins, selling, goal: goal.coins } });
     if (target?.reachable === false) {
         lines.push(`out of reach, max ${Math.floor(target.route.at(-1).endCoins)} coins`);
