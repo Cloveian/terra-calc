@@ -98,7 +98,7 @@ What the game sends to buy, water and plant is captured now: `shop.purchase { st
 - [x] "Affordable in Week N" labels on the device tree nodes (ended up in the want tags, with the h/week to get there)
 - [ ] A full overview: the whole plan like the site's (week by week, what you get when, h/week per pick). **Decision:** where does it open, a Terra-style window, a Terra Calc tab in Terra's big panel next to inventory and friends, or the calendar once Your time is in? Default: the window, like the device tree's, from a "full plan" link on the This Week card
 - [x] Profit-per-hour badges on shop seeds at your multiplier ("30/h" on each seed in Heidi's shop, matched by name, plots not counted, off till you tick it in our settings). Not tried in the real game yet
-- [ ] A warning before buying seeds you can't plant this week (the shop badges say how many the plan buys now, "36/h, buy 12", nothing stops you buying more tho)
+- [x] A warning before buying seeds you can't plant this week: the shop badges say how many the plan buys ("36/h, buy 12"), and Heidi's "Buy this?" gets a red line when the plan doesn't need any more of that seed. Only with the badges on, and not tried in the real game yet
 - [x] Our part of the This Week card folds up on its own, separate from Terra's ("hide Terra Calc", and Terra's own checklist comes back)
 - [ ] Browser notifications when crops are ready or a review comes back
 - [x] A settings popup to turn each part on or off (ended up as a section in Terra's own settings tab)

@@ -178,8 +178,8 @@ function draw() {
     const parts = plan();
     drawCard(parts);
     drawWantBits(treeBits);
-    // card's buy steps, { eggplant: 12 }, shop says the same
-    const toBuy = Object.fromEntries((parts?.steps ?? []).filter((step) => step.do === "buySeeds" && !step.done).map((step) => [step.seed, step.n]));
+    // card's buy steps, { eggplant: 12 }, shop says the same. null without farm or target
+    const toBuy = parts?.farm && parts.target && Object.fromEntries(parts.steps.filter((step) => step.do === "buySeeds" && !step.done).map((step) => [step.seed, step.n]));
     drawShopBadges({ ...shopBits, toBuy });
 }
 
