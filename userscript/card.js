@@ -45,7 +45,11 @@ const OURS_COLUMN = "terra-calc-column";
 // their tasks hidden by a data attribute, Solid never touches one it didnt set
 const CARD_CSS = `[data-terra-calc] > :not(.${BLOCK}):not([class*="_objectiveCountdown_"]) { display: none }
 .${BLOCK} .terra-calc-link { text-decoration: underline; cursor: pointer }
-.${BLOCK} .terra-calc-notice { color: #c0392b }`;
+.${BLOCK} .terra-calc-notice { color: #c0392b }
+/* terra's own progress bar colors, thinner */
+.${BLOCK} .terra-calc-bar { display: flex; height: 0.5em; margin-block: 0.25em; background: #efb367; border: 2px solid #93582c; border-radius: 0.7em; overflow: hidden }
+.${BLOCK} .terra-calc-bar > * { background: #c7793c }
+.${BLOCK} .terra-calc-bar > :last-child { opacity: 0.45 }`;
 
 let redrawCard = null; // from watchPage
 let pickGoal = null;
@@ -72,7 +76,6 @@ export function showNotice(text) {
 
 // plan = what main.js works out, or null when there isn't enough to go on yet (then Terra's own
 // checklist stays, unless there's a notice to show)
-// TODO: progress bar to goal
 export function drawCard(plan) {
     lastPlan = plan;
     redrawCard?.();
@@ -197,11 +200,24 @@ function drawBlock(block, { tasks, details }) {
     block.replaceChildren(
         ...rows,
         ...notices.map((text) => detail(text, "terra-calc-notice")),
-        ...details.map((text) => detail(text)),
+        ...details.map((item) => (typeof item === "string" ? detail(item) : drawBar(detail(""), item.bar))),
         link("pick your goal", () => pickGoal?.()),
         ...island,
         link("hide Terra Calc", () => setFolded(true)),
     );
+}
+
+// goal bar in a detail line, my coins solid n crops waitng to sell faded after
+function drawBar(line, { coins, selling, goal }) {
+    const part = (n) => {
+        const div = document.createElement("div");
+        div.style.width = `${Math.min(100, (100 * n) / goal)}%`;
+        return div;
+    };
+    line.classList.add("terra-calc-bar");
+    line.title = `${some(Math.floor(coins), "coin")}${selling > 0 ? ` + about ${selling} once you sell your crops` : ""}, out of ${goal}`;
+    line.append(part(coins), part(Math.max(0, Math.min(selling, goal - coins))));
+    return line;
 }
 
 // ours folded away, kept per broswer
@@ -229,7 +245,7 @@ function goToIsland() {
     window.dispatchEvent(new CustomEvent("visit_farm"));
 }
 
-// coins, plots and m left out, the steps already use them (terraCalc.plan() has em all)
+// coins, plots and m left out, the steps already use them (terraCalc.plan() has em all). one detail can be the goal bar
 export function cardFor(plan, now = Date.now()) {
     const { loans, farm, stuck, target, steps, goal, inventory } = plan;
     // ticked ones still count for the indent, list doesnt jump around
@@ -279,6 +295,7 @@ function cropName(id, crops) {
 function goalLines(goal, target, coins, selling = 0) {
     const later = selling > 0 && coins < goal.coins ? " once you sell your crops" : "";
     const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins - selling))} to go${later}`];
+    if (goal.coins > 0) lines.push({ bar: { coins, selling, goal: goal.coins } });
     if (target?.reachable === false) {
         lines.push(`can't get all of it even at 45 h, best is ${Math.floor(target.route.at(-1).endCoins)} coins`);
     }

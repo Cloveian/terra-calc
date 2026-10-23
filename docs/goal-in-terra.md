@@ -169,7 +169,7 @@ Random things that came up, roughly in how much i want them:
 4. Want bits on Terra's tree (observer, `data-node`, click blocking). ~~the logic~~ done and tested (`want.js`), the DOM half hasn't been run in the real game yet *at all*, no fake tree DOM test either
 5. "Week N" labels on the tree from `milestones`
 6. site <-> Terra links
-7. progress bar, too-early refund line, hours left
+7. ~~progress bar~~ done, too-early refund line, hours left
 8. buttons
 
 1-3 is the "never leave Terra" version, if you don't mind picking a preset. 4 is the one that makes it actually nice.

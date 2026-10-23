@@ -80,6 +80,7 @@ test("a goal shows before the farm's been seen, with the next pick and when it's
     };
     assert.deepEqual(cardFor(plan, NOW).details, [
         "goal: 2800 coins (Framework 12), 2758 to go",
+        { bar: { coins: 42.6, selling: 0, goal: 2800 } },
         "next pick: Core 3 304 in Week 3",
         "all of it in Week 9",
     ]);
