@@ -236,7 +236,7 @@ test("treeLayout: no two cards overlap, everything inside the canvas", () => {
 
 test("treeLayout: stays compact (fits a laptop-width page)", () => {
     // i5 and Core 5 are only 25 apart sideways in Terra's layout; separating them sideways
-    // instead of up/down once made the Framework tree ~7× wider
+    // instead of up/down once made the Framework tree ~7x wider
     for (const tree of Object.values(TREES)) {
         assert.ok(treeLayout(tree, { w: 168, h: 150 }).width < 1150, tree.device);
     }

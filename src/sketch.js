@@ -2,7 +2,7 @@
 // Seeded, so the same box always gets the same wobble. Pure: returns SVG path data.
 import { clamp } from "./state.js";
 
-// text → a whole-number seed (FNV-1a hash)
+// text -> a whole-number seed (FNV-1a hash)
 export function seedOf(text) {
     let hash = 2166136261;
     for (const char of String(text)) {
@@ -18,7 +18,7 @@ export function random(seed) {
     return () => (state = (state * 16807) % 2147483647) / 2147483647;
 }
 
-// Point `d` px along the edge of a w × h rounded rectangle (clockwise from the end of the
+// Point `d` px along the edge of a w * h rounded rectangle (clockwise from the end of the
 // top-left corner), with the outward direction there: [x, y, nx, ny].
 // radii: [top-left, top-right, bottom-right, bottom-left]
 function pointOnEdge(d, w, h, [tl, tr, br, bl]) {
@@ -70,12 +70,12 @@ const MIN_CORNER = 4;
 
 // How far inside a box to draw its outline so none of it gets cut off at the box's edge:
 // half the line's thickness, plus how far the wobbly curve can stray outwards
-// (measured: up to ~1.6 × the wobble, see the tests).
+// (up to ~1.6 * the wobble, measured in the tests).
 export function outlineMargin(lineWidth, wobble) {
     return lineWidth / 2 + wobble * 1.6 + 0.3;
 }
 
-// SVG path for a w × h box with corner radius r, its edge pushed in or out by up to
+// SVG path for a w * h box with corner radius r, its edge pushed in or out by up to
 // `wobble` px at a point roughly every `every` px, joined with smooth curves. The line runs
 // one point past where it started, like a pen closing a loop.
 // Each seed also gets its own corner roundness (r ± `cornerJitter`), its own spacing

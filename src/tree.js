@@ -46,7 +46,7 @@ export function unpick(tree, selection, id) {
     return result;
 }
 
-// coins for buys number from+1 … qty (cost × count, or those tiers added up)
+// coins for buys number from+1 ... qty (cost * count, or those tiers added up)
 export function nodeCost(node, qty, from = 0) {
     if (qty <= from) return 0;
     if (node.tiers) {
@@ -69,7 +69,7 @@ export function limitOf(node, selection = {}) {
     return node.limit.base + (selection[node.limit.per] ?? 0);
 }
 
-// drop anything over its limit (fewer USB cards → fewer Fancy cards)
+// drop anything over its limit (fewer USB cards -> fewer Fancy cards)
 export function clampToLimits(tree, selection) {
     const result = { ...selection };
     for (const node of tree.nodes) {
@@ -90,7 +90,7 @@ export function sameSelection(a, b) {
     return [...keys].every((key) => (a[key] ?? 0) === (b[key] ?? 0));
 }
 
-// Make own and want consistent: prerequisites added, limits respected, want ≥ own for every node
+// Make own and want consistent: prerequisites added, limits respected, want >= own for every node
 export function normalize(tree, own, want) {
     const fixedOwn = withoutZeros(clampToLimits(tree, withPrereqs(tree, own)));
     const atLeastOwn = { ...want };
@@ -101,7 +101,7 @@ export function normalize(tree, own, want) {
     return { own: fixedOwn, want: fixedWant };
 }
 
-// Σ nodeCost over what's wanted, minus what's already owned (own RAM ×1, want ×3 → 1300 + 2100)
+// sum of nodeCost over what's wanted, minus what's already owned (own RAM ×1, want ×3 -> 1300 + 2100)
 export function goalCost(tree, want, owned = {}) {
     let total = 0;
     for (const node of tree.nodes) {
@@ -197,7 +197,7 @@ export function displayOrder(tree) {
 
 // Where to draw the tree, from Terra's own positions (root, x, y in data.js).
 // Terra's spacing is for small icons, so it's stretched (x by sx, y by sy) until no two cards
-// (card.w × card.h px, `gap` apart) overlap. Two cards are fine if they're far enough apart
+// (card.w * card.h px, `gap` apart) overlap. Two cards are fine if they're far enough apart
 // either sideways or up/down, so every useful sy is tried, each with the smallest sx that works,
 // and the smallest canvas wins.
 // Returns { width, height, centres: { root, [id]: { x, y } }, edges: [[id, prerequisite or "root"]] }.

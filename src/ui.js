@@ -45,7 +45,7 @@ const NODE_ICONS = {
 const DEVICE_ICONS = { framework_12: "device-framework", ipad_mini: "device-ipad", galaxy_tab_s10_fe: "device-galaxy" };
 
 let state;
-let pickNote = ""; // what the picker just did on its own ("Also removed …")
+let pickNote = ""; // what the picker just did on its own ("Also removed ...")
 let lastPreset = null; // the preset button pressed last, to pick between presets that come out the same
 
 const $ = (id) => document.getElementById(id);
@@ -79,7 +79,7 @@ function face(name) {
     return node;
 }
 
-// coins can be decimals when m ≠ 1: round for display, mark with ≈
+// coins can be decimals when m != 1: round for display, mark with ≈
 function coins(n) {
     const rounded = Math.round(n);
     return Math.abs(n - rounded) < 1e-9 ? String(rounded) : `≈${rounded}`;
@@ -111,7 +111,7 @@ function setQty(kind, id, qty) {
     const before = { own: state.own, want: state.want };
     const { own, want } = normalize(tree(), kind === "own" ? selection : state.own, kind === "want" ? selection : state.want);
 
-    // things that dropped on their own (fewer USB cards → fewer Fancy cards)
+    // things that dropped on their own (fewer USB cards -> fewer Fancy cards)
     for (const [which, after] of [["own", own], ["want", want]]) {
         for (const [other, was] of Object.entries(before[which])) {
             if (other !== id && (after[other] ?? 0) < was && after[other] > 0) {
@@ -230,7 +230,7 @@ function total(node, wanted) {
 }
 
 // The tree laid out like Terra's: a card per upgrade, lines to its prerequisites.
-// Cards are added in parent → child order so Tab moves through them sensibly.
+// Cards are added in parent -> child order so Tab moves through them sensibly.
 function drawTree() {
     $("picker").disabled = state.goal !== null; // a typed goal greys out the tree
     const layout = treeLayout(tree(), CARD);
@@ -402,7 +402,7 @@ function drawMilestones(route, cap) {
         group.rows.push(row);
     });
 
-    const head = el("li", el("span"), el("span", "cost (so far)"), el("span", "priority")); // the arrows' tooltips say "Buy … sooner / later"
+    const head = el("li", el("span"), el("span", "cost (so far)"), el("span", "priority")); // the arrows' tooltips say "Buy ... sooner / later"
     head.className = "milestone-head";
     head.setAttribute("aria-hidden", "true");
     $("milestones").replaceChildren(head, ...groups.map((group) => {
@@ -440,7 +440,7 @@ function drawMilestoneLines() {
         return box.top - origin.top + box.height / 2;
     };
     const nameFor = new Map(names.map((name) => [name.dataset.node, name]));
-    const children = new Map(); // parent's name → its picks' names
+    const children = new Map(); // parent's name -> its picks' names
     for (const name of names) {
         const parent = nameFor.get(byId(tree(), name.dataset.node)?.requires[0]); // the one it's drawn under in the tree
         if (parent) children.set(parent, [...(children.get(parent) ?? []), name]);
@@ -572,7 +572,7 @@ function fillForm() {
     for (const id of BONUS_SEEDS) $(`shop-${id}`).checked = state.shop.includes(id);
 }
 
-// state → raw strings, so form edits go through clean() just like the hash
+// state -> raw strings, so form edits go through clean() just like the hash
 function rawOf(s) {
     return Object.fromEntries(new URLSearchParams(toHash(s, TODAY)));
 }
@@ -610,7 +610,7 @@ function addDateButton(input) {
 function addNumberButtons(input) {
     const label = input.closest("label")?.textContent.trim() || input.id; // e.g. "Coins", for screen readers
     const nudge = (direction) => {
-        const step = parseFloat(input.step) || 1; // "any" → 1
+        const step = parseFloat(input.step) || 1; // "any" -> 1
         const decimals = (String(step).split(".")[1] ?? "").length;
         let value = (parseFloat(input.value) || 0) + direction * step;
         if (input.min !== "") value = Math.max(value, parseFloat(input.min));

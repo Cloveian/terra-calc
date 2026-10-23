@@ -60,7 +60,7 @@
     --on-accent: #0f2a2e;
 }
 
-/* tokens → Pico (same selectors as Pico's own themes, so these win) */
+/* tokens -> Pico (same selectors as Pico's own themes, so these win) */
 [data-theme=light],
 :root:not([data-theme=dark]),
 :root:not([data-theme]),
@@ -111,7 +111,7 @@ body {
     height: auto;
 }
 
-/* the wide logo (one row) is 6× wider than tall */
+/* the wide logo (one row) is 6x wider than tall */
 @media (min-width: 700px) {
     .logo {
         width: min(100%, 44rem);
@@ -865,7 +865,7 @@ input[type="checkbox"]:checked {
 /* !important because several boxes set their own border colour and `background` shorthand,
    which would otherwise bring the real border and fill back or tile the outline image */
 /* each box's outline settings are its own: without this, a box inside another box (a message
-   inside a panel) would inherit the outer box's shadow, fill, dashes… */
+   inside a panel) would inherit the outer box's shadow, fill, dashes... */
 @property --sketch-shadow  { syntax: "*"; inherits: false; }
 @property --sketch-color   { syntax: "*"; inherits: false; }
 @property --sketch-fill    { syntax: "*"; inherits: false; }

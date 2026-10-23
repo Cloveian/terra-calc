@@ -45,7 +45,7 @@ function number(raw, key, fallback, problems, fix) {
     return fixed;
 }
 
-// "ram_12:3,ssd_12:2" → { ram_12: 3, ssd_12: 2 }. A bare id means 1.
+// "ram_12:3,ssd_12:2" -> { ram_12: 3, ssd_12: 2 }. A bare id means 1.
 function parseSelection(text, tree, label, problems) {
     const selection = {};
     for (const part of text.split(",")) {
@@ -90,7 +90,7 @@ function reportClamps(tree, label, before, after, problems) {
     }
 }
 
-// Raw strings (from the hash or the form) → { state, problems }. Missing keys get defaults quietly.
+// Raw strings (from the hash or the form) -> { state, problems }. Missing keys get defaults quietly.
 // userscript passes live trees (/device-upgrades), site gets data.js TREES
 export function clean(raw, today, trees = TREES) {
     const d = defaults(today);
@@ -155,7 +155,7 @@ export function clean(raw, today, trees = TREES) {
     return { state, problems };
 }
 
-// state → "coins=4&plots=13&…". Leaves out today's date (so shared links don't get stuck on an old week)
+// state -> "coins=4&plots=13&...". Leaves out today's date (so shared links don't get stuck on an old week)
 // and anything empty.
 export function toHash(state, today) {
     const params = new URLSearchParams();

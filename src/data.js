@@ -14,7 +14,7 @@ export const PLOT_PRICE_MAX = 10; // plot price is min(1 + bought, 10)
 export const BASE_SEEDS = 10;     // free from ratticus weekly. carrots in prep, strawberries from week 1, same numbers
 export const BASE_KINDS = { prep: "carrot", main: "strawberry" };
 export const RENT = 10;           // crops, main weeks only
-export const RENT_PAY = 20;       // coins for a whole week's rent (all 10 crops together), × m (dev, 10 Oct)
+export const RENT_PAY = 20;       // coins for a whole week's rent (all 10 crops together), * m (dev, 10 Oct)
 
 export const CROPS = {
     carrot: { buy: null, sell: 25, water: 1 }, // base seed, strawberries since week 1 (same numbers)
@@ -31,7 +31,7 @@ export const STARTING_COINS = 25;
 
 // Tree keys and node ids are Terra's own ids from /device-upgrades.
 // cost: one price, or tiers: a price per buy (limit = tiers.length)
-// totals: what you end up with: [none bought, after 1 buy, after 2, …] (from the game's tier notes)
+// totals: what you end up with: [none bought, after 1 buy, after 2, ...] (from the game's tier notes)
 // limit: 1 by default, null = no limit, { base, per } = base + how many `per` you own
 // requires: list of node ids, all needed first ([] = hangs off the device itself)
 // root, x, y: where Terra's own tree draws the device and each node (y grows downwards)

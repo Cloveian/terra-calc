@@ -3,7 +3,7 @@ import {
     MAX_PLOTS, FREE_PLOTS, PLOT_PRICE_MAX, BASE_SEEDS, RENT_PAY, CROPS,
 } from "./data.js";
 
-// coins to go from n plots to w plots: sum of min(p - 9, 10) for p = n … w-1
+// coins to go from n plots to w plots: sum of min(p - 9, 10) for p = n ... w-1
 export function plotCost(w, n) {
     let cost = 0;
     for (let p = n; p < w; p++) {
@@ -23,7 +23,7 @@ export function weekCost(w, n, a) {
     return CROPS.apple.buy * Math.max(0, k - a) + plotCost(w, n);
 }
 
-// biggest w ≤ 45 you can afford with B coins
+// biggest w <= 45 you can afford with B coins
 export function wMax(B, n, a) {
     for (let w = MAX_PLOTS; w > 0; w--) {
         if (weekCost(w, n, a) <= B) return w;

@@ -42,9 +42,9 @@ test("hoursNeeded from Prep 2", () => {
 });
 
 test("hoursNeeded matches the tables in the notes", () => {
-    // device-trees.md: Galaxy 4400 and iPad 7350 at m = 0.8 … 1.5
+    // device-trees.md: Galaxy 4400 and iPad 7350 at m = 0.8 ... 1.5
     const ms = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5];
-    // (rent pays 20 × m a week in total, dev, 10 Oct)
+    // (rent pays 20 * m a week in total, dev, 10 Oct)
     const galaxy = [26, 24, 22, 20, 19, 18, 17, 17];
     const ipad = [39, 34, 31, 29, 27, 25, 24, 22];
     const max12 = [null, null, 42, 38, 35, 33, 31, 29];

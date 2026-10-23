@@ -25,8 +25,8 @@ test("wMax", () => {
 });
 
 test("weekSales", () => {
-    assert.equal(weekSales(13, 1, true), 340); // 10 carrots × 25 + 3 apples × 30
-    assert.equal(weekSales(45, 1, false), 1070); // 20 for the 10 rent crops + 35 apples × 30
+    assert.equal(weekSales(13, 1, true), 340); // 10 carrots * 25 + 3 apples * 30
+    assert.equal(weekSales(45, 1, false), 1070); // 20 for the 10 rent crops + 35 apples * 30
     assert.equal(weekSales(45, 1.5, false), 1605);
     assert.equal(weekSales(5, 1, true), 125); // prep, only 5 carrots grown
 });
