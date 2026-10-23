@@ -10,7 +10,7 @@ What makes it feel finished, before anything new. In order:
 2. People can install and update the userscript: the built file where its update URL points, and an install bit in the README
 3. ~~Goals without the console: presets and a custom coin box in our settings section~~ done 22 Oct
 4. ~~The fallback, when reading Terra fails you type the numbers in by hand (Plumbing)~~ done 22 Oct
-5. One go through everything in the real game: the settings section, the tags' new look, ticking, bonus seeds
+5. One go through everything in the real game: the settings section, the tags' new look, ticking, bonus seeds, and the new stuff: the sell step and goal bar (open the market once), the shop badges and the "Buy this?" line (tick them on first), the last week line on a monday
 6. Site: ~~the week table scrolls sideways around 1280 px~~ done 22 Oct, and bok choy and eggplant need their own icons (i have to draw those)
 
 ## Fills itself in (reading only)
@@ -26,7 +26,7 @@ What makes it feel finished, before anything new. In order:
 - [x] Your water pool (`player.currency` `water`, it's your devlogged credited hours minus what you've watered with, decimals and all)
 - [x] Hours not devlogged yet, `hours.update`'s `unclaimed`
 - [x] How much water each planted crop still needs (`waterRequired` - `waterApplied`)
-- [ ] Plot prices read from the shop instead of the formula, with a warning if they don't match
+- [ ] Plot prices read from the shop instead of the formula, with a warning if they don't match. Half there: the shop's next plot price gives your plot count (under 19), and one that doesn't match the formula only goes to the debug log, cuz an old farm count looks the same as a wrong price
 - [ ] A "Terra updated" notice when `version.json`'s build id changes (maybe but probably just if something doesnt work)
 
 ## Planning
