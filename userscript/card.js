@@ -253,12 +253,11 @@ function baseSeedName({ baseKinds }, t) {
     return `${kinds.join(" or ")} seed`;
 }
 
-// "eggplant seed"
 function seedName(id, plan) {
     return `${cropName(id, plan.crops)} seed`;
 }
 
-// "bok choy", todays shop name if its there, then CROPS, then the id (apples have no name)
+// todays shop name if its selling it, then CROPS, then the id (apples have no name)
 function cropName(id, crops) {
     return (crops?.[id]?.name ?? CROPS[id]?.name ?? id).toLowerCase();
 }
@@ -315,7 +314,7 @@ function cropKinds(crops) {
     return ` (${[...counts].map(([name, n]) => `${n} ${name}`).join(", ")})`;
 }
 
-// " (1d 4h left)" to plant n water, once the seeds die in under DEADLINE_SOON. ticked steps and plans without seeds get nothing
+// time left to plant n water before the first seeds die, once under DEADLINE_SOON. ticked steps and plans without seeds get nothing
 function deadline(plan, now, step) {
     const left = (plan.inventory.seedsDie ?? Infinity) - now;
     if (step.done || !(left > 0 && left < DEADLINE_SOON)) return "";

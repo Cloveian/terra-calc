@@ -174,7 +174,7 @@ export function toHash(state, today) {
     return params.toString().replaceAll("%3A", ":").replaceAll("%2C", ",");
 }
 
-// Is the + button allowed? (used by the UI, here so it's tested)
+// Is the + button allowed?
 export function canAdd(tree, selection, id) {
     return (selection[id] ?? 0) < limitOf(byId(tree, id), selection);
 }
