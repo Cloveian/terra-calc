@@ -53,8 +53,6 @@ const game = {
 
 // cleaned against live trees every plan(), null = rent week
 let savedGoal = loadMine(GOAL_KEY);
-let treeBits = null; // set in plan(), for drawWantBits
-let shopBits = null; // and drawShopBadges
 let savedSteps = loadMine(STEPS_KEY); // week checklist as it first came out, for the ticks
 let weekNote = loadMine(WEEK_KEY); // from noteWeek, next week says how this one went
 
@@ -175,13 +173,20 @@ async function readRest() {
 }
 
 function draw() {
-    const parts = plan();
+    const { parts, tags, badges, problems, keep } = plan();
+    if (keep) keepWeek(keep);
+    for (const problem of problems) showNotice(`Your goal changed: ${problem}`);
     drawCard(parts);
     drawHud(onOwnFarm());
-    drawWantBits(treeBits);
-    // card's buy steps, { eggplant: 12 }, shop says the same. null without farm or target
-    const toBuy = parts?.farm && parts.target && Object.fromEntries(parts.steps.filter((step) => step.do === "buySeeds" && !step.done).map((step) => [step.seed, step.n]));
-    drawShopBadges({ ...shopBits, toBuy });
+    drawWantBits(tags);
+    drawShopBadges({ ...badges, toBuy: seedsToBuy(parts) });
+}
+
+// the card's own buy steps, { eggplant: 12 }, so the shop says the same. null with no farm or target
+function seedsToBuy(parts) {
+    if (!parts?.farm || !parts.target) return null;
+    const buying = parts.steps.filter((step) => step.do === "buySeeds" && !step.done);
+    return Object.fromEntries(buying.map((step) => [step.seed, step.n]));
 }
 
 // + or - from terra's tree. picking on another device moves the goal there. taking out what other picks need asks first (DIY takes the whole Framework 13 path)
@@ -329,17 +334,20 @@ function plotsNow() {
     return farm?.plots ?? null;
 }
 
-// steps with done ones ticked off (tickSteps), saved so a reload keeps the ticks
+// steps with done ones ticked off (tickSteps). saved = the list to keep, null for nothing to keep
 function weekSteps(steps, w) {
     const weekKey = game.hours?.weekKey;
     // no farm (no steps) or no week key would look like everything got done
     // w null while messages still come in after a reload, ticking then threw the saved list away
-    if (!game.farm || !weekKey || w === null) return steps;
+    if (!game.farm || !weekKey || w === null) return { steps, saved: null };
+    return tickSteps(savedSteps, steps, weekKey, w);
+}
+
+// ticks n week note plan() handed back, saved here so terraCalc.plan() writes nothing
+function keepWeek({ weekKey, w, saved, ended }) {
     // past week end the plan is next weeks already, weekKey stays old untill hours.update
-    if (!(Date.now() > Date.parse(game.currentWeek?.endDate ?? ""))) noteThisWeek(weekKey, { w });
-    const ticked = tickSteps(savedSteps, steps, weekKey, w);
-    savedSteps = saveChanged(STEPS_KEY, savedSteps, ticked.saved);
-    return ticked.steps;
+    if (!ended) noteThisWeek(weekKey, { w });
+    savedSteps = saveChanged(STEPS_KEY, savedSteps, saved);
 }
 
 // farm, goal n week steps, saved with owner id. other acounts on this browser get nothing
@@ -368,13 +376,39 @@ function typedInventory(typed) {
     };
 }
 
-// everthing card needs, fill.js reads + saved goal
-function plan() {
-    // typed once the games came in unreadable or nothing came by TYPED_AFTER. sooner and old typed coins flash up while the page loads
+// game coins n bag, or what i typed when those cant be read
+function inventoryNow() {
     const read = inventoryFrom(game.currency, game.inventory);
+    // came in n unreadable (broken reader), or nothing for TYPED_AFTER (broken hook). sooner its just loading n old typed coins flashed up in the card
     const waited = (game.currency && game.inventory) || performance.now() >= TYPED_AFTER;
-    const inventory = read ?? (waited ? typedInventory(settings.typed) : null);
-    // mine beats the games, for "what if i get 1.3" planning
+    return read ?? (waited ? typedInventory(settings.typed) : null);
+}
+
+// heidi's seeds, todays only (dateKey is the US eastern day like easternDay), none till the shop's been open
+function shopNow() {
+    const today = game.shop?.dateKey === easternDay(new Date());
+    const seeds = today ? game.shop.seeds : [];
+    const crops = Object.fromEntries(seeds.map(({ id, buy, sell, water }) => [id, { buy, sell, water }]));
+    return {
+        today,
+        seeds,
+        crops,
+        table: { ...CROPS, ...crops },
+        // any days sell price does, a ready crop can be from an older shop
+        sellTable: { ...CROPS, ...Object.fromEntries((game.shop?.seeds ?? []).map(({ id, sell }) => [id, { sell }])) },
+    };
+}
+
+// grown n not sold, market list + ready ones since
+function sellingNow(inventory, m, sellTable) {
+    const forSale = game.sold ? null : forSaleFrom(game.marketItems);
+    return toSell([...readyIds(game.farm), ...game.harvested], forSale, m, inventory, sellTable);
+}
+
+// what card, want tags n shop badges need, fill.js reads + saved goal. draw() keeps n draws it
+function plan() {
+    const inventory = inventoryNow();
+    // yours beats the game's, it's for "what if i get 1.3" planning
     const mRead = settings.m ?? multiplyerFrom(game.marketItems);
     const m = mRead ?? M_GUESS;
     const stuck = game.farm && stuckFrom(game.farm, game.hours?.weekKey);
@@ -389,39 +423,48 @@ function plan() {
     const trees = treesFrom(game.deviceUpgrades);
     const owned = ownedFrom(game.deviceUpgrades);
     // own is per goal device, maybe not my main one
-    const goal = cleanGoal(savedGoal, trees, owned);
-    const coinsGoal = goal && goalCoins(goal.goal, trees, goal.own);
-    // bonus seeds for this weeks mix, heidi's shop + mine (bag or planted this week). shop ones are today only, its dateKey is the US Eastern day like easternDay
-    const shopToday = game.shop?.dateKey === easternDay(new Date());
-    const shopSeeds = shopToday ? game.shop.seeds : [];
-    // by id, for the maths n card names
-    const crops = Object.fromEntries(shopSeeds.map(({ id, ...crop }) => [id, crop]));
-    const table = { ...CROPS, ...crops };
-    // apples aren't in shopSeeds, they're always there
-    shopBits = { m, seeds: [{ id: "apple", name: "Apple", ...CROPS.apple }, ...shopSeeds] };
-    // ready crops are from older shops, any days sell price does
-    const sellTable = { ...CROPS, ...Object.fromEntries((game.shop?.seeds ?? []).map(({ id, sell }) => [id, { sell }])) };
-    const selling = inventory && toSell(
-        [...readyIds(game.farm), ...game.harvested], game.sold ? null : forSaleFrom(game.marketItems), m, inventory, sellTable,
-    );
+    const cleaned = cleanGoal(savedGoal, trees, owned);
+    const picked = cleaned?.goal ?? null;
+    const coinsGoal = cleaned && goalCoins(picked, trees, cleaned.own);
+    const shop = shopNow();
+    const selling = inventory && sellingNow(inventory, m, shop.sellTable);
     const start = t !== null && plots !== null
         ? routeState(inventory, plots, game.farm, game.hours?.weekKey, selling.coins)
         : null;
+    // bonus seeds for this weeks mix, the shops + mine (bag or planted)
     const thisWeek = inventory && {
-        seeds: shopSeeds.map((seed) => seed.id),
+        seeds: shop.seeds.map((seed) => seed.id),
         onHand: bonusOnHand(inventory, game.farm, game.hours?.weekKey),
-        crops,
+        crops: shop.crops,
     };
     const target = start && weekTarget(start, t, coinsGoal, m, thisWeek);
-    for (const problem of goal?.problems ?? []) showNotice(`Your goal changed: ${problem}`);
-    const rows = goal && target
-        ? rowHours(start, t, milestones(target.route, goalItems(goal.goal, trees, goal.own)), m, thisWeek)
-        : [];
-    // set even if plan comes back null, can pick before farm loads
-    treeBits = {
+    let rows = [];
+    if (cleaned && target) {
+        const picks = milestones(target.route, goalItems(picked, trees, cleaned.own));
+        rows = rowHours(start, t, picks, m, thisWeek);
+    }
+    const tags = {
         trees, owned, milestones: rows,
-        goal: goal && { device: goal.goal.device, want: goal.goal.want, own: goal.own, prio: goal.goal.prio },
+        goal: cleaned && { device: picked.device, want: picked.want, own: cleaned.own, prio: picked.prio },
     };
+    // apples aren't in shop.seeds, they're always there
+    const badges = { m, seeds: [{ id: "apple", name: "Apple", ...CROPS.apple }, ...shop.seeds] };
+    const weekEnds = Date.parse(game.currentWeek?.endDate ?? "") || null;
+    const w = target?.w ?? null;
+    const ticked = weekSteps(stepsFrom({
+        farm: game.farm,
+        inventory,
+        stuck,
+        loans,
+        weekKey: game.hours?.weekKey,
+        // coded but not devlogged, it's not water till it is
+        unclaimed: (game.hours?.unclaimed?.creditedSeconds ?? 0) / 3600,
+        w,
+        mix: target?.mix ?? null,
+        table: shop.table,
+        shopToday: shop.today,
+        selling,
+    }), w);
     const parts = {
         trees,
         owned,
@@ -431,39 +474,29 @@ function plan() {
         selling,
         m,
         mGuessed: mRead === null,
-        // ms, for h a day on code step n when last week endded
-        weekEnds: Date.parse(game.currentWeek?.endDate ?? "") || null,
+        // ms, for the h a day on the code step and when last week ended
+        weekEnds,
         // week before this one, null if not seen or no hours yet
         lastWeek: weekNote && weekNote.weekKey === game.hours?.weekKey ? weekNote.last : null,
         loans,
         farm: game.farm,
         stuck,
         target,
-        crops,
+        // today's bonus seeds by id, { eggplant: { name, buy, sell, water } }, for the mix's names
+        crops: Object.fromEntries(shop.seeds.map(({ id, ...crop }) => [id, crop])),
         // for card goal lines, null = rent week
         goal: coinsGoal === null ? null : {
-            device: trees[goal.goal.device].device,
+            device: trees[picked.device].device,
             coins: coinsGoal,
-            custom: goal.goal.goal !== null,
+            custom: picked.goal !== null,
             milestones: rows,
         },
-        steps: weekSteps(stepsFrom({
-            farm: game.farm,
-            inventory,
-            stuck,
-            loans,
-            weekKey: game.hours?.weekKey,
-            // coded but not devlogged yet, no water till then
-            unclaimed: (game.hours?.unclaimed?.creditedSeconds ?? 0) / 3600,
-            w: target?.w ?? null,
-            mix: target?.mix ?? null,
-            table,
-            shopToday,
-            selling,
-        }), target?.w ?? null),
+        steps: ticked.steps,
     };
     const missing = Object.keys(parts).filter((key) => parts[key] === null);
     debug("plan", missing.length > 0 ? `missing ${missing.join(", ")}` : "has everything", parts);
-    if (missing.some((key) => !OPTIONAL.has(key))) return null;
-    return parts;
+    const enough = !missing.some((key) => !OPTIONAL.has(key));
+    const ended = weekEnds !== null && Date.now() > weekEnds;
+    const keep = ticked.saved && { weekKey: game.hours.weekKey, w, saved: ticked.saved, ended };
+    return { parts: enough ? parts : null, tags, badges, problems: cleaned?.problems ?? [], keep };
 }

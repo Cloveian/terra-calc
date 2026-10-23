@@ -216,7 +216,7 @@ function setFolded(on) {
     cardBit.redraw();
 }
 
-// coins, plots and m left out, the steps already use them (terraCalc.plan() has em all). one detail can be the goal bar
+// coins, plots and m left out, the steps already use them (terraCalc.plan().parts has em all). one detail can be the goal bar
 export function cardFor(plan, now = Date.now()) {
     const { loans, farm, stuck, target, steps, goal, inventory } = plan;
     // ticked ones still count for the indent, list doesnt jump around
