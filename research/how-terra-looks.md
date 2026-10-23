@@ -149,6 +149,15 @@ In ban. `_backing_` is `#c7793c` with a `5px solid #462114` border and `1.8em` r
 
 Our tag right now (`#fffbe8`, a green `#6a9a3a` border, sans-serif) is the opposite of all of that lol. The nearest thing Terra has is the badge, so a tag in the badge's colours under the node would match without looking like part of Terra's own badge.
 
+### Heidi's shop
+
+`SeedMenuUI-*.css`. Each thing for sale is one `button._item_` on the `_itemShelf_`, 29% wide and 44% tall, with the sprite on the front and a `_priceTag_` on the back (`strong` name, `p._price_` "N coins", a "Click again to buy" hint). The first click flips it with `rotateY` (`data-selected=true`), the second buys. No id or itemId on the row, the name is the only thing to match by (the `strong`, or the button's `aria-label`, "Inspect {name}, N coins", which turns into "Buy ..." once it's flipped). Two gotchas for hanging stuff on it:
+
+- `._itemShelf_ button div` gets `width: 0; height: 0; font-size: 0`, so anything of ours inside a row has to be a `span`
+- the shop re-requests stock every 30 s and every row gets rebuilt, so whatever's in them has to go back on
+
+Our "36/h, buy 12" badge is a span in the bottom right of the button, `#5a3a1a` on `#ffe0a3` with a `2px solid #93582c` border. The "Buy this?" before a purchase is the framed modal from up top, and its css is a lazy chunk that loads after ours, so our own red line in it needs `p.` on the selector to beat `_message_`'s `#5c3310`.
+
 ## Buttons
 
 | Kind | Recipe | Where |

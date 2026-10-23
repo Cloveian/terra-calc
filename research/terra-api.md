@@ -178,9 +178,29 @@ The game hides `inventory.sync` items whose `weekNumber` isn't in `usableWeeks`.
    - `price_changed` (comes with the new `priceCoins`, and stock is refreshed)
 5. `shop.requestStock {}` refreshes (the game sends it every 30 s while the shop is open), `shop.close {}` closes it.
 
+Before a purchase the game asks first with its ConfirmDialog, titled "Buy this?", with the message "Buy {name} for {priceCoins} coins? You'll have N left." and the buttons "Not yet" / "Buy". It skips asking when your coins are under the price, sends `shop.purchase` anyway and gets `insufficient_funds`. Going by the code that also leaves its "buying right now" flag stuck (it only resets after the dialog), so every Buy after that does nothing till you reopen the shop. Not seen in the game yet.
+
 `shop.purchase` buys **one** entry. Buying 25 seeds means 25 purchases, one after another, each with its own `requestId`. `expectedPriceCoins` matters for plots: they get dearer with each one, so a stale price comes back as `price_changed` rather than charging more.
 
 The shop is opened from Heidi's dialogue (`npcId` + `nodeId`), so the server might only take `shop.purchase` while you're talking to her. Not tested.
+
+On the client the shop window only opens one way: the dialogue's `seed_menu` choice sets a plain closure flag and sends `npc.openShop`, and the `shop.stock` that comes back opens it. No window event or hook gets to that flag, so a script can't open Heidi's window, sending `npc.openShop` itself doesn't either. A `shop.stock` that comes in while the shop's closed and no `seed_menu` is pending is ignored completely (no window, no "isn't available" toast), so a script can send `shop.requestStock {}` and read the reply quietly, if the server answers it away from Heidi (untested). `room.onMessage` stacks handlers, so ours can sit next to the game's.
+
+### Window events the game listens for
+
+`window.dispatchEvent(new CustomEvent(name, { detail }))` from anywhere:
+
+| Event | What it does |
+|-|-|
+| `open_device_upgrades` | the device tree |
+| `open_projects_panel` | the side panel, on the inventory tab (despite the name) |
+| `open_devlog_terminal` | the devlog terminal |
+| `open_battle_dome` | the battle dome |
+| `open_referrals` | the referrals panel |
+| `visit_farm` | travels to `detail.userId`'s farm, your own with no `userId`. Closes whatever's open first (dialogue, panels, the shop) |
+| `join_friend` | sends `friend.join { userId }` with `detail.userId` |
+
+The `open_*` ones close any dialogue first. `open_encyclopedia` gets fired by the game but nothing listens for it.
 
 ### Selling crops (market)
 

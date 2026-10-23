@@ -80,7 +80,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 
 What the game sends to buy, water and plant is captured now: `shop.purchase { stockEntryId, requestId, expectedPriceCoins }` buys, `farm.interact { farmItemId }` waters a crop all the way in one go (an eggplant takes both its water at once), and `farm.place { inventoryItemId }` plants where your player's standing, so planting stays by hand. The game encodes what it sends as msgpackr records, so sending has to match that. Terra only ever sends `farm.interact` for the crop you're standing next to tho, so whether the server takes one from across the farm is a test-it-and-see thing.
 
-- [ ] Open Heidi's shop from anywhere, not just at her stall
+- [ ] Open Heidi's shop from anywhere, not just at her stall. Her window can't be opened by a script (it only opens from her dialogue), so this would be our own shop window, with stock from `shop.requestStock` and buying through `shop.purchase`, if the server takes those away from her
 - [ ] "Buy this week's plots" through `shop.purchase`
 - [ ] "Buy this week's seeds", the mix the plan picked
 - [ ] "Water everything planted" through `farm.interact`
