@@ -440,16 +440,21 @@ button {
     font-variant-numeric: tabular-nums;
 }
 
+/* headers wrap ("Start / coins") so columns are only as wide as their numbers, fits the table in half the page at 1280 px */
 #route th {
     color: var(--ink-muted);
     font-weight: 600;
+    vertical-align: bottom;
 }
 
 #route td, #route th {
-    padding: 0.35rem 0.6rem;
-    white-space: nowrap;
+    padding: 0.35rem 0.45rem;
     border: none;
     background: none;
+}
+
+#route td {
+    white-space: nowrap;
 }
 
 /* numbers line up on the right, names on the left */

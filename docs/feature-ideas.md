@@ -11,7 +11,7 @@ What makes it feel finished, before anything new. In order:
 3. ~~Goals without the console: presets and a custom coin box in our settings section~~ done 22 Oct
 4. ~~The fallback, when reading Terra fails you type the numbers in by hand (Plumbing)~~ done 22 Oct
 5. One go through everything in the real game: the settings section, the tags' new look, ticking, bonus seeds
-6. Site: the week table scrolls sideways around 1280 px, and bok choy and eggplant need their own icons
+6. Site: ~~the week table scrolls sideways around 1280 px~~ done 22 Oct, and bok choy and eggplant need their own icons (i have to draw those)
 
 ## Fills itself in (reading only)
 
