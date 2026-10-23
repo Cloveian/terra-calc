@@ -54,14 +54,12 @@ const CARD_CSS = `[data-terra-calc] > :not(.${BLOCK}):not([class*="_objectiveCou
 .${BLOCK} .terra-calc-bar > :last-child { opacity: 0.45 }`;
 
 let redrawCard = null; // from watchPage
-let pickGoal = null;
 let lastPlan = null;
 let notices = [];
 
-// watched cuz the body only exists while the card's open, rebuilt every expand. pickGoal opens terra's tree
-export function mountCard(onPickGoal) {
+// watched cuz the body only exists while the card's open, rebuilt every expand
+export function mountCard() {
     if (redrawCard) return;
-    pickGoal = onPickGoal;
     const style = document.createElement("style");
     style.textContent = CARD_CSS;
     document.head.append(style);
@@ -197,14 +195,10 @@ function drawBlock(block, { tasks, details }) {
         row.append(box, label);
         return row;
     });
-    // only off my own farm, there it just drops me back at the dock
-    const island = lastPlan && !lastPlan.onFarm ? [link("go to your island", goToIsland)] : [];
     block.replaceChildren(
         ...rows,
         ...notices.map((text) => detail(text, "terra-calc-notice")),
         ...details.map((item) => (typeof item === "string" ? detail(item) : drawBar(detail(""), item.bar))),
-        link("pick your goal", () => pickGoal?.()),
-        ...island,
         link("hide Terra Calc", () => setFolded(true)),
     );
 }
@@ -240,11 +234,6 @@ function setFolded(on) {
         // not saved, it unfolds again next load
     }
     redrawCard?.();
-}
-
-// same event as friends list "visit their farm", no user = my own
-function goToIsland() {
-    window.dispatchEvent(new CustomEvent("visit_farm"));
 }
 
 // coins, plots and m left out, the steps already use them (terraCalc.plan() has em all). one detail can be the goal bar

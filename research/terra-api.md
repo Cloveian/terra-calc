@@ -202,6 +202,12 @@ On the client the shop window only opens one way: the dialogue's `seed_menu` cho
 
 The `open_*` ones close any dialogue first. `open_encyclopedia` gets fired by the game but nothing listens for it.
 
+### Getting to the hub
+
+The hub is the level `town-square` (the room's still called `world`). Nothing sends you there from outside the game. Each level's JSON has `exitZones`, and the farm island's is `{"id":"farm_exit_town","x":-7.4042,"z":0.8543,"width":2,"depth":2,"targetLevelId":"town-square","targetSpawnTag":"Island return"}`, by the dock. The renderer checks your position against them every frame and walking into one does `transitionToLevel(level, spawnTag)`, which is a fresh matchmake (`joinOrCreate("world", { token, levelId, spawnTag, farmOwnerId, fromSessionId })`) and then leaving the old room, no `room.send` at all. `visit_farm` is the same join with `farm-island`, `dock` and a `farmOwnerId`. The renderer and network client aren't on `window` anywhere.
+
+What a script *can* get at: `transitionToLevel` saves `localStorage.lastLevelId`, and on load the game joins `lastLevelId || "town-square"`. So setting it to `town-square` and reloading lands you at the hub, at its default spawn and not by the dock (no spawnTag on a fresh load).
+
 ### Selling crops (market)
 
 1. Talking to the market NPC -> `market.request {}`

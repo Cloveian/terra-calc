@@ -4,6 +4,8 @@ export const API_BASE = "https://api.terra.hackclub.com";
 export const VERSION_URL = "https://terra.hackclub.com/version.json";
 export const GAME_HOST = "game.terra.hackclub.com";
 export const TOKEN_KEY = "terra_auth_token"; // in localStorage
+export const LEVEL_KEY = "lastLevelId"; // localStorage too, level a reload joins
+export const HUB_LEVEL = "town-square"; // its room is "world"
 
 export const REST = {
     deviceUpgrades: "/device-upgrades",

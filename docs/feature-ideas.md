@@ -86,11 +86,14 @@ What the game sends to buy, water and plant is captured now: `shop.purchase { st
 - [ ] "Water everything planted" through `farm.interact`
 - [ ] "Buy next upgrade" through `/device-upgrades/purchase`
 - [ ] A "sell all crops" button in the market
-- [x] "Go to your island" from anywhere, a link on the This Week card. It fires the game's own `visit_farm` window event (the friends list's "visit their farm"), with no user in it, that's your own farm. Not tried in the real game yet
+- [x] "Go to your island" from anywhere, a round button under Terra's map. It fires the game's own `visit_farm` window event (the friends list's "visit their farm"), with no user in it, that's your own farm
+- [x] On your island the same button goes to the hub instead. The game only goes there when you walk onto the dock, and nothing outside it can reach that, so it sets the level the game loads into (`lastLevelId`) and reloads. You land at the hub's spawn, not the dock. Neither one's been tried in the real game yet
+- [x] "Pick your goal", the round button under that one (it was a link on the card)
+- [ ] Art for the three round buttons, they've got a word in them for now
 
 ## Inside Terra's pages
 
-- [ ] A "what to do next" panel with the plan and the buttons above (the plan half's done, it's Terra's own This Week card now, go to your island's on it too, the rest of the buttons still to come)
+- [ ] A "what to do next" panel with the plan and the buttons above (the plan half's done, it's Terra's own This Week card now, island / hub and goal are buttons under the map, the rest of the buttons still to come)
 - [x] Pick your goal on Terra's own device tree: want / wanted, steppers for RAM, SSD and the cards, prerequisites come along
 - [x] Asks first when a click would take other picks out, or move your goal to another device
 - [x] The steps nested under what they wait on, ticked off when they're done, and the h a day on the code step

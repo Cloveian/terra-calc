@@ -4,11 +4,12 @@ import { cssModule, watchPage } from "./page.js";
 
 const KEY = "terra-calc-settings"; // in terra's localStorage
 
-// mostly off by default (buttons spend coins)
+// off by default except reading, card n hud. buy n sell buttons spend coins
 export const FEATURES = {
     fill: { name: "Fill in from the game", on: true },
     // still panel, its the key in everyones saved settings
     panel: { name: "Steps in the This Week card", on: true },
+    hud: { name: "Island and goal buttons under the map", on: true },
     seedBadges: { name: "Coins an hour and how many to buy in Heidi's shop", on: false },
     buttons: { name: "Buy and sell buttons", on: false },
     debug: { name: "Log everything to the console", on: false },
@@ -58,9 +59,9 @@ export function saveSettings(settings) {
 const OUR_SECTION = "terra-calc-settings";
 
 // the ones that do something yet, rest of FEATURES are still ideas
-const SHOWN = ["fill", "panel", "seedBadges", "debug"];
+const SHOWN = ["fill", "panel", "hud", "seedBadges", "debug"];
 // hooked up at page load
-const NEEDS_RELOAD = ["fill", "panel", "seedBadges"];
+const NEEDS_RELOAD = ["fill", "panel", "hud", "seedBadges"];
 
 let onSettings = null;
 let current = null;

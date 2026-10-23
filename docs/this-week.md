@@ -114,7 +114,7 @@ This Week                                     ▼
 ○ code 28.3 h  (11h 47m done)
    ○ ship this week's project so the 40 grow
   Framework 13 by Week 9, RAM 16GB Week 4     <- objectiveDetail style
-  pick your goal                              <- link
+  hide Terra Calc                             <- link
 ```
 
 What waits on what, a table in next.js next to the steps (the steps' own `requires`, like the tree's):

@@ -20,7 +20,7 @@ That's what the game itself does when you use the upgrade thing on the map (`Gam
 
 | Decision | What it does |
 | --- | --- |
-| The button | "pick your goal" in the panel. Fires the event, nothing else |
+| The button | "Goal", round, under Terra's map. Fires the event, nothing else |
 | When the game opens the tree itself | Same Want bits show up, it doesn't matter who opened it |
 | Spotting that it's open | A `MutationObserver` on `document.body`, now the one shared one in `page.js` (`watchPage`), and the tags just look for `[data-node]` cards each time |
 | Off the farm / in town | Should still work, the listener is on `window` for the whole game, not per room. Needs checking |

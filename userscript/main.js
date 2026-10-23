@@ -13,6 +13,7 @@ import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, re
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { mountShopBadges, drawShopBadges } from "./shop.js";
+import { mountHud, drawHud } from "./hud.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, LAST_WEEK } from "../src/week.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
@@ -130,7 +131,7 @@ onGameMessage(ROOM.joined, ({ decoder }) => {
 onGameMessage(IN.joinComplete, (body) => {
     game.farmOwnerId = body?.farmOwnerId ?? null;
     readFarm();
-    // readFarm only draws on my own farm, leaving it changes the card too (island link)
+    // readFarm only draws on my own farm, leaving it flips the island / hub button too
     draw();
 });
 onGameMessage(ROOM.state, ({ state, touched }) => {
@@ -150,7 +151,8 @@ async function start() {
         setDebug(settings.debug);
         draw();
     }, goalHooks);
-    if (settings.panel) mountCard(openTree);
+    if (settings.panel) mountCard();
+    if (settings.hud) mountHud(openTree);
     if (!settings.fill) return drawCard(null);
     mountWantBits(pickWant, pickPrio);
     if (settings.seedBadges) mountShopBadges();
@@ -177,6 +179,7 @@ async function readRest() {
 function draw() {
     const parts = plan();
     drawCard(parts);
+    drawHud(onOwnFarm());
     drawWantBits(treeBits);
     // card's buy steps, { eggplant: 12 }, shop says the same. null without farm or target
     const toBuy = parts?.farm && parts.target && Object.fromEntries(parts.steps.filter((step) => step.do === "buySeeds" && !step.done).map((step) => [step.seed, step.n]));
@@ -277,6 +280,11 @@ function changed(key, body) {
 
 function myId() {
     return userIdFromToken(localStorage.getItem(TOKEN_KEY));
+}
+
+// myId() null without a readable token
+function onOwnFarm() {
+    return game.farmOwnerId !== null && game.farmOwnerId === myId();
 }
 
 // readyIds from last farm read. this session only, saved farm could be from befor i sold somewhere else
@@ -434,8 +442,6 @@ function plan() {
         weekEnds: Date.parse(game.currentWeek?.endDate ?? "") || null,
         // week before this one, null if not seen or no hours yet
         lastWeek: weekNote && weekNote.weekKey === game.hours?.weekKey ? weekNote.last : null,
-        // myId() null without a readable token
-        onFarm: game.farmOwnerId !== null && game.farmOwnerId === myId(),
         loans,
         farm: game.farm,
         stuck,
