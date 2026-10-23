@@ -96,10 +96,28 @@ test("a goal you can't reach says the best you'd get, one you can buy now says t
     assert.ok(far.includes("can't get all of it even at 45 h, best is 11685 coins"));
     const now = cardFor({
         ...base, target: { w: 10, cap: 10, reachable: true, out: false, route },
-        goal: { device: "iPad Mini", coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, now: true, week: null }] },
+        goal: { device: "iPad Mini", coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, total: 750, now: true, week: null }] },
     }, NOW).details;
     assert.ok(now.includes("goal: 750 coins (iPad Mini), 0 to go"));
     assert.ok(now.includes("you can buy all of it now"));
+});
+
+test("crops waiting to sell come off what's to go, and get a sell step", () => {
+    const plan = {
+        t: 3, inventory: { coins: 500, plots: 20, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: null, stuck: null,
+        target: { w: 10, cap: 10, reachable: true, out: false, route: [{ endCoins: 900 }] },
+        selling: { crops: 10, coins: 300 },
+        goal: { device: "iPad Mini", coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, total: 750, now: true, week: null }] },
+        steps: [{ do: "harvest", n: 4 }, { do: "sell", n: 10, coins: 300 }, { do: "buyPlots", n: 2 }],
+    };
+    const { tasks, details } = cardFor(plan, NOW);
+    assert.ok(details.includes("goal: 750 coins (iPad Mini), 0 to go once you sell your crops"));
+    assert.ok(details.includes("you can buy all of it once you sell your crops"));
+    assert.deepEqual(tasks.slice(0, 3).map(({ text, depth }) => [text, depth]), [
+        ["harvest 4", 0],
+        ["sell 10 crops at the market for about 300 coins", 1],
+        ["buy 2 plots from Heidi", 2],
+    ]);
 });
 
 test("short on hours just says so, the devlog step says what to do", () => {

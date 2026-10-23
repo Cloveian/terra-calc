@@ -21,6 +21,7 @@ const WHY_LINES = {
 const STEP_LINES = {
     clear: (n) => `clear ${n} withered`,
     harvest: (n) => `harvest ${n}`,
+    sell: (n, plan, now, step) => `sell ${some(n, "crop")} at the market${step.coins > 0 ? ` for about ${some(step.coins, "coin")}` : ""}`,
     reship: (n) => `reship last week's project, ${n} waiting on changes`,
     devlog: (n) => `devlog and reship last week's project, ${n} short on hours`,
     buyPlots: (n) => `buy ${some(n, "plot")} from Heidi`,
@@ -250,7 +251,7 @@ export function cardFor(plan, now = Date.now()) {
         details.push(`${these.length} ${WHY_LINES[why] ?? `stuck (${why})`}${cropKinds(these)}`);
     }
     if (loans > 0) details.push(`${some(loans, "loan plot")} from Ratticus, he takes them back when you harvest the stuck crops`);
-    if (goal) details.push(...goalLines(goal, target, inventory.coins));
+    if (goal) details.push(...goalLines(goal, target, inventory.coins, plan.selling?.coins ?? 0));
     // only once its old enough to throw the steps off
     if (farm?.seenAt && now - farm.seenAt >= FARM_OLD) details.push(`(farm as of ${ago(now - farm.seenAt)})`);
     return { tasks, details };
@@ -274,14 +275,16 @@ function cropName(id, crops) {
 }
 
 // "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)
-function goalLines(goal, target, coins) {
-    const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins))} to go`];
+// selling = coins unsold crops bring, already in route so "now" can mean after selling
+function goalLines(goal, target, coins, selling = 0) {
+    const later = selling > 0 && coins < goal.coins ? " once you sell your crops" : "";
+    const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins - selling))} to go${later}`];
     if (target?.reachable === false) {
         lines.push(`can't get all of it even at 45 h, best is ${Math.floor(target.route.at(-1).endCoins)} coins`);
     }
     const picks = goal.milestones;
     const next = picks.find((pick) => !pick.now);
-    if (picks.length > 0 && !next) lines.push("you can buy all of it now");
+    if (picks.length > 0 && !next) lines.push(`you can buy all of it ${coins >= picks.at(-1).total ? "now" : "once you sell your crops"}`);
     if (next) lines.push(`next pick: ${pickName(next)} ${when(next)}`);
     if (next && next !== picks.at(-1)) lines.push(`all of it ${when(picks.at(-1))}`);
     return lines;

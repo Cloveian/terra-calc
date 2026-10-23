@@ -7,9 +7,9 @@ import { setDebug, debug } from "./debug.js";
 import { mountCard, drawCard, showNotice } from "./card.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
-    shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom,
+    shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom, forSaleFrom,
 } from "./fill.js";
-import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand } from "./next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, readyIds, toSell } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { milestones } from "../src/route.js";
@@ -37,6 +37,8 @@ const game = {
     currency: null,
     inventory: null,
     marketItems: null,
+    sold: false, // sold since marketItems came, its crops are gone (m off it still good)
+    harvested: [], // ready ones harvested since marketItems, in market but not its list yet
     hours: null,
     shop: loadMine(SHOP_KEY), // shopFrom + seedsFrom, last time heidi's shop was open
     farmOwnerId: null, // whose farm this room is (joinComplete)
@@ -73,7 +75,16 @@ window.terraCalc = {
 hookWebSocket();
 onGameMessage(IN.currency, (body) => changed("currency", body));
 onGameMessage(IN.inventory, (body) => changed("inventory", body));
-onGameMessage(IN.marketItems, (body) => changed("marketItems", body));
+onGameMessage(IN.marketItems, (body) => {
+    game.sold = false;
+    game.harvested = [];
+    changed("marketItems", body);
+});
+onGameMessage(IN.saleResult, () => {
+    game.sold = true;
+    game.harvested = [];
+    draw();
+});
 onGameMessage(IN.hours, (body) => {
     const before = game.hours?.weekKey;
     changed("hours", body);
@@ -251,11 +262,27 @@ function myId() {
     return userIdFromToken(localStorage.getItem(TOKEN_KEY));
 }
 
+// readyIds from last farm read. this session only, saved farm could be from befor i sold somewhere else
+let readyBefore = null;
+
+function count(list, id) {
+    return list.filter((x) => x === id).length;
+}
+
 // my farm out of this room, kept and saved only if its really mine
 function readFarm() {
     if (!game.farmReadable) return;
     const farm = farmFrom(game.roomState, game.farmOwnerId, myId());
     if (!farm) return;
+    // ready ones gone since last read got harvested, no other way off the farm
+    const ready = readyIds(farm);
+    if (readyBefore) {
+        for (const id of new Set(readyBefore)) {
+            const gone = count(readyBefore, id) - count(ready, id);
+            for (let i = 0; i < gone; i++) game.harvested.push(id);
+        }
+    }
+    readyBefore = ready;
     game.farm = { ...farm, seenAt: Date.now() };
     saveMine(FARM_KEY, game.farm);
     debug("farm", { plots: farm.plots, empty: farm.empty, stuck: stuckFrom(farm, game.hours?.weekKey) });
@@ -343,12 +370,20 @@ function plan() {
     // own is per goal device, maybe not my main one
     const goal = cleanGoal(savedGoal, trees, owned);
     const coinsGoal = goal && goalCoins(goal.goal, trees, goal.own);
-    const start = t !== null && plots !== null ? routeState(inventory, plots, game.farm, game.hours?.weekKey) : null;
     // bonus seeds for this weeks mix, heidi's shop + mine (bag or planted this week). shop ones are today only, its dateKey is the US Eastern day like easternDay
     const shopToday = game.shop?.dateKey === easternDay(new Date());
     const shopSeeds = shopToday ? game.shop.seeds : [];
     // by id, for the maths n card names
     const crops = Object.fromEntries(shopSeeds.map(({ id, ...crop }) => [id, crop]));
+    const table = { ...CROPS, ...crops };
+    // ready crops are from older shops, any days sell price does
+    const sellTable = { ...CROPS, ...Object.fromEntries((game.shop?.seeds ?? []).map(({ id, sell }) => [id, { sell }])) };
+    const selling = inventory && toSell(
+        [...readyIds(game.farm), ...game.harvested], game.sold ? null : forSaleFrom(game.marketItems), m, inventory, sellTable,
+    );
+    const start = t !== null && plots !== null
+        ? routeState(inventory, plots, game.farm, game.hours?.weekKey, selling.coins)
+        : null;
     const thisWeek = inventory && {
         seeds: shopSeeds.map((seed) => seed.id),
         onHand: bonusOnHand(inventory, game.farm, game.hours?.weekKey),
@@ -369,6 +404,8 @@ function plan() {
         owned,
         t,
         inventory: inventory && { ...inventory, plots },
+        // grown n not sold yet
+        selling,
         m,
         mGuessed: mRead === null,
         // ms, for h a day on code step
@@ -397,8 +434,9 @@ function plan() {
             unclaimed: (game.hours?.unclaimed?.creditedSeconds ?? 0) / 3600,
             w: target?.w ?? null,
             mix: target?.mix ?? null,
-            table: { ...CROPS, ...crops },
+            table,
             shopToday,
+            selling,
         }), target?.w ?? null),
     };
     const missing = Object.keys(parts).filter((key) => parts[key] === null);

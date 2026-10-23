@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps } from "../userscript/next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps, toSell } from "../userscript/next.js";
 import { stuckFrom } from "../userscript/fill.js";
 import { hoursNeeded } from "../src/route.js";
 
@@ -239,6 +239,30 @@ test("stepsFrom: no shop check once the week's all planted, or with no target", 
     assert.deepEqual(checks(planted, bag(), 1), []);
     // 3 apples to plant, but with no target the mix isn't what it plants
     assert.deepEqual(checks({ plots: 14, empty: 14, crops: [] }, bag({ seeds: 3 }), null), []);
+});
+
+test("toSell: the market's plus ready ones at m * sell rounded down, free seed crops left out", () => {
+    // apples 1.15 * 30 = 34.5 -> 34, the eggplant 1.15 * 75 = 86.25 -> 86
+    const ready = ["apple", "apple", "eggplant", "carrot"];
+    assert.deepEqual(toSell(ready, { crops: 22, coins: 732 }, 1.15, bag()), { crops: 25, coins: 886 });
+    assert.deepEqual(toSell([], null, 1.15, bag()), { crops: 0, coins: 0 });
+});
+
+test("routeState: crops to sell count as coins", () => {
+    assert.equal(routeState(bag({ coins: 40 }), 10, null, "2026-W43", 60).coins, 100);
+});
+
+test("stepsFrom: selling goes after harvesting and buying waits on it", () => {
+    const farm = { plots: 10, empty: 0, crops: crops("ready", 2) };
+    const steps = stepsFrom({
+        farm, inventory: bag({ baseSeeds: 10 }), stuck: stuckFrom(farm, "2026-W43"), loans: 0, weekKey: "2026-W43", w: 12, selling: { crops: 2, coins: 60 },
+    });
+    assert.deepEqual(nestSteps(steps).slice(0, 4).map(({ depth, ...step }) => [step, depth]), [
+        [{ do: "harvest", n: 2 }, 0],
+        [{ do: "sell", n: 2, coins: 60 }, 1],
+        [{ do: "buySeeds", seed: "apple", n: 2 }, 2],
+        [{ do: "buyPlots", n: 10 }, 2],
+    ]);
 });
 
 test("stepsFrom: nothing to go on without the farm", () => {

@@ -42,8 +42,25 @@ export function plantedThisWeek(farm, weekKey) {
 }
 
 // route state from mid-week. planted apples are paid for, counted back as seeds or route buys them agian n comes out low. coins + plots already have this weeks spending
-export function routeState(inventory, plots, farm, weekKey) {
-    return { coins: inventory.coins, plots, seeds: inventory.seeds + (plantedThisWeek(farm, weekKey).apple ?? 0) };
+// selling = toSell coins, unsold crops good as coins for the plan
+export function routeState(inventory, plots, farm, weekKey, selling = 0) {
+    return { coins: inventory.coins + selling, plots, seeds: inventory.seeds + (plantedThisWeek(farm, weekKey).apple ?? 0) };
+}
+
+// seed ids of ready crops, ["apple", "apple", "eggplant"]
+export function readyIds(farm) {
+    return (farm?.crops ?? []).filter((crop) => crop.stage === "ready").map((crop) => crop.id ?? seedId(crop.seed));
+}
+
+// crops grown n not sold yet. market (forSaleFrom, null till its open) + ready ones and harvested ones market doesnt know yet
+export function toSell(ready, forSale, m, inventory, table = CROPS) {
+    // free seed crops are rent, they go to market locked (in prep they sell, so its low then)
+    const sells = ready.filter((id) => !isBase(id, inventory));
+    return {
+        crops: (forSale?.crops ?? 0) + sells.length,
+        // m * sell rounded down, game rounds n nobody knows which way
+        coins: (forSale?.coins ?? 0) + sells.reduce((total, id) => total + Math.floor(m * (table[id]?.sell ?? 0)), 0),
+    };
 }
 
 // free seed ids, a crop on the farm doesnt say if it was one
@@ -67,7 +84,7 @@ export function bonusOnHand(inventory, farm, weekKey) {
 // count spots from (the card says go look at it). w is this week's hours from the route, null for no
 // target, then it just plants what you've got. loans from loansFrom
 export function stepsFrom({
-    farm, inventory, stuck, loans, weekKey, unclaimed = 0, w, mix = null, table = CROPS, shopToday = true,
+    farm, inventory, stuck, loans, weekKey, unclaimed = 0, w, mix = null, table = CROPS, shopToday = true, selling = null,
 }) {
     if (!farm || !inventory) return [];
     const steps = [];
@@ -78,6 +95,8 @@ export function stepsFrom({
     const ready = count((crop) => crop.stage === "ready");
     add({ do: "clear", n: withered });
     add({ do: "harvest", n: ready });
+    // toSell, ready ones still on farm too. route has these coins already
+    add({ do: "sell", n: selling?.crops ?? 0, coins: selling?.coins ?? 0 });
     add({ do: "reship", n: stuck.why.changes ?? 0 });
     add({ do: "devlog", n: stuck.why.short ?? 0 });
 
@@ -166,7 +185,9 @@ const STEP_NEEDS = {
     waitForLoans: ["buyPlots"],
     plantBase: ["place", "clear", "harvest"],
     plant: ["place", "buySeeds", "clear", "harvest"],
-    buySeeds: ["checkShop"],
+    sell: ["harvest"],
+    buySeeds: ["checkShop", "sell"],
+    buyPlots: ["sell"],
     ship: ["code"],
 };
 

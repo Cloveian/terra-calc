@@ -62,9 +62,7 @@ export function weekFrom(currentWeek) {
     return match[1] ? n - 1 : PREP_WEEKS + n - 1;
 }
 
-// player.currency + inventory.sync -> { coins, plots, unplaced, seeds, baseSeeds, baseKinds, bonus, water },
-// counting only what you can still plant. seeds is apple seeds, what the model plans with (you always buy
-// those), baseSeeds the free ones from Ratticus and baseKinds those by seed, { strawberry: 10 }
+// coins, water and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with, always bought), baseSeeds = free ones from ratticus, baseKinds = same by seed
 export function inventoryFrom(currency, inventory) {
     if (typeof currency?.coins !== "number" || !Array.isArray(inventory?.items)) return null;
     // game expiry rule, counts while weekNumber is in usableWeeks
@@ -182,6 +180,16 @@ export function multiplyerFrom(marketItems) {
     if (priced.length === 0) return null;
     const best = priced.reduce((a, b) => (b.baseUnitCoins > a.baseUnitCoins ? b : a));
     return best.unitPriceCoins / best.baseUnitCoins;
+}
+
+// what i could sell right now, null till market's been open. rent ones are in locked
+export function forSaleFrom(marketItems) {
+    if (!marketItems) return null;
+    const items = marketItems.items ?? [];
+    return {
+        crops: items.reduce((total, item) => total + item.quantity, 0),
+        coins: items.reduce((total, item) => total + item.quantity * item.unitPriceCoins, 0),
+    };
 }
 
 // shop.stock, null when heidi's shop is closed. next plot costs min(plots - 9, 10) so under 10 = exact plot count, 10 = 19+

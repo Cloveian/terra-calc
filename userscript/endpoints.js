@@ -65,7 +65,7 @@ const SHAPES = {
         usableWeeks: ["number"],
         items: [{ itemId: "string", type: "string", subtype: "string?", quantity: "number", weekNumber: "number?" }],
     },
-    [IN.marketItems]: { items: [{ unitPriceCoins: "number", baseUnitCoins: "number" }] },
+    [IN.marketItems]: { items: [{ quantity: "number", unitPriceCoins: "number", baseUnitCoins: "number" }] },
     [IN.shopStock]: { status: "string", entries: [{ id: "string", category: "string", itemId: "string?", priceCoins: "number" }] },
     [IN.hours]: { weekKey: "string", goalSeconds: "number", week: { creditedSeconds: "number" } },
     [IN.joinComplete]: { farmOwnerId: "string?" },

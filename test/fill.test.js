@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { TREES } from "../src/data.js";
 import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
-    shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom,
+    shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom, forSaleFrom,
 } from "../userscript/fill.js";
 
 // most fixtures hand made from capture shapes. device-upgrades-real is a real response, owned + purchases emptied, coins and address swapped for made up ones
@@ -75,6 +75,11 @@ test("weekFrom: prep weeks and labels it doesn't know", () => {
 
 test("multiplyerFrom: 36 / 30", () => {
     assert.equal(multiplyerFrom(fixture("market-items")), 1.2);
+});
+
+test("forSaleFrom: 12 apples at 36 and 10 carrots at 30, the locked ones don't sell", () => {
+    assert.deepEqual(forSaleFrom(fixture("market-items")), { crops: 22, coins: 732 });
+    assert.equal(forSaleFrom(null), null);
 });
 
 test("multiplyerFrom: goes off the biggest base price", () => {

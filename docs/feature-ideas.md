@@ -33,6 +33,7 @@ What makes it feel finished, before anything new. In order:
 
 - [x] Remaining hours needed this week
 - [ ] A live progress bar toward your goal: coins now plus crops ready to sell
+- [x] Crops you've grown and not sold count as coins: the market's list, the ready ones on your farm and the ones harvested since, with a sell step that buying waits on and "N to go once you sell your crops"
 - [x] Simple plan summary: "this week: buy 5 plots + 25 apple seeds, code 35 h"
 - [x] Priorities: a number per pick, RAM and SSD tiers each their own, with the week it's covered and the h/week to get that far
 - [x] This week's best seed mix out of today's shop and your bag, the most profit that fits your hours, coins and plots (apples fill the rest)
