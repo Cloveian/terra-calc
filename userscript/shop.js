@@ -82,5 +82,6 @@ function fillWarning() {
         line.className = `${message.className} ${WARNING}`;
         message.after(line);
     }
-    line.textContent = `Terra Calc: this week's plan doesn't need more ${plain(seed.name)} seeds. Seeds you don't plant and water by Monday night are lost.`;
+    const text = `Terra Calc: this week's plan doesn't need more ${plain(seed.name)} seeds. Seeds you don't plant and water by Monday night are lost.`;
+    if(line.textContent !== text) line.textContent = text;
 }
