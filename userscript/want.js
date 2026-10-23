@@ -142,7 +142,7 @@ function drawTag(tag, bit, device) {
         b.textContent = text;
         b.disabled = !enabled;
         if (light) b.className = "light";
-        b.addEventListener("click", () => onPick?.(device, id, delta));
+        b.addEventListener("click", () => onPick(device, id, delta));
         return b;
     };
     if (bit.stepper) {

@@ -76,7 +76,7 @@ test("a goal shows before the farm's been seen, with the next pick and when it's
     };
     const plan = {
         t: 3, inventory: { coins: 42.6, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, mGuessed: true, farm: null,
-        stuck: null, target: { w: 18, cap: 18, reachable: true, out: false, route: [] }, goal, steps: [],
+        stuck: null, target: { w: 18, cap: 18, reachable: true, out: false, route: [] }, goal, steps: [], selling: { crops: 0, coins: 0 },
     };
     assert.deepEqual(cardFor(plan, NOW).details, [
         "goal: 2800 coins (Framework 12), 2758 to go",
@@ -88,7 +88,7 @@ test("a goal shows before the farm's been seen, with the next pick and when it's
 
 test("a goal you can't reach says the best you'd get, one you can buy now says that", () => {
     const route = [{ endCoins: 900 }, { endCoins: 11685.4 }];
-    const base = { t: 3, inventory: { coins: 3000, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, farm: null, stuck: null, steps: [] };
+    const base = { t: 3, inventory: { coins: 3000, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, farm: null, stuck: null, steps: [], selling: { crops: 0, coins: 0 } };
     const far = cardFor({
         ...base, target: { w: 45, cap: 45, reachable: false, out: false, route },
         goal: { device: "Framework 12", coins: 20000, custom: true, milestones: [] },

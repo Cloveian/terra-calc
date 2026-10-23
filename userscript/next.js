@@ -94,7 +94,7 @@ export function bonusOnHand(inventory, farm, weekKey) {
 // count spots from (the card says go look at it). w is this week's hours from the route, null for no
 // target, then it just plants what you've got. loans from loansFrom
 export function stepsFrom({
-    farm, inventory, stuck, loans, weekKey, unclaimed = 0, w, mix = null, table = CROPS, shopToday = true, selling = null,
+    farm, inventory, stuck, loans, weekKey, unclaimed = 0, w, mix = null, table = CROPS, shopToday = true, selling = { crops: 0, coins: 0 },
 }) {
     if (!farm || !inventory) return [];
     const steps = [];
@@ -106,7 +106,7 @@ export function stepsFrom({
     add({ do: "clear", n: withered });
     add({ do: "harvest", n: ready });
     // toSell, ready ones still on farm too. route has these coins already
-    add({ do: "sell", n: selling?.crops ?? 0, coins: selling?.coins ?? 0 });
+    add({ do: "sell", n: selling.crops, coins: selling.coins });
     add({ do: "reship", n: stuck.why.changes ?? 0 });
     add({ do: "devlog", n: stuck.why.short ?? 0 });
 

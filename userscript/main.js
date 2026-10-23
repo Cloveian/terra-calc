@@ -3,6 +3,7 @@ import { REST, IN, TOKEN_KEY } from "./endpoints.js";
 import { apiGet, liveBuild } from "./api.js";
 import { hookWebSocket, onGameMessage, ROOM } from "./socket.js";
 import { loadSettings, saveSettings, mountSettings } from "./settings.js";
+import { loadJSON, saveJSON } from "./store.js";
 import { setDebug, debug } from "./debug.js";
 import { mountCard, drawCard, showNotice } from "./card.js";
 import {
@@ -58,10 +59,7 @@ let savedSteps = loadMine(STEPS_KEY); // week checklist as it first came out, fo
 let weekNote = loadMine(WEEK_KEY); // from noteWeek, next week says how this one went
 
 function noteThisWeek(weekKey, change) {
-    const next = noteWeek(weekNote, weekKey, change);
-    if (JSON.stringify(next) === JSON.stringify(weekNote)) return;
-    weekNote = next;
-    saveMine(WEEK_KEY, weekNote);
+    weekNote = saveChanged(WEEK_KEY, weekNote, noteWeek(weekNote, weekKey, change));
 }
 
 const settings = loadSettings();
@@ -102,13 +100,13 @@ onGameMessage(IN.hours, (body) => {
     noteThisWeek(body.weekKey, { coded: body.week.creditedSeconds / 3600, seenAt: Date.now() });
     changed("hours", body);
     // new week = new label, maybe new upgrade prices
-    if (settings.fill && before && body?.weekKey && body.weekKey !== before) readRest();
+    if (settings.fill && before && body.weekKey !== before) readRest();
 });
 
 onGameMessage(IN.shopStock, (body) => {
     const shop = shopFrom(body);
     if (shop) {
-        game.shop = { ...shop, seeds: seedsFrom(body), dateKey: body?.dateKey ?? null, seenAt: Date.now() };
+        game.shop = { ...shop, seeds: seedsFrom(body), dateKey: body.dateKey ?? null, seenAt: Date.now() };
         // saved like the farm, for reloads
         saveMine(SHOP_KEY, game.shop);
     }
@@ -129,7 +127,7 @@ onGameMessage(ROOM.joined, ({ decoder }) => {
     }
 });
 onGameMessage(IN.joinComplete, (body) => {
-    game.farmOwnerId = body?.farmOwnerId ?? null;
+    game.farmOwnerId = body.farmOwnerId ?? null;
     readFarm();
     // readFarm only draws on my own farm, leaving it flips the island / hub button too
     draw();
@@ -340,29 +338,24 @@ function weekSteps(steps, w) {
     // past week end the plan is next weeks already, weekKey stays old untill hours.update
     if (!(Date.now() > Date.parse(game.currentWeek?.endDate ?? ""))) noteThisWeek(weekKey, { w });
     const ticked = tickSteps(savedSteps, steps, weekKey, w);
-    if (JSON.stringify(ticked.saved) !== JSON.stringify(savedSteps)) {
-        savedSteps = ticked.saved;
-        saveMine(STEPS_KEY, savedSteps);
-    }
+    savedSteps = saveChanged(STEPS_KEY, savedSteps, ticked.saved);
     return ticked.steps;
 }
 
 // farm, goal n week steps, saved with owner id. other acounts on this browser get nothing
 function loadMine(key) {
-    try {
-        const saved = JSON.parse(localStorage.getItem(key) ?? "null");
-        return saved && saved.userId === myId() ? saved.value : null;
-    } catch {
-        return null;
-    }
+    const saved = loadJSON(key);
+    return saved?.userId === myId() ? saved.value : null;
 }
 
 function saveMine(key, value) {
-    try {
-        localStorage.setItem(key, JSON.stringify({ userId: myId(), value }));
-    } catch {
-        // farm gets reread next visit, goal is just gone after reload tho
-    }
+    saveJSON(key, { userId: myId(), value });
+}
+
+// saveMine, skipped when nothing changed
+function saveChanged(key, before, after) {
+    if (JSON.stringify(after) !== JSON.stringify(before)) saveMine(key, after);
+    return after;
 }
 
 // my typed numbers shaped like inventoryFrom output, free seeds the usual 10

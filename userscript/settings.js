@@ -2,6 +2,7 @@
 import { MULTIPLIER, CROPS, BONUS_SEEDS } from "../src/data.js";
 import { clamp } from "../src/state.js";
 import { cssModule, watchPage, keepFromGame, KEYS, numberBox } from "./page.js";
+import { loadJSON, saveJSON } from "./store.js";
 
 const KEY = "terra-calc-settings"; // in terra's localStorage
 
@@ -24,13 +25,9 @@ export function loadSettings() {
         m: null,
         typed: { coins: null, plots: null, seeds: null, ...Object.fromEntries(BONUS_SEEDS.map((id) => [id, null])) },
     };
-    try {
-        const saved = { ...defaults, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") };
-        const typed = Object.fromEntries(Object.keys(defaults.typed).map((key) => [key, cleanCount(saved.typed?.[key])]));
-        return { ...saved, m: cleanM(saved.m), typed };
-    } catch {
-        return defaults; // bad json or no storage
-    }
+    const saved = { ...defaults, ...loadJSON(KEY) };
+    const typed = Object.fromEntries(Object.keys(defaults.typed).map((key) => [key, cleanCount(saved.typed?.[key])]));
+    return { ...saved, m: cleanM(saved.m), typed };
 }
 
 // box or storage count, whole and 0 or more, null = not typed
@@ -47,11 +44,7 @@ function cleanM(value) {
 }
 
 export function saveSettings(settings) {
-    try {
-        localStorage.setItem(KEY, JSON.stringify(settings));
-    } catch {
-        // back to defaults next load
-    }
+    saveJSON(KEY, settings);
 }
 
 // --- our bit of terra's settings tab ---
@@ -122,7 +115,7 @@ function makeSection(c) {
     const row = el("div", c.settingsRow);
     row.append(mCol, togglesCol);
     ours.append(el("div", c.sectionTitle, "Terra Calc"), row);
-    const goal = onGoal?.now();
+    const goal = onGoal.now();
     if (goal) ours.append(goalRow(c, goal));
     ours.append(typedRow(c));
     return ours;

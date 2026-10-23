@@ -3,6 +3,7 @@ import { weekName, isPrep, DAY_MS } from "../src/week.js";
 import { CROPS, BASE_KINDS } from "../src/data.js";
 import { nestSteps } from "./next.js";
 import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
+import { loadJSON, saveJSON } from "./store.js";
 
 // 10 min
 const FARM_OLD = 10 * 60000;
@@ -207,21 +208,11 @@ function drawBar(line, { coins, selling, goal }) {
 
 // ours folded away, kept per broswer
 const FOLD_KEY = "terra-calc-folded";
-let folded = (() => {
-    try {
-        return localStorage.getItem(FOLD_KEY) === "1";
-    } catch {
-        return false;
-    }
-})();
+let folded = loadJSON(FOLD_KEY) === 1;
 
 function setFolded(on) {
     folded = on;
-    try {
-        localStorage.setItem(FOLD_KEY, on ? "1" : "0");
-    } catch {
-        // not saved, it unfolds again next load
-    }
+    saveJSON(FOLD_KEY, on ? 1 : 0);
     cardBit.redraw();
 }
 
@@ -249,7 +240,7 @@ export function cardFor(plan, now = Date.now()) {
         details.push(`${these.length} ${WHY_LINES[why] ?? `stuck (${why})`}${cropKinds(these)}`);
     }
     if (loans > 0) details.push(`${some(loans, "loan plot")} from Ratticus`);
-    if (goal) details.push(...goalLines(goal, target, inventory.coins, plan.selling?.coins ?? 0));
+    if (goal) details.push(...goalLines(goal, target, inventory.coins, plan.selling.coins));
     // only once its old enough to throw the steps off
     if (farm?.seenAt && now - farm.seenAt >= FARM_OLD) details.push(`(farm as of ${ago(now - farm.seenAt)})`);
     return { tasks, details };
@@ -274,7 +265,7 @@ function cropName(id, crops) {
 
 // "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)
 // selling = coins unsold crops bring, already in route so "now" can mean after selling
-function goalLines(goal, target, coins, selling = 0) {
+function goalLines(goal, target, coins, selling) {
     const later = selling > 0 && coins < goal.coins ? " after selling" : "";
     const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins - selling))} to go${later}`];
     if (goal.coins > 0) lines.push({ bar: { coins, selling, goal: goal.coins } });
