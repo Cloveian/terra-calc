@@ -361,7 +361,8 @@ function saveMine(key, value) {
 function typedInventory(typed) {
     if (typed.coins === null) return null;
     return {
-        coins: typed.coins, plots: null, unplaced: 0, seeds: typed.seeds ?? 0, baseSeeds: BASE_SEEDS, baseKinds: {}, bonus: {},
+        coins: typed.coins, plots: null, unplaced: 0, seeds: typed.seeds ?? 0, baseSeeds: BASE_SEEDS, baseKinds: {},
+        bonus: { bokchoy: typed.bokchoy ?? 0, eggplant: typed.eggplant ?? 0 },
         water: 0, seedsDie: null,
     };
 }

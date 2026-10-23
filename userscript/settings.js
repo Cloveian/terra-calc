@@ -14,13 +14,13 @@ export const FEATURES = {
     debug: { name: "Log everything to the console", on: false },
 };
 
-// m = my own multiplier, null = the games
-// typed = my coins, plots and apple seeds, each only used when the games cant be read
+// m = my own multiplier, null = the games.
+// typed: numbers i typed in, each only used when the games cant be read. seeds is apples, rest by seed id
 export function loadSettings() {
     const defaults = {
         ...Object.fromEntries(Object.entries(FEATURES).map(([id, f]) => [id, f.on])),
         m: null,
-        typed: { coins: null, plots: null, seeds: null },
+        typed: { coins: null, plots: null, seeds: null, bokchoy: null, eggplant: null },
     };
     try {
         const saved = { ...defaults, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") };
@@ -137,7 +137,7 @@ function makeSection(c) {
     return ours;
 }
 
-// for when a terra update breaks a reader. typed plots also go in before ive seen my farm or the shop
+// typed coins, plots n seeds, for when a terra update breaks a reader. plots count before ive been on my farm or seen shop too
 function typedRow(c) {
     const box = (key, label) => {
         const col = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
@@ -156,11 +156,14 @@ function typedRow(c) {
     };
     const wrap = el("div");
     wrap.style.marginTop = "1em";
+    // two rows, settingsRow doesnt wrap n five boxes ran off teh side
     const row = el("div", c.settingsRow);
-    // TODO: bok choy n eggplant seeds like site, typedInventory givs bonus {} for now
+    row.append(box("coins", "Coins"), box("plots", "Plots"));
     // TODO: "in Heidi's shop today" ticks from site, for when shop cant be read
-    row.append(box("coins", "Coins"), box("plots", "Plots"), box("seeds", "Apple seeds"));
-    wrap.append(el("div", c.formLabel, "If Terra Calc can't read the game, type your numbers in here"), row);
+    const seeds = el("div", c.settingsRow);
+    seeds.style.marginTop="0.5em";
+    seeds.append(box("seeds", "Apple seeds"), box("bokchoy", "Bok choy seeds"), box("eggplant", "Eggplant seeds"));
+    wrap.append(el("div", c.formLabel, "If Terra Calc can't read the game, type your numbers in here"), row, seeds);
     return wrap;
 }
 
