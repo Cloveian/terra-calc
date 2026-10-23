@@ -16,7 +16,7 @@ const DECL = /^(?:export\s+)?(?:async\s+)?(?:function\*?|const|let|class)\s+([A-
 function collect(file, seen = new Set(), order = []) {
     if (seen.has(file)) return order;
     seen.add(file);
-    if (/src\/(ui|outline)\.js$/.test(file)) throw new Error(`${file} touches the site's page, it can't go in the userscript`);
+    if (/src\/(ui|outline|treeview|columns)\.js$/.test(file)) throw new Error(`${file} touches the site's page, it can't go in the userscript`);
     const text = readFileSync(file, "utf8");
     for (const [, spec] of text.matchAll(IMPORT)) collect(resolve(dirname(file), spec), seen, order);
     order.push({ file, text });

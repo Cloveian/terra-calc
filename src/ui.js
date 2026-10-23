@@ -1,4 +1,4 @@
-// The page: keeps the state, draws it, turns clicks into state changes. outline.js does the boxes' outlines.
+// The page: keeps the state, draws it, turns clicks into state changes. Box outlines, tree dragging and the column divider are in outline.js, treeview.js and columns.js.
 import { TREES, PRESETS, PICK_WARNINGS, MAX_PLOTS, PRICES_AS_OF, CROPS, RENT, BONUS_SEEDS } from "./data.js";
 import { easternDay, weekIndex, weekName, LAST_WEEK } from "./week.js";
 import { simulateRoute, hoursNeeded, milestones } from "./route.js";
@@ -6,10 +6,11 @@ import {
     goalCost, nextPrice, nodeHours, unpick, dependentsOf, normalize, buyOrder, displayOrder, treeLayout,
     waitsOn, prioFrom, sameSelection, byId,
 } from "./tree.js";
-import { clean, toHash, canAdd, clamp, BONUS_KEYS } from "./state.js";
+import { clean, toHash, canAdd, BONUS_KEYS } from "./state.js";
 import { wobblyLine, seedOf } from "./sketch.js";
-import { SVG, drawOutline, sketchAll, sketch, redrawOutlines } from "./outline.js";
-import { zoomAt, clampView, fitView } from "./view.js";
+import { SVG, SKETCH_BRANCHES, drawOutline, sketchAll, sketch, redrawOutlines } from "./outline.js";
+import { mountDivider } from "./columns.js";
+import { showTree, refitTree, mountTreeView } from "./treeview.js";
 
 const TODAY = easternDay(new Date());
 
@@ -228,9 +229,6 @@ function total(node, wanted) {
     return line;
 }
 
-// the tree's branches are longer and thicker than the boxes' outlines, so they wobble a bit more to show it
-const SKETCH_BRANCHES = { wobble: 1.5, every: 40 };
-
 // The tree laid out like Terra's: a card per upgrade, lines to its prerequisites.
 // Cards are added in parent → child order so Tab moves through them sensibly.
 function drawTree() {
@@ -296,14 +294,7 @@ function drawTree() {
         (box) => `${state.device}:${box.dataset.node ?? box.id ?? "root"}`,
     );
 
-    // a new device (or the first draw) starts fitted; otherwise keep where you'd zoomed to
-    if (viewDevice !== state.device) {
-        viewDevice = state.device;
-        viewMoved = false;
-        setView(fitTree());
-    } else {
-        setView(view);
-    }
+    showTree(state.device);
 }
 
 // [header, cell, icon (optional)]
@@ -565,39 +556,6 @@ function render() {
     redrawOutlines(); // message boxes may have changed colour or text
 }
 
-// ---- tree zoom and pan (the maths is in src/view.js) ------------------------
-
-let view = { scale: 1, x: 0, y: 0 };
-let viewDevice = null; // which device `view` belongs to
-let viewMoved = false; // you've panned or zoomed since it was last fitted (then it isn't re-fitted for you)
-
-function viewportSize() {
-    return { w: $("tree-view").clientWidth, h: $("tree-view").clientHeight };
-}
-
-function treeSize() {
-    return { w: parseFloat($("tree").style.width), h: parseFloat($("tree").style.height) };
-}
-
-// fitted to the window; if it's too wide for that, centred on the device card
-function fitTree() {
-    const root = $("tree").querySelector(".tree-root");
-    const focusX = root ? root.offsetLeft + root.offsetWidth / 2 : undefined;
-    return fitView(treeSize(), viewportSize(), undefined, focusX);
-}
-
-function setView(next) {
-    view = clampView(next, treeSize(), viewportSize());
-    $("tree").style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
-}
-
-// zoom around the middle of the window (the buttons)
-function zoomBy(factor) {
-    viewMoved = true;
-    const { w, h } = viewportSize();
-    setView(zoomAt(view, factor, w / 2, h / 2));
-}
-
 // Redraw everything from `state`, keeping keyboard focus on the same control
 function update() {
     const focused = document.activeElement?.id;
@@ -737,68 +695,7 @@ sketchAll(document.querySelectorAll(".tree-view, .tree-frame"), () => "tree-view
 // buttons that stay on the page (zoom, reset order, ok, use my picks, light/dark)
 drawThemeToggle();
 sketchAll(document.querySelectorAll("main button, footer button"), (b) => b.id, true);
-// tree: drag to pan, zoom with the buttons, scrolling or a pinch on touch screens. In the split view
-// (two columns) the Goal panel doesn't scroll, so plain scrolling zooms; in one column it scrolls the
-// page, so it takes ctrl + scroll (a trackpad pinch sends that too). Same query as in style.css.
-const splitView = matchMedia("(min-width: 1200px) and (min-height: 700px)");
-const treeView = $("tree-view");
-treeView.addEventListener("wheel", (event) => {
-    if (!event.ctrlKey && !splitView.matches) return;
-    event.preventDefault(); // zoom the tree, not the whole page
-    viewMoved = true;
-    const box = treeView.getBoundingClientRect();
-    const px = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? box.height : 1; // lines/pages → px
-    setView(zoomAt(view, Math.exp(-event.deltaY * px * 0.002), event.clientX - box.left, event.clientY - box.top));
-}, { passive: false });
-
-const pointers = new Map(); // pointers pressed on the tree: id → { x, y }
-treeView.addEventListener("pointerdown", (event) => {
-    if (event.target.closest("input, button, label, select")) return; // let the controls work
-    treeView.setPointerCapture(event.pointerId);
-    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    treeView.classList.add("dragging");
-});
-treeView.addEventListener("pointermove", (event) => {
-    if (!pointers.has(event.pointerId)) return;
-    const before = [...pointers.values()];
-    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    const now = [...pointers.values()];
-    if (now.length === 1) {
-        viewMoved = true;
-        setView({ ...view, x: view.x + now[0].x - before[0].x, y: view.y + now[0].y - before[0].y });
-    } else if (now.length === 2) {
-        // pinch: zoom by how much the fingers spread, around their middle, and follow the middle
-        const middle = ([a, b]) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
-        const spread = ([a, b]) => Math.hypot(a.x - b.x, a.y - b.y) || 1;
-        const box = treeView.getBoundingClientRect();
-        const [m0, m1] = [middle(before), middle(now)];
-        const zoomed = zoomAt(view, spread(now) / spread(before), m1.x - box.left, m1.y - box.top);
-        setView({ ...zoomed, x: zoomed.x + m1.x - m0.x, y: zoomed.y + m1.y - m0.y });
-    }
-});
-for (const type of ["pointerup", "pointercancel"]) {
-    treeView.addEventListener(type, (event) => {
-        pointers.delete(event.pointerId);
-        if (pointers.size === 0) treeView.classList.remove("dragging");
-    });
-}
-
-// Tab onto a card that's out of view: move the tree so it's in view
-treeView.addEventListener("focusin", (event) => {
-    const box = treeView.getBoundingClientRect();
-    const target = event.target.getBoundingClientRect();
-    const pad = 24;
-    let { x, y } = view;
-    if (target.left < box.left + pad) x += box.left + pad - target.left;
-    else if (target.right > box.right - pad) x -= target.right - (box.right - pad);
-    if (target.top < box.top + pad) y += box.top + pad - target.top;
-    else if (target.bottom > box.bottom - pad) y -= target.bottom - (box.bottom - pad);
-    setView({ ...view, x, y });
-});
-
-$("zoom-in").addEventListener("click", () => zoomBy(1.25));
-$("zoom-out").addEventListener("click", () => zoomBy(1 / 1.25));
-$("zoom-fit").addEventListener("click", () => setView(fitTree()));
+mountTreeView();
 // handwritten font lands after the first draw and is narrower, outlines redrawn on changes (pills, buttons, tree) stayed sized for the wider fallback
 document.fonts.ready.then(() => update());
 
@@ -818,92 +715,10 @@ $("copy-link").addEventListener("click", async () => {
     drawOutline(copy);
 });
 
-// ---- resizing the columns (wide screens) -----------------------------------
-// Drag the divider (or focus it and use the arrow keys) to give the left column more or less of the
-// page; double-click to go back to the default. Your width is remembered in this browser.
-
-const divider = $("column-divider");
-const SPLIT = { min: 30, max: 70, step: 2, normal: 44.4 }; // the left column, % of the page
-
-function currentSplit() {
-    return parseFloat(document.querySelector(".page").style.getPropertyValue("--split")) || SPLIT.normal;
-}
-
-function setSplit(percent, save = true) {
-    const split = clamp(percent, SPLIT.min, SPLIT.max);
-    document.querySelector(".page").style.setProperty("--split", split);
-    divider.setAttribute("aria-valuenow", Math.round(split));
-    if (save) {
-        try {
-            localStorage.setItem("split", split);
-        } catch {
-            // storage blocked: the width just lasts until the page is closed
-        }
-    }
-}
-
-// the line: wobbly like the tree's branches, as tall as the divider
-function drawDivider() {
-    const h = divider.offsetHeight;
-    if (!h) return;
-    const x = divider.offsetWidth / 2;
-    const lines = document.createElementNS(SVG, "svg");
-    lines.setAttribute("aria-hidden", "true");
-    const path = document.createElementNS(SVG, "path");
-    path.setAttribute("d", wobblyLine(x, 8, x, h - 8, seedOf("column-divider"), SKETCH_BRANCHES));
-    lines.append(path);
-    divider.replaceChildren(lines);
-}
-
-// after a resize the tree window is a new size: fit the tree again, unless you've moved it yourself
-function afterResize() {
-    if (!viewMoved) setView(fitTree());
-}
-
-divider.addEventListener("pointerdown", (event) => {
-    divider.setPointerCapture(event.pointerId);
-    document.body.classList.add("resizing");
-});
-divider.addEventListener("pointermove", (event) => {
-    if (!divider.hasPointerCapture(event.pointerId)) return;
-    const page = document.querySelector(".page").getBoundingClientRect();
-    setSplit(((event.clientX - page.left) / page.width) * 100, false);
-});
-divider.addEventListener("lostpointercapture", () => {
-    document.body.classList.remove("resizing");
-    setSplit(currentSplit()); // save where you let go
-    afterResize();
-});
-divider.addEventListener("keydown", (event) => {
-    const step = { ArrowLeft: -SPLIT.step, ArrowRight: SPLIT.step }[event.key];
-    if (!step) return;
-    event.preventDefault();
-    setSplit(currentSplit() + step);
-    afterResize();
-});
-divider.addEventListener("dblclick", () => {
-    document.querySelector(".page").style.removeProperty("--split");
-    divider.setAttribute("aria-valuenow", Math.round(SPLIT.normal));
-    try {
-        localStorage.removeItem("split");
-    } catch {
-        // nothing saved to remove
-    }
-    afterResize();
-});
-new ResizeObserver(drawDivider).observe(divider);
-try {
-    const saved = parseFloat(localStorage.getItem("split"));
-    setSplit(Number.isFinite(saved) ? saved : SPLIT.normal, false);
-} catch {
-    setSplit(SPLIT.normal, false);
-}
+mountDivider(refitTree);
 
 // the buy order list changes size with the page: its tree lines go with the names
 new ResizeObserver(() => drawMilestoneLines()).observe($("milestones"));
-// the window changes size with the page (fonts loading, text wrapping, the hint opening): fit the
-// tree again, or if you've moved it yourself, just keep it in view
-new ResizeObserver(() => (viewMoved ? setView(view) : afterResize())).observe(treeView);
 
 // input boxes too (not checkboxes): a tighter, thinner wobble, set in style.css
 for (const input of document.querySelectorAll("input:not([type=checkbox]), select")) {
@@ -968,7 +783,7 @@ function onFirstScroll() {
     removeEventListener("scroll", onFirstScroll);
     pageLeft.removeEventListener("scroll", onFirstScroll);
     setTimeout(() => {
-        if (!viewMoved) setView(fitTree());
+        refitTree();
     }, 300); // after the header has finished shrinking (style.css)
 }
 addEventListener("scroll", onFirstScroll, { passive: true });
@@ -987,8 +802,6 @@ new ResizeObserver(() => {
     document.documentElement.style.setProperty("--left-w", `${pageLeft.offsetWidth}px`);
 }).observe(pageLeft);
 
-// switching between one and two columns changes the tree window's size a lot: fit the tree again
-splitView.addEventListener("change", () => setView(fitTree()));
 $("goal").addEventListener("blur", () => showPicksGoal(goalCost(tree(), state.want, state.own)));
 $("device").addEventListener("change", (event) => setDevice(event.target.value));
 $("use-picks").addEventListener("click", () => {

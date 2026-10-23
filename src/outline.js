@@ -7,6 +7,9 @@ export const SVG = "http://www.w3.org/2000/svg";
 // (boxes can override these in CSS with --sketch-wobble and --sketch-every, e.g. inputs are tighter)
 const SKETCH = { wobble: 0.8, every: 32 };
 
+// the tree's branches and the column divider are longer and thicker than the boxes' outlines, so they wobble a bit more
+export const SKETCH_BRANCHES = { wobble: 1.5, every: 40 };
+
 // Two ways a box gets drawn (style.css has the settings for each kind of box):
 // - filled (panels, cards, messages, inputs, table rows): the SVG paints the box's colour inside
 //   a wobbly line, and the box's own background goes transparent

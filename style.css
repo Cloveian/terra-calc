@@ -932,13 +932,13 @@ input:not([type=checkbox]):focus, select:focus {
     --sketch-width: 2;
 }
 
-/* ---- tree window: the tree zooms and pans inside it (ui.js, src/view.js) ---- */
+/* ---- tree window: the tree zooms and pans inside it (treeview.js, src/view.js) ---- */
 
 .tree-view {
     position: relative;
     height: min(75vh, 760px);
     overflow: clip; /* not "hidden": that would let the browser scroll it when a card gets focus */
-    touch-action: none; /* one finger pans, two fingers zoom (ui.js), instead of scrolling the page */
+    touch-action: none; /* one finger pans, two fingers zoom (treeview.js), instead of scrolling the page */
     user-select: none;
     cursor: grab;
     border-radius: var(--radius);
@@ -1239,7 +1239,7 @@ input[type="number"]::-webkit-outer-spin-button {
 #page-footer { order: 5; }
 
 /* (and tall enough: on a short window the Goal panel can't fit, so it stays one scrolling column;
-   the same query is in ui.js) */
+   the same query is in treeview.js) */
 @media (min-width: 1200px) and (min-height: 700px) {
     /* wider than Pico's usual page, so both columns have room */
     header.container, main.container {
@@ -1266,7 +1266,7 @@ input[type="number"]::-webkit-outer-spin-button {
         min-height: 0;
         width: 100%;
         display: grid;
-        /* --split: the left column's share of the page (%), set by dragging the divider (ui.js) */
+        /* --split: the left column's share of the page (%), set by dragging the divider (columns.js) */
         grid-template-columns: minmax(0, calc(var(--split, 44.4) * 1%)) 1.5rem minmax(0, 1fr);
         padding-bottom: 1rem;
     }
@@ -1465,7 +1465,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     outline: none;
 }
 
-/* its hand-drawn line (ui.js), thicker and in the accent colour while you use it */
+/* its hand-drawn line (columns.js), thicker and in the accent colour while you use it */
 .column-divider svg {
     position: absolute;
     inset: 0;

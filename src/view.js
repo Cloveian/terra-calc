@@ -1,4 +1,4 @@
-// Zoom and pan for the upgrade tree. Pure maths; the page parts are in ui.js.
+// Zoom and pan for the upgrade tree. Pure maths; the page parts are in treeview.js.
 // view = { scale, x, y }: the tree is drawn with its top-left corner at (x, y), scaled by `scale`.
 // Sizes are { w, h } in px.
 import { clamp } from "./state.js";
