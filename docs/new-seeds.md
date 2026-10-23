@@ -48,4 +48,4 @@ Eggplant wins per hour *and* per plot, by a lot per plot. Bok choy only beats ap
 
 1. ~~`CROPS` rows, the mix maths in `farm.js`, the route's first week using it, tests~~ done 22 Oct. seeds in your bag get planted even when the shop's moved on
 2. ~~site inputs (seeds on hand, shop ticks), the hash, the mix in the table~~ done 22 Oct, the mix is a note above the table
-3. userscript: ~~seeds in the bag, `seedsFrom`~~ done 22 Oct (the shop's seeds only count on the day the shop said), steps still say apples only, splitting buy/plant per seed is next
+3. ~~userscript: seeds in the bag, `seedsFrom`, buy/plant per seed~~ done 22 Oct. the shop's seeds only count on the day the shop said, and there's a "check Heidi's shop" step till you've looked that day

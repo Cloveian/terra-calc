@@ -138,7 +138,8 @@ const FARM_FIELDS = [
     "waterRequired", "waterApplied",
 ];
 
-// FarmItem fields missing from room handshake. no farmItems or no decoder (join without handshake) = nothing to flag
+// the FarmItem fields missing from the room's schema. [] when they're all there, when the room has no
+// farmItems, or with no decoder (schema.js, null when the join had no handshake)
 export function farmSchemaProblems(decoder) {
     const farmItems = decoder?.rootFields.find((field) => field.name === "farmItems");
     if(!farmItems) return [];
@@ -155,7 +156,9 @@ function stageOf(crop) {
     return "watered";
 }
 
-// crops stuck in review from before weekKey (hours.update, like "2026-W43"), all of them without one. week keys compare fine as strings, always 2 digit weeks. crops kept so card can name them
+// crops still waiting on a review from before weekKey (from hours.update, like "2026-W43"), counted up by
+// why ({ review: 2, changes: 1 }) and with the crops themselves so the card can say what they are.
+// no weekKey and every crop in review counts. week keys compare fine as strings, the number's always two digits
 export function stuckFrom(farm, weekKey) {
     const stuck = (farm?.crops ?? []).filter((crop) => crop.stage === "review" && (!weekKey || crop.week < weekKey));
     const why = {};
@@ -210,7 +213,9 @@ export function shopFrom(shopStock) {
     };
 }
 
-// shop vs model mismatchs. terra price change = plan wrong till data.js catches up. plot one might just be old plot count (bought since farm visit or not placed yet), cant tell wich
+// shop prices that aren't what the plan thinks, a { kind, text } each, kind "apple" or "plot". if Terra
+// changes a price the plan's wrong till data.js catches up. a plot one can also just mean plots is old
+// (bought some since the farm was seen, or not placed yet), can't tell which
 export function shopProblems(shop, plots) {
     const problems = [];
     if (shop?.applePrice != null && shop.applePrice !== CROPS.apple.buy) {
