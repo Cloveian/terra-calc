@@ -12,7 +12,7 @@ export function plotCost(w, n) {
     return cost;
 }
 
-// apples needed for w hours (the first 10 crops are the free carrots)
+// apples needed for w hours (the first 10 crops are the free base seeds)
 function applesFor(w) {
     return Math.max(0, w - BASE_SEEDS);
 }

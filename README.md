@@ -26,7 +26,7 @@ Everything you type is saved in the page's link, so you can bookmark it or send 
 
 Each week: 1 hour of coding = 1 water, and 1 water + 1 seed + 1 dirt plot = 1 crop (an eggplant takes 2 water).
 
-- The first 10 crops a week are the free carrots. In the main weeks they're rent for Ratticus, and the week's rent pays 20 coins \* multiplier.
+- The first 10 crops a week are free (carrots in the prep weeks, strawberries after). In the main weeks they're rent for Ratticus, and the week's rent pays 20 coins \* multiplier.
 - Every hour past 10 needs a bought seed (apples: 5 coins, sell for 30 \* multiplier) and a plot. Plots cost `min(plots - 9, 10)` each, up to 45.
 - Coins from one week pay for the next week's seeds and plots, so the calculator simulates every week to Week 12 and finds the lowest steady hours a week that reaches your goal.
 
