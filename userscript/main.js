@@ -387,7 +387,8 @@ function inventoryNow() {
 function shopNow() {
     const today = game.shop?.dateKey === easternDay(new Date());
     const seeds = today ? game.shop.seeds : [];
-    const crops = Object.fromEntries(seeds.map(({ id, buy, sell, water }) => [id, { buy, sell, water }]));
+    // by id, { eggplant: { name, buy, sell, water } }
+    const crops = Object.fromEntries(seeds.map(({ id, ...crop }) => [id, crop]));
     return {
         today,
         seeds,
@@ -481,8 +482,8 @@ function plan() {
         farm: game.farm,
         stuck,
         target,
-        // today's bonus seeds by id, { eggplant: { name, buy, sell, water } }, for the mix's names
-        crops: Object.fromEntries(shop.seeds.map(({ id, ...crop }) => [id, crop])),
+        // today's bonus seeds, for their names
+        crops: shop.crops,
         // for card goal lines, null = rent week
         goal: coinsGoal === null ? null : {
             device: trees[picked.device].device,
