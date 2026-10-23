@@ -2,6 +2,7 @@
 import { TREES, PRESETS, PICK_WARNINGS, MAX_PLOTS, PRICES_AS_OF, CROPS, RENT, BONUS_SEEDS } from "./data.js";
 import { easternDay, weekIndex, weekName, LAST_WEEK } from "./week.js";
 import { simulateRoute, hoursNeeded, milestones } from "./route.js";
+import { mixWords } from "./farm.js";
 import {
     goalCost, nextPrice, nodeHours, unpick, dependentsOf, normalize, buyOrder, displayOrder, treeLayout,
     waitsOn, prioFrom, sameSelection, byId,
@@ -310,23 +311,12 @@ const COLUMNS = [
     ["End coins", (row) => coins(row.endCoins), "coin"],
 ];
 
-// first weeks seeds, "14 apple + 10 eggplant". "" for apples only or no mix
-function mixText(mix) {
-    if (!mix || !BONUS_SEEDS.some((id) => mix[id] > 0)) return "";
-    return Object.keys(mix)
-        .filter((id) => mix[id] > 0)
-        .sort((a, b) => mix[b] - mix[a])
-        .map((id) => `${mix[id]} ${(CROPS[id].name ?? id).toLowerCase()}`)
-        .join(" + ");
-}
-
 function drawTable(route) {
     const table = $("route");
     // first weeks seeds go above the table, in a cell they made it scroll sideways
-    const mix = mixText(route[0]?.mix);
-    const note = $("mix-note");
-    note.hidden = !mix;
-    note.textContent = mix && `${weekName(route[0].week)} plants ${mix}, then it's apples only (Heidi's bonus seeds change every day).`;
+    const mix = mixWords(route[0]?.mix);
+    $("mix-note").hidden = !mix;
+    $("mix-note").textContent = mix ? `${weekName(route[0].week)} plants ${mix}, then it's apples only (Heidi's bonus seeds change every day).` : "";
     if (route.length === 0) {
         table.replaceChildren();
         return;

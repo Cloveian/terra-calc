@@ -1,6 +1,7 @@
 // what to do next, inside terra's own This Week card
 import { weekName, isPrep, DAY_MS } from "../src/week.js";
 import { CROPS, BASE_KINDS } from "../src/data.js";
+import { mixWords } from "../src/farm.js";
 import { nestSteps } from "./next.js";
 import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
 import { loadJSON, saveJSON } from "./store.js";
@@ -232,9 +233,11 @@ export function cardFor(plan, now = Date.now()) {
     const recap = recapLine(plan.lastWeek, plan.weekEnds, now);
     if (recap) details.push(recap);
     if (target?.out) details.push("can't make rent this week");
-    const mix = mixLine(target?.mix, plan.crops);
-    if (mix) details.push(mix);
-    // stuck = from before this week (all of them if week unkown)
+    // nothing for apples only, the steps already say that
+    const mix = mixWords(target?.mix, (id) => cropName(id, plan.crops));
+    if (mix) details.push(`today's best: ${mix}`);
+    // stuck ones are from before this week (or all of them if the week's unknown)
+    const stuckCrops = stuck?.crops ?? [];
     for (const why of Object.keys(stuck?.why ?? {})) {
         const these = stuck.crops.filter((crop) => (crop.review ?? "review") === why);
         details.push(`${these.length} ${WHY_LINES[why] ?? `stuck (${why})`}${cropKinds(these)}`);
@@ -279,14 +282,6 @@ function goalLines(goal, target, coins, selling = 0) {
     if (next) lines.push(`next pick: ${pickName(next)} ${when(next)}`);
     if (next && next !== picks.at(-1)) lines.push(`all of it ${when(picks.at(-1))}`);
     return lines;
-}
-
-// first weeks mix, biggest first. null for apples only, the steps say that already
-function mixLine(mix, crops) {
-    const counts = Object.entries(mix ?? {}).filter(([, n]) => n > 0);
-    if (!counts.some(([id]) => id !== "apple")) return null;
-    const seeds = counts.sort((a, b) => b[1] - a[1]).map(([id, n]) => `${n} ${cropName(id, crops)}`);
-    return `today's best: ${seeds.join(" + ")}`;
 }
 
 // "last week: 31.2h+ (plan 40h)", the + cuz hackatime keeps counting with terra closed

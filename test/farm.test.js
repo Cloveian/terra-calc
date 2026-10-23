@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { plotCost, weekCost, wMax, weekSales, baseSales, bestMix } from "../src/farm.js";
+import { plotCost, weekCost, wMax, weekSales, baseSales, bestMix, mixWords } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
 
 test("plotCost", () => {
@@ -101,4 +101,13 @@ test("bestMix plants eggplants you've got even when the shop doesn't have them t
     const mix = bestMix(20, 1000, 30, { eggplant: 6 }, ["apple"], 1);
     assert.deepEqual(mix.counts, { eggplant: 6, apple: 8 });
     assert.equal(mix.cost, 40);
+});
+
+test("mixWords: biggest first, nothing for apples only", () => {
+    assert.equal(mixWords({ apple: 14, eggplant: 10, bokchoy: 0 }), "14 apple + 10 eggplant");
+    assert.equal(mixWords({ apple: 3, eggplant: 10 }), "10 eggplant + 3 apple");
+    assert.equal(mixWords({ apple: 14 }), null);
+    assert.equal(mixWords(undefined), null);
+    // a seed from today's shop that CROPS doesn't know
+    assert.equal(mixWords({ apple: 2, pumpkin: 4 }, (id) => ({ pumpkin: "Pumpkin" })[id] ?? id), "4 pumpkin + 2 apple");
 });

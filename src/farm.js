@@ -91,3 +91,14 @@ export function bestMix(k, coins, plots, onHand, seedIds, m, table = CROPS) {
     go(0, 0, 0, 0, 0);
     return best;
 }
+
+// mix counts as words, biggest first, "14 apple + 10 eggplant". null when its just apples
+// nameOf for seeds that aren't in CROPS (the userscript has todays shop)
+export function mixWords(mix, nameOf = (id) => CROPS[id].name ?? id) {
+    const counts = Object.entries(mix ?? {}).filter(([, n]) => n > 0);
+    if (!counts.some(([id]) => id !== "apple")) return null;
+    return counts
+        .sort((a, b) => b[1] - a[1])
+        .map(([id, n]) => `${n} ${nameOf(id).toLowerCase()}`)
+        .join(" + ");
+}
