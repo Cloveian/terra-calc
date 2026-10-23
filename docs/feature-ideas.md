@@ -30,7 +30,7 @@ Possible features for the userscript
 ## Inside Terra's pages
 
 - [ ] A "what to do next" panel with the plan and the buttons above
-- [x] "Affordable in Week N" labels on the device tree nodes
+- [x] "Affordable in Week N" labels on the device tree nodes (ended up in the want tags, with the h/week to get there)
 - [ ] Profit-per-hour badges on shop seeds at your multiplier
 - [ ] A warning before buying seeds you can't plant this week
 - [x] A settings popup to turn each part on or off (ended up as a section in Terra's own settings tab)

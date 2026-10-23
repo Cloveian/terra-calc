@@ -9,7 +9,6 @@ export const FEATURES = {
     fill: { name: "Fill in from the game", on: true },
     // still panel, its the key in everyones saved settings
     panel: { name: "Steps in the This Week card", on: true },
-    treeLabels: { name: "\"Affordable in Week N\" on the tree", on: false },
     seedBadges: { name: "Profit per hour on shop seeds", on: false },
     buttons: { name: "Buy and sell buttons", on: false },
     debug: { name: "Log everything to the console", on: false },
