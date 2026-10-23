@@ -4,6 +4,20 @@ import { weekName } from "../src/week.js";
 import { watchPage } from "./page.js";
 
 const BIT = "terra-calc-want";
+// terra's own tree look, cream n brown with a hard shadow and dark buttons. in em so it zooms with the node's text
+// hung under card, resizing it would move tree lines (they go to its middle)
+const WANT_CSS = `.${BIT} { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: .35em; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: .2em; white-space: nowrap; padding: .2em .5em;
+  background: #f9e6ce; color: #462114; border: 2px solid #93582c; border-radius: .8em; box-shadow: 0 2px #46211459;
+  font: 700 .7em/1.3 var(--game-font, "Pleasurize", cursive) }
+.${BIT} > div { display: flex; gap: .3em; align-items: center }
+.${BIT} button { font: inherit; color: #f4ca95; background: #733b11; border: 2px solid #462114; border-radius: .6em; padding: 0 .45em; cursor: pointer }
+.${BIT} button:hover:not(:disabled) { background: #974d16 }
+.${BIT} button.light { color: #5c3310; background: #f0b870; border-color: #93582c }
+.${BIT} button.light:hover:not(:disabled) { background: #edaa54 }
+.${BIT} button:disabled { opacity: .55; cursor: not-allowed }
+.${BIT} input { font: inherit; width: 3em; color: #5c3310; background: #fff; border: 1px solid #93582c; border-radius: 1em; padding: 0 .4em }
+.${BIT} .quiet { opacity: .65; font-weight: 400 }`;
 
 // one node's tag, null on limit-1 stuff i already own (terra's badge covers it)
 // milestones = plan rows by key (milestones() + rowHours), empty till there's a plan
@@ -69,6 +83,9 @@ export function mountWantBits(pick, setPrio) {
     if (redrawBits) return;
     onPick = pick;
     onPrio = setPrio;
+    const style = document.createElement("style");
+    style.textContent = WANT_CSS;
+    document.head.append(style);
     redrawBits = watchPage(fillBits);
 }
 
@@ -110,13 +127,9 @@ function fillBits() {
     }
 }
 
-// hung under card, resizing it would move tree lines (they go to its middle)
 function makeTag(card) {
     const tag = document.createElement("div");
     tag.className = BIT;
-    tag.style.cssText = "position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;"
-        + "display:flex;flex-direction:column;gap:2px;align-items:center;white-space:nowrap;padding:1px 6px;border-radius:6px;"
-        + "background:#fffbe8;color:#222;border:1px solid #6a9a3a;font:12px/1.4 sans-serif;z-index:2";
     // game opens its buy popup on any click in a node n pans on pointerdown
     for (const type of ["pointerdown", "mousedown", "touchstart", "click", "dblclick"]) {
         tag.addEventListener(type, (event) => event.stopPropagation());
@@ -132,31 +145,31 @@ function makeTag(card) {
 function drawTag(tag, bit, device) {
     const id = tag.parentElement.dataset.node;
     const parts = [];
-    const button = (text, delta, enabled) => {
+    const button = (text, delta, enabled, light = false) => {
         const b = document.createElement("button");
         b.textContent = text;
         b.disabled = !enabled;
-        b.style.cssText = "font:inherit;padding:0 4px;cursor:pointer";
+        if (light) b.className = "light";
         b.addEventListener("click", () => onPick?.(device, id, delta));
         return b;
     };
     if (bit.stepper) {
         parts.push(button("-", -1, bit.canRemove), text(bit.text), button("+", 1, bit.canAdd));
     } else {
-        parts.push(bit.canRemove ? button(bit.text, -1, true) : button(bit.text, 1, bit.canAdd));
+        // light one = not wanted yet
+        parts.push(bit.canRemove ? button(bit.text, -1, true) : button(bit.text, 1, bit.canAdd, true));
     }
-    if (bit.needed) parts.push(text("needed", "opacity:.6"));
+    if (bit.needed) parts.push(text("needed", "quiet"));
     // want controls, then a line per box
     tag.replaceChildren(line(parts), ...bit.rows.map((row) => line([
         ...(row.label ? [text(row.label)] : []),
         prioBox(row, device),
-        ...(row.when ? [text(row.when, "opacity:.8")] : []),
+        ...(row.when ? [text(row.when, "quiet")] : []),
     ])));
 }
 
 function line(parts) {
     const div = document.createElement("div");
-    div.style.cssText = "display:flex;gap:4px;align-items:center";
     div.append(...parts);
     return div;
 }
@@ -170,7 +183,6 @@ function prioBox(row, device) {
     box.placeholder = "#";
     box.title = "priority, 1 is what you want most";
     box.value = row.prio ?? "";
-    box.style.cssText = "font:inherit;width:3em;padding:0 2px";
     // game walks you around n opens build mode off keys on the page
     for (const type of ["keydown", "keyup", "keypress"]) {
         box.addEventListener(type, (event) => event.stopPropagation());
@@ -182,9 +194,9 @@ function prioBox(row, device) {
     return box;
 }
 
-function text(words, style = "") {
+function text(words, cls = "") {
     const span = document.createElement("span");
     span.textContent = words;
-    span.style.cssText = style;
+    span.className = cls;
     return span;
 }
