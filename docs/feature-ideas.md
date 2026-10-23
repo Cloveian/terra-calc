@@ -85,6 +85,7 @@ What the game sends to buy, water and plant is captured now: `shop.purchase { st
 - [ ] "Water everything planted" through `farm.interact`
 - [ ] "Buy next upgrade" through `/device-upgrades/purchase`
 - [ ] A "sell all crops" button in the market
+- [ ] "Go to your island" from anywhere. How the map travels isn't in any capture yet, needs one of the map being used
 
 ## Inside Terra's pages
 
@@ -94,6 +95,7 @@ What the game sends to buy, water and plant is captured now: `shop.purchase { st
 - [x] The steps nested under what they wait on, ticked off when they're done, and the h a day on the code step
 - [x] A box for your own multiplier in the settings
 - [x] "Affordable in Week N" labels on the device tree nodes (ended up in the want tags, with the h/week to get there)
+- [ ] A full overview: the whole plan like the site's (week by week, what you get when, h/week per pick). **Decision:** where does it open, a Terra-style window, a Terra Calc tab in Terra's big panel next to inventory and friends, or the calendar once Your time is in? Default: the window, like the device tree's, from a "full plan" link on the This Week card
 - [ ] Profit-per-hour badges on shop seeds at your multiplier
 - [ ] A warning before buying seeds you can't plant this week
 - [ ] Our part of the This Week card folds up on its own, separate from Terra's
