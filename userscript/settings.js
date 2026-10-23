@@ -1,7 +1,7 @@
 // which userscript parts are on, plus our own section in terra's settings tab
 import { MULTIPLIER, CROPS, BONUS_SEEDS } from "../src/data.js";
 import { clamp } from "../src/state.js";
-import { cssModule, watchPage } from "./page.js";
+import { cssModule, watchPage, keepFromGame, KEYS, numberBox } from "./page.js";
 
 const KEY = "terra-calc-settings"; // in terra's localStorage
 
@@ -95,22 +95,12 @@ function el(tag, cls, text = null) {
 
 function makeSection(c) {
     const ours = el("div", OUR_SECTION);
-    // game opens build mode off keys on the page
-    for (const type of ["keydown", "keyup", "keypress"]) {
-        ours.addEventListener(type, (event) => event.stopPropagation());
-    }
+    keepFromGame(ours, KEYS);
 
     const mCol = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
-    const m = el("input", c.input);
-    m.type = "number";
-    m.min = String(MULTIPLIER.min);
-    m.max = String(MULTIPLIER.max);
-    m.step = "0.01";
-    m.placeholder = "the game's";
-    m.value = current.m ?? "";
-    m.addEventListener("change", () => {
-        current.m = cleanM(m.value);
-        m.value = current.m ?? "";
+    const range = { min: String(MULTIPLIER.min), max: String(MULTIPLIER.max), step: "0.01", placeholder: "the game's" };
+    const m = numberBox({ className: c.input ?? "", ...range }, current.m, cleanM, (n) => {
+        current.m = n;
         onSettings(current);
     });
     mCol.append(el("div", c.formLabel, "Multiplier (empty is the game's)"), m);
@@ -142,14 +132,8 @@ function makeSection(c) {
 function typedRow(c) {
     const box = (key, label) => {
         const col = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
-        const input = el("input", c.input);
-        input.type = "number";
-        input.min = "0";
-        input.step = "1";
-        input.value = current.typed[key] ?? "";
-        input.addEventListener("change", () => {
-            current.typed[key] = cleanCount(input.value);
-            input.value = current.typed[key] ?? "";
+        const input = numberBox({ className: c.input ?? "", min: "0", step: "1" }, current.typed[key], cleanCount, (n) => {
+            current.typed[key] = n;
             onSettings(current);
         });
         col.append(el("div", c.formLabel, label), input);
@@ -194,16 +178,7 @@ function goalRow(c, goal) {
     pickCol.append(el("div", c.formLabel, "Goal"), selectRow);
 
     const coinsCol = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
-    const coins = el("input", c.input);
-    coins.type = "number";
-    coins.min = "0";
-    coins.step = "1";
-    coins.value = goal.coins ?? "";
-    coins.addEventListener("change", () => {
-        const cleaned = cleanCount(coins.value);
-        coins.value = cleaned ?? "";
-        onGoal.coins(cleaned);
-    });
+    const coins = numberBox({ className: c.input ?? "", min: "0", step: "1" }, goal.coins, cleanCount, (n) => onGoal.coins(n));
     coinsCol.append(el("div", c.formLabel, "Goal in coins (empty uses your picks)"), coins);
 
     const row = el("div", c.settingsRow);

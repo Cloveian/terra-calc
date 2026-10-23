@@ -1,7 +1,6 @@
 // coins an hour badges on heidi's seeds (SeedMenuUI), how many the plan buys n a warning on ones it doesnt want
 
-import { cssModule, watchPage } from "./page.js";
-import { withoutSeeds } from "./fill.js";
+import { cssModule, ourBit } from "./page.js";
 
 const BADGE = "terra-calc-badge";
 const WARNING = "terra-calc-warning";
@@ -11,23 +10,19 @@ const SHOP_CSS = `p.${WARNING} { color: #c0392b }
   padding: 0 0.35em; font-family: inherit; font-size: clamp(12px, 1.1vw, 16px); font-weight: bold;
   color: #5a3a1a; background: #ffe0a3; border: 2px solid #93582c; border-radius: 0.5em }`;
 
-let bits = null; // from drawShopBadges. toBuy = how many this weeks plan stil buys, null with no steps to go by
-let redrawBadges = null; // from watchPage, null till mountShopBadges
+// shop asks for stock every 30 s while open n rebuilds every row
+const badges = ourBit((bits) => {
+    fillBadges(bits);
+    fillWarning(bits);
+});
 
 export function mountShopBadges() {
-    const style = document.createElement("style");
-    style.textContent = SHOP_CSS;
-    document.head.append(style);
-    // shop asks for stock every 30 s while open n rebuilds every row
-    redrawBadges = watchPage(() => {
-        fillBadges();
-        fillWarning();
-    });
+    badges.mount(SHOP_CSS);
 }
 
-export function drawShopBadges(next) {
-    bits = next;
-    redrawBadges?.();
+// toBuy = how many this weeks plan still buys of each, null with no steps to go by (farm not seen)
+export function drawShopBadges(bits) {
+    badges.draw(bits);
 }
 
 // coins per hour of water, sold at m minus seed price. plots not in it
@@ -40,7 +35,7 @@ function plain(name) {
     return withoutSeeds(name.trim()).toLowerCase();
 }
 
-function fillBadges() {
+function fillBadges(bits) {
     const shelf = cssModule("itemShelf", "priceTag");
     if (!shelf || !bits) return;
     const seeds = new Map(bits.seeds.map((seed) => [plain(seed.name), seed]));
@@ -67,7 +62,7 @@ function fillBadges() {
 }
 
 // red line under heidi's "Buy Eggplant Seeds for 15 coins? You'll have 40 left." (ConfirmDialog) when the plan wants no more
-function fillWarning() {
+function fillWarning(bits) {
     const asking = /^Buy (.+) for \d+ coins\?/;
     const message = [...document.querySelectorAll("[role=alertdialog] p")].find((p) => asking.test(p.textContent));
     if (!message || !bits) return;

@@ -2,7 +2,7 @@
 import { weekName, isPrep, DAY_MS } from "../src/week.js";
 import { CROPS, BASE_KINDS } from "../src/data.js";
 import { nestSteps } from "./next.js";
-import { cssModule, watchPage } from "./page.js";
+import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
 
 // 10 min
 const FARM_OLD = 10 * 60000;
@@ -52,32 +52,25 @@ const CARD_CSS = `[data-terra-calc] > :not(.${BLOCK}):not([class*="_objectiveCou
 .${BLOCK} .terra-calc-bar > * { background: #c7793c }
 .${BLOCK} .terra-calc-bar > :last-child { opacity: 0.45 }`;
 
-let redrawCard = null; // from watchPage
-let lastPlan = null;
+const cardBit = ourBit(fill);
 let notices = [];
 
 // watched cuz the body only exists while the card's open, rebuilt every expand
 export function mountCard() {
-    if (redrawCard) return;
-    const style = document.createElement("style");
-    style.textContent = CARD_CSS;
-    document.head.append(style);
-    redrawCard = watchPage(fill);
-    redrawCard();
+    if (cardBit.mount(CARD_CSS)) cardBit.redraw();
 }
 
 // red line under plan like "Can't read Terra", no dupes
 export function showNotice(text) {
     if (notices.includes(text)) return;
     notices = [...notices, text];
-    redrawCard?.();
+    cardBit.redraw();
 }
 
 // plan = what main.js works out, or null when there isn't enough to go on yet (then Terra's own
 // checklist stays, unless there's a notice to show)
 export function drawCard(plan) {
-    lastPlan = plan;
-    redrawCard?.();
+    cardBit.draw(plan);
 }
 
 // quest card class by local name, "quest" -> "_quest_k6rzi_16". null till game css is in
@@ -92,9 +85,9 @@ function weeklyCard() {
     return { card, body: card?.querySelector(`.${questClass("questBody")}`) ?? null };
 }
 
-function fill() {
+function fill(plan) {
     if (!questClass("quest")) return;
-    const card = toDraw(lastPlan);
+    const card = toDraw(plan);
     const { card: theirs, body } = weeklyCard();
     let ours = document.getElementById(OURS);
     // own card only with no weekly one (no objective), its column goes too if it made one
@@ -126,10 +119,7 @@ function toDraw(plan) {
 function makeBlock() {
     const block = document.createElement("div");
     block.className = BLOCK;
-    // clicks would bubble up to game handlers
-    for (const type of ["pointerdown", "mousedown", "touchstart", "click"]) {
-        block.addEventListener(type, (event) => event.stopPropagation());
-    }
+    keepFromGame(block, POINTER);
     return block;
 }
 
@@ -232,7 +222,7 @@ function setFolded(on) {
     } catch {
         // not saved, it unfolds again next load
     }
-    redrawCard?.();
+    cardBit.redraw();
 }
 
 // coins, plots and m left out, the steps already use them (terraCalc.plan() has em all). one detail can be the goal bar

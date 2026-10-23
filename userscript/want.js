@@ -1,7 +1,7 @@
 // want bits under each card on terra's own device tree
 import { limitOf, unpick, normalize, dependentsOf, wantedRows, rowPrio, byId } from "../src/tree.js";
 import { weekName } from "../src/week.js";
-import { watchPage } from "./page.js";
+import { ourBit, numberBox, keepFromGame, POINTER, KEYS } from "./page.js";
 
 const BIT = "terra-calc-want";
 // terra's own tree look, cream n brown with a hard shadow and dark buttons. in em so it zooms with the node's text
@@ -73,25 +73,19 @@ export function openTree() {
     window.dispatchEvent(new CustomEvent("open_device_upgrades"));
 }
 
-let redrawBits = null; // from watchPage
-let last = null; // last drawWantBits state, for cards that show up later
+const tags = ourBit(fillBits);
 let onPick = null;
 let onPrio = null;
 
 // pick = pickWant(device, id, delta), setPrio = pickPrio(device, rowKey, n) in main.js
 export function mountWantBits(pick, setPrio) {
-    if (redrawBits) return;
     onPick = pick;
     onPrio = setPrio;
-    const style = document.createElement("style");
-    style.textContent = WANT_CSS;
-    document.head.append(style);
-    redrawBits = watchPage(fillBits);
+    tags.mount(WANT_CSS);
 }
 
 export function drawWantBits(state) {
-    last = state;
-    redrawBits?.();
+    tags.draw(state);
 }
 
 // guessed off node ids, nothing else on page says which device
@@ -100,7 +94,8 @@ function shownDevice(trees, cards) {
     return Object.keys(trees).find((device) => trees[device].nodes.some((node) => ids.has(node.id))) ?? null;
 }
 
-function fillBits() {
+// last = last drawWantBits state, cards that show up later get it too
+function fillBits(last) {
     if (!last?.trees) return;
     // class names are css modules, new every build (_node_zskb9_255). data-node stays
     const cards = [...document.querySelectorAll("[data-node]")].filter((card) => card.dataset.node !== "root");
@@ -130,13 +125,10 @@ function fillBits() {
 function makeTag(card) {
     const tag = document.createElement("div");
     tag.className = BIT;
-    // game opens its buy popup on any click in a node n pans on pointerdown
-    for (const type of ["pointerdown", "mousedown", "touchstart", "click", "dblclick"]) {
-        tag.addEventListener(type, (event) => event.stopPropagation());
-    }
+    keepFromGame(tag, POINTER);
     // catches up once out of the box. not on its own + tho, redrawing on that mousedown swapped the button out n the click never landed
     tag.addEventListener("focusout", (event) => {
-        if (!tag.contains(event.relatedTarget)) redrawBits?.();
+        if (!tag.contains(event.relatedTarget)) tags.redraw();
     });
     card.append(tag);
     return tag;
@@ -174,24 +166,17 @@ function line(parts) {
     return div;
 }
 
-// 1 = want most, empty = no number. saved on change (enter or clicking off)
+// 1 = want most, empty = no number
 function prioBox(row, device) {
-    const box = document.createElement("input");
-    box.type = "number";
-    box.min = "1";
-    box.step = "any";
-    box.placeholder = "#";
-    box.title = "priority, 1 is what you want most";
-    box.value = row.prio ?? "";
-    // game walks you around n opens build mode off keys on the page
-    for (const type of ["keydown", "keyup", "keypress"]) {
-        box.addEventListener(type, (event) => event.stopPropagation());
-    }
-    box.addEventListener("change", () => {
-        const n = box.value === "" ? null : Number(box.value);
-        onPrio?.(device, row.key, Number.isFinite(n) ? n : null);
-    });
+    const props = { min: "1", step: "any", placeholder: "#", title: "priority, 1 is what you want most" };
+    const box = numberBox(props, row.prio, cleanPrio, (n) => onPrio?.(device, row.key, n));
+    keepFromGame(box, KEYS);
     return box;
+}
+
+function cleanPrio(text) {
+    const n = text === "" ? null : Number(text);
+    return Number.isFinite(n) ? n : null;
 }
 
 function text(words, cls = "") {

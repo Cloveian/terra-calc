@@ -2,7 +2,7 @@
 
 import { IN, HUB_LEVEL, HUB_SPAWN } from "./endpoints.js";
 import { tellGame } from "./socket.js";
-import { cssModule, watchPage } from "./page.js";
+import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
 
 const HUD = "terra-calc-hud";
 // looks like the touch controls round key. terras map n bag are pixel art, ours get a word till theres art
@@ -16,29 +16,23 @@ const HUD_CSS = `#${HUD} { position: fixed; z-index: 50; display: flex; flex-dir
 // px, map button on a phone. any smaller n the words dont fit
 const MIN_SIZE = 44;
 
-let redrawHud = null; // from watchPage
+const hudBit = ourBit(fillHud);
 let pickGoal = null;
-let onFarm = false;
 
 // onPickGoal opens terra's tree
 export function mountHud(onPickGoal) {
-    if (redrawHud) return;
     pickGoal = onPickGoal;
-    const style = document.createElement("style");
-    style.textContent = HUD_CSS;
-    document.head.append(style);
-    redrawHud = watchPage(fillHud);
+    if (!hudBit.mount(HUD_CSS)) return;
     // map size is in vmin, a resize moves it without touching the DOM
-    window.addEventListener("resize", () => redrawHud());
-    redrawHud();
+    window.addEventListener("resize", hudBit.redraw);
+    hudBit.redraw();
 }
 
 export function drawHud(onOwnFarm) {
-    onFarm = onOwnFarm;
-    redrawHud?.();
+    hudBit.draw(onOwnFarm);
 }
 
-function fillHud() {
+function fillHud(onFarm) {
     const c = cssModule("mapButton", "mapIcon");
     const map = c && document.querySelector(`.${c.mapButton}`);
     const ours = document.getElementById(HUD);
@@ -51,33 +45,31 @@ function fillHud() {
     const place = `top: calc(${map.offsetTop + map.offsetHeight}px + 0.5rem); left: ${map.offsetLeft + map.offsetWidth / 2}px; --size: ${size}px;`;
     if (hud.style.cssText !== place) hud.style.cssText = place;
     const travel = hud.firstChild;
-    const [text, title] = onFarm ? ["Hub", "Go to the hub"] : ["Island", "Go to your island"];
+    const [text, title, go] = onFarm ? ["Hub", "Go to the hub", goToHub] : ["Island", "Go to your island", goToIsland];
     if (travel.textContent !== text) {
         travel.textContent = text;
         travel.title = title;
+        travel.onclick = go;
     }
 }
 
 function makeHud() {
     const hud = document.createElement("div");
     hud.id = HUD;
-    // game walks you to wherever you click
-    for (const type of ["pointerdown", "mousedown", "touchstart", "click"]) {
-        hud.addEventListener(type, (event) => {
-            event.stopPropagation();
-            if (type === "mousedown") event.preventDefault(); // no focus, a focused one clicked again on space
-        });
-    }
-    const button = (go) => {
+    keepFromGame(hud, POINTER);
+    // no focus, a focused one clicked again on space
+    hud.addEventListener("mousedown", (event) => event.preventDefault());
+    const button = () => {
         const b = document.createElement("button");
         b.type = "button";
-        b.addEventListener("click", go);
         return b;
     };
-    const goal = button(() => pickGoal());
+    const goal = button();
     goal.textContent = "Goal";
     goal.title = "Pick your goal";
-    hud.append(button(() => (onFarm ? goToHub() : goToIsland())), goal);
+    goal.onclick = () => pickGoal();
+    // travel one gets its words n click in fillHud
+    hud.append(button(), goal);
     document.body.append(hud);
     return hud;
 }

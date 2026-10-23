@@ -1,4 +1,4 @@
-// terra's real class names + one observer redrawing all our bits inside its DOM
+// terra's real class names + one observer redrawing all our bits inside its DOM, n what those bits share
 
 const WATCH = { childList: true, subtree: true };
 
@@ -37,6 +37,34 @@ export function cssModule(...locals) {
     return found;
 }
 
+export function addStyle(css) {
+    const style = document.createElement("style");
+    style.textContent = css;
+    document.head.append(style);
+}
+
+// game walks you wherever you click, opens its buy popup off clicks in tree nodes n build mode off keys anywhere
+export const POINTER = ["pointerdown", "mousedown", "touchstart", "click", "dblclick"];
+export const KEYS = ["keydown", "keyup", "keypress"];
+
+export function keepFromGame(el, types) {
+    for (const type of types) el.addEventListener(type, (event) => event.stopPropagation());
+}
+
+// cleaned on change (enter or clicking off), cleaned number goes back in the box
+export function numberBox(props, value, clean, onChange) {
+    const box = document.createElement("input");
+    box.type = "number";
+    Object.assign(box, props);
+    box.value = value ?? "";
+    box.addEventListener("change", () => {
+        const n = clean(box.value);
+        box.value = n ?? "";
+        onChange(n);
+    });
+    return box;
+}
+
 // one observer for everything, with one each the card and tree tags redrew each other every frame
 const draws = [];
 let observer = null;
@@ -73,4 +101,23 @@ export function watchPage(draw) {
     observer ??= new MutationObserver(queue);
     observer.observe(document.body, WATCH);
     return () => drawUnhooked([draw]);
+}
+
+// mount / draw / redraw for card, tree tags, shop badges n hud. fill gets the last drawn state, mount is false if it already was
+export function ourBit(fill) {
+    let state = null;
+    let redraw = null;
+    return {
+        mount(css) {
+            if (redraw) return false;
+            addStyle(css);
+            redraw = watchPage(() => fill(state));
+            return true;
+        },
+        draw(next) {
+            state = next;
+            redraw?.();
+        },
+        redraw: () => redraw?.(),
+    };
 }
