@@ -1,7 +1,6 @@
 // next steps: farm chores now + this weeks crops and hours from site route
 import { hoursNeeded, simulateRoute } from "../src/route.js";
 import { RENT, MAX_PLOTS, BASE_SEEDS, BASE_KINDS, CROPS } from "../src/data.js";
-import { seedId } from "./fill.js";
 import { isWeekAfter } from "../src/week.js";
 
 // this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent). route for milestones, mix = first weeks seeds with thisWeek
@@ -35,9 +34,7 @@ export function rowHours(state, t, rows, m, thisWeek = null) {
 export function plantedThisWeek(farm, weekKey) {
     const counts = {};
     for (const crop of farm?.crops ?? []) {
-        // farm saved before crops had ids, item id only
-        const id = crop.id ?? seedId(crop.seed);
-        if (crop.week === weekKey) counts[id] = (counts[id] ?? 0) + 1;
+        if (crop.week === weekKey) counts[crop.id] = (counts[crop.id] ?? 0) + 1;
     }
     return counts;
 }
@@ -59,7 +56,7 @@ export function noteWeek(saved, weekKey, change) {
 
 // seed ids of ready crops, ["apple", "apple", "eggplant"]
 export function readyIds(farm) {
-    return (farm?.crops ?? []).filter((crop) => crop.stage === "ready").map((crop) => crop.id ?? seedId(crop.seed));
+    return (farm?.crops ?? []).filter((crop) => crop.stage === "ready").map((crop) => crop.id);
 }
 
 // crops grown n not sold yet. market (forSaleFrom, null till its open) + ready ones and harvested ones market doesnt know yet
@@ -141,9 +138,8 @@ export function stepsFrom({
     for (const [id, n] of Object.entries(toPlant)) add({ do: "plant", seed: id, n });
 
     // water still owed, planted ones not watered yet + ones going in at table water each ({ ...CROPS, ...todays shop })
-    // farm saved before crops kept their water only has stage, dry one needs 1
     const weekCrops = farm.crops.filter((crop) => crop.week === weekKey);
-    const owed = weekCrops.reduce((total, crop) => total + (crop.water ?? (crop.stage === "dry" ? 1 : 0)), 0)
+    const owed = weekCrops.reduce((total, crop) => total + crop.water, 0)
         + base + Object.entries(toPlant).reduce((total, [id, n]) => total + n * (table[id]?.water ?? 1), 0);
     // pool covers some, unclaimed (coded, not devlogged yet) turns into water on devlog
     const short = owed - inventory.water;
@@ -160,7 +156,7 @@ export function stepsFrom({
 // week checklist with done ones ticked, like terra's own. saved = list as it first came out, null at first
 export function tickSteps(saved, steps, weekKey, w) {
     // new target (w) starts over, steps that stopped being needed would show done
-    const list = saved?.weekKey === weekKey && saved.w === w ? saved.steps.map(perSeed) : [];
+    const list = saved?.weekKey === weekKey && saved.w === w ? [...saved.steps] : [];
     const same = (a) => (b) => stepKey(a) === stepKey(b);
     steps.forEach((step, i) => {
         if (list.some(same(step))) return;
@@ -181,12 +177,6 @@ export function tickSteps(saved, steps, weekKey, w) {
 // checklist name, "buySeeds:eggplant" on per seed ones
 function stepKey(step) {
     return step.seed ? `${step.do}:${step.seed}` : step.do;
-}
-
-// lists saved before steps went per seed, apples only as buySeeds and plantApples
-function perSeed(kept) {
-    if (kept.do === "plantApples") return { do: "plant", seed: "apple", n: kept.n };
-    return kept.do === "buySeeds" && !kept.seed ? { ...kept, seed: "apple" } : kept;
 }
 
 // what each step waits on, like tree node requires. clear + harvest free plots for planting, the "or wait" is the other way to get plots

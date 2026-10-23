@@ -5,7 +5,7 @@ import { stuckFrom } from "../userscript/fill.js";
 import { hoursNeeded } from "../src/route.js";
 
 const crops = (stage, n, { review = null, week = "2026-W42" } = {}) =>
-    Array.from({ length: n }, () => ({ seed: "apple_seed", name: "Apple", stage, review, week }));
+    Array.from({ length: n }, () => ({ id: "apple", seed: "apple_seed", name: "Apple", stage, review, week, water: stage === "dry" ? 1 : 0 }));
 // what inventoryFrom gives back, nothing in it unless the test says
 const bag = (more) => ({ coins: 0, seeds: 0, baseSeeds: 0, unplaced: 0, baseKinds: {}, bonus: {}, water: 0, ...more });
 // weekTarget minus route (simulateRoute output)
@@ -146,17 +146,6 @@ test("tickSteps: a new step goes after the one before it, a new target or week s
     // new goal = new w, old list was for another plan
     assert.deepEqual(tickSteps(withShip.saved, [{ do: "code", n: 10 }], week, 10).steps, [{ do: "code", n: 10, done: false }]);
     assert.deepEqual(tickSteps(withShip.saved, [{ do: "code", n: 10 }], "2026-W44", 30).steps, [{ do: "code", n: 10, done: false }]);
-});
-
-test("tickSteps: a list saved with apples only keeps its ticks as apple steps", () => {
-    const saved = { weekKey: "2026-W43", w: 14, steps: [{ do: "buySeeds", n: 4 }, { do: "plantApples", n: 4 }, { do: "code", n: 14 }] };
-    const steps = [{ do: "buySeeds", seed: "eggplant", n: 1 }, { do: "plant", seed: "apple", n: 4 }, { do: "code", n: 13 }];
-    assert.deepEqual(tickSteps(saved, steps, "2026-W43", 14).steps, [
-        { do: "buySeeds", seed: "eggplant", n: 1, done: false },
-        { do: "buySeeds", n: 4, seed: "apple", done: true },
-        { do: "plant", seed: "apple", n: 4, done: false },
-        { do: "code", n: 13, done: false },
-    ]);
 });
 
 test("nestSteps: a step goes back left when what it waits on is done", () => {

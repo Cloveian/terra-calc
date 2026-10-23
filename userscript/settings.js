@@ -26,7 +26,7 @@ export function loadSettings() {
         typed: { coins: null, plots: null, seeds: null, ...Object.fromEntries(BONUS_SEEDS.map((id) => [id, null])) },
     };
     const saved = { ...defaults, ...loadJSON(KEY) };
-    const typed = Object.fromEntries(Object.keys(defaults.typed).map((key) => [key, cleanCount(saved.typed?.[key])]));
+    const typed = Object.fromEntries(Object.keys(defaults.typed).map((key) => [key, cleanCount(saved.typed[key])]));
     return { ...saved, m: cleanM(saved.m), typed };
 }
 
