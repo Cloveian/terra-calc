@@ -26,8 +26,8 @@ Everything you type is saved in the page's link, so you can bookmark it or send 
 
 Each week: 1 hour of coding = 1 water, and 1 water + 1 seed + 1 dirt plot = 1 crop.
 
-- The first 10 crops a week are the free carrots. In the main weeks they're rent for Ratticus, and the week's rent pays 20 coins × multiplier.
-- Every hour past 10 needs a bought seed (apples: 5 coins, sell for 30 × multiplier) and a plot. Plots cost `min(plots − 9, 10)` each, up to 45.
+- The first 10 crops a week are the free carrots. In the main weeks they're rent for Ratticus, and the week's rent pays 20 coins \* multiplier.
+- Every hour past 10 needs a bought seed (apples: 5 coins, sell for 30 \* multiplier) and a plot. Plots cost `min(plots - 9, 10)` each, up to 45.
 - Coins from one week pay for the next week's seeds and plots, so the calculator simulates every week to Week 12 and finds the lowest steady hours a week that reaches your goal.
 
 The full rules, where each one comes from (the game's code, the FAQ, or a Terra dev), and the formulas are in [research/how-terra-works.md](research/how-terra-works.md). What upgrades are worth in real money is in [research/real-prices.md](research/real-prices.md).
@@ -56,8 +56,8 @@ index.html        the page
 style.css         the look (Pico CSS + hand-drawn outlines)
 src/
   data.js         upgrade trees, prices, schedule (just data)
-  week.js         date → Terra week
-  farm.js         one week: plot cost, hours you can use, coins in and out
+  week.js         date -> Terra week
+  farm.js         one week: plot cost, hours you can use, the seed mix, coins in and out
   route.js        every week to Week 12, hours needed, when you can afford each pick
   tree.js         picking upgrades: prerequisites, goal cost
   state.js        reading and writing the link
