@@ -285,7 +285,6 @@ function myId() {
     return userIdFromToken(localStorage.getItem(TOKEN_KEY));
 }
 
-// myId() null without a readable token
 function onOwnFarm() {
     return game.farmOwnerId !== null && game.farmOwnerId === myId();
 }
@@ -475,8 +474,8 @@ function plan() {
         m,
         mGuessed: mRead === null,
         // ms, for the h a day on the code step and when last week ended
-        weekEnds,
-        // week before this one, null if not seen or no hours yet
+        weekEnds: Date.parse(game.currentWeek?.endDate ?? "") || null,
+        // the week before, null if it wasnt seen
         lastWeek: weekNote && weekNote.weekKey === game.hours?.weekKey ? weekNote.last : null,
         loans,
         farm: game.farm,

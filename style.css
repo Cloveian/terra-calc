@@ -195,8 +195,7 @@ article > header {
     padding: 0 0.3rem;
 }
 
-/* fieldsets grow to fit their widest child by default, which made the upgrade table
-   widen the whole page on phones instead of scrolling inside its box */
+/* fieldsets grow to their widest child by default, the upgrade table widened the whole page on phones */
 fieldset {
     min-width: 0;
 }
@@ -913,13 +912,12 @@ input[type="checkbox"]:checked {
     color: var(--outline);
 }
 
-/* handwriting everywhere: Patrick Hand is drawn small for its size, so scale every font to the
-   same x-height as the old system font (also evens out the fallback font used for kaomoji) */
+/* handwriting everywhere. Patrick Hand is small for its size, scaled to system font x-height (kaomoji fallback font too) */
 html {
     font-size-adjust: 0.52;
 }
 
-/* input boxes: hand-drawn too, but a much tighter wobble and a thin line like their old border */
+/* input boxes: hand-drawn too, but a much tighter wobble and a thin line */
 input:not([type=checkbox]), select {
     --sketch-color: var(--line);
     --sketch-width: 1;
@@ -1167,9 +1165,7 @@ input[type="number"]::-webkit-outer-spin-button {
     margin-top: calc(var(--pico-spacing) * 0.25);
 }
 
-/* boxes with a drawing inside: no border at all (not just an invisible one), so the drawing covers
-   exactly the area the box keeps: cards and the table frame hide anything past their border,
-   which used to cut off the outer edge of the hand-drawn line */
+/* boxes with a drawing inside get no border at all, even an invisible one. cards and the table frame clip past their border and cut off the line's outer edge */
 .sketched:not(input, select, tr) {
     border-width: 0 !important;
 }

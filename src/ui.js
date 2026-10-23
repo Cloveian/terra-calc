@@ -553,7 +553,7 @@ function render() {
         );
     }
 
-    // 8: the hours/week box only counts when there's no goal: grey it out otherwise
+    // hours/week only counts with no goal
     const capUsed = goal === 0;
     $("cap").disabled = !capUsed;
     $("cap").closest(".number-wrap")?.querySelectorAll("button").forEach((b) => { b.disabled = !capUsed; });
@@ -683,10 +683,9 @@ function total(node, wanted) {
     return line;
 }
 
-// Give boxes hand-drawn outlines. key(box) picks each one's wobble, so the same box always looks
-// the same. All of them are marked first and drawn after: a box marked after the browser has
-// already styled it would fade its normal straight border out (that was the flash on every click).
-// `watch`: redraw when it changes size (for boxes that change size with the page).
+// hand-drawn outlines, key(box) picks the wobble so a box always gets the same one
+// all marked first, drawn after. one marked after the browser styled it faded its straight border out in a flash
+// `watch` redraws on resize, for boxes that change size with the page
 function sketchAll(boxes, key, watch = false) {
     boxes = [...boxes];
     for (const box of boxes) {
@@ -906,9 +905,7 @@ treeView.addEventListener("focusin", (event) => {
 $("zoom-in").addEventListener("click", () => zoomBy(1.25));
 $("zoom-out").addEventListener("click", () => zoomBy(1 / 1.25));
 $("zoom-fit").addEventListener("click", () => setView(fitTree()));
-// The handwritten font usually arrives after the first draw, and text gets narrower with it.
-// Boxes that are redrawn on changes (pills, buttons, the tree) would keep outlines made for the
-// wider fallback font (the pills' fill no longer filled their outline), so draw everything again.
+// handwritten font lands after the first draw and is narrower, outlines redrawn on changes (pills, buttons, tree) stayed sized for the wider fallback
 document.fonts.ready.then(() => update());
 
 // the link holds your numbers: copy it to share or keep them

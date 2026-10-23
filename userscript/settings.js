@@ -9,7 +9,7 @@ const KEY = "terra-calc-settings"; // in terra's localStorage
 // off by default except reading, card n hud. buy n sell buttons spend coins
 export const FEATURES = {
     fill: { name: "Fill in from the game", on: true },
-    // still panel, its the key in everyones saved settings
+    // key in everyones saved settings, renaming it resets their pick
     panel: { name: "Steps in the This Week card", on: true },
     hud: { name: "Buttons under the map", on: true },
     seedBadges: { name: "Badges in Heidi's shop", on: false },
