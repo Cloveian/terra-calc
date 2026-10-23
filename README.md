@@ -13,7 +13,7 @@
 ## Using it
 
 1. **Inventory**: your coins, dirt plots, apple seeds, any bok choy and eggplant seeds you have and today's date, then tick which bonus seeds are in Heidi's shop today.
-2. **Settings**: your project review multiplier (0.8–1.5, use 1 if you don't know yet).
+2. **Settings**: your project review multiplier (0.8-1.5, use 1 if you don't know yet).
 3. **Goal**: pick your device, then tick the upgrades you want in the tree (or press a quick pick like "Max 12"). Tick **own** for anything you've already bought.
 4. **Your plan** shows:
    - the hours a week you need, and from which week
@@ -24,7 +24,7 @@ Everything you type is saved in the page's link, so you can bookmark it or send 
 
 ## How the maths works
 
-Each week: 1 hour of coding = 1 water, and 1 water + 1 seed + 1 dirt plot = 1 crop.
+Each week: 1 hour of coding = 1 water, and 1 water + 1 seed + 1 dirt plot = 1 crop (an eggplant takes 2 water).
 
 - The first 10 crops a week are the free carrots. In the main weeks they're rent for Ratticus, and the week's rent pays 20 coins \* multiplier.
 - Every hour past 10 needs a bought seed (apples: 5 coins, sell for 30 \* multiplier) and a plot. Plots cost `min(plots - 9, 10)` each, up to 45.
@@ -32,7 +32,7 @@ Each week: 1 hour of coding = 1 water, and 1 water + 1 seed + 1 dirt plot = 1 cr
 
 The full rules, where each one comes from (the game's code, the FAQ, or a Terra dev), and the formulas are in [research/how-terra-works.md](research/how-terra-works.md). What upgrades are worth in real money is in [research/real-prices.md](research/real-prices.md).
 
-Prices are a snapshot, and new seeds are on the way. The calculator only knows about carrots and apples for now.
+Prices are a snapshot. Bonus seeds (bok choy and eggplant so far) are only in Heidi's shop on some days, so the plan uses them in the first week and apples after that.
 
 ## Running it locally
 
