@@ -185,6 +185,19 @@ test("the code step says the h a day, under a day just the hours left", () => {
     assert.equal(cardFor(ticked, NOW).tasks[0].text, "code 28h");
 });
 
+test("devlog and ship count down to the week's end once it's under 2 days away", () => {
+    const plan = (weekEnds, done = false) => ({
+        t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1,
+        farm: { plots: 10, empty: 0, crops: [], seenAt: NOW }, stuck: null, weekEnds,
+        steps: [{ do: "claim", n: 2.2, done }, { do: "code", n: 3 }, { do: "ship", n: 10, done }],
+    });
+    const lines = (weekEnds, done) => texts(cardFor(plan(weekEnds, done), NOW).tasks);
+    assert.deepEqual(lines(NOW + 3.5 * 86400000), ["devlog 2.2h", "code 3h (0.9h/d)", "ship this week's project"]);
+    assert.deepEqual(lines(NOW + 30 * 3600000), ["devlog 2.2h (1d 6h left)", "code 3h (2.4h/d)", "ship this week's project (1d 6h left)"]);
+    assert.deepEqual(lines(NOW + 30 * 3600000, true), ["devlog 2.2h", "code 3h (2.4h/d)", "ship this week's project"]);
+    assert.deepEqual(lines(null), ["devlog 2.2h", "code 3h", "ship this week's project"]);
+});
+
 test("per seed steps say which seed, the shop's name first, and the devlog step just has the hours", () => {
     const farm = { plots: 14, empty: 14, crops: [], seenAt: NOW };
     const plan = {

@@ -26,7 +26,10 @@ const GOAL_KEY = "terra-calc-goal";
 const STEPS_KEY = "terra-calc-week-steps";
 const WEEK_KEY = "terra-calc-week";
 
-// can stay null: plots (card asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one), weekEnds (just extra words on code step n last week line), trees and owned (only for a goal), lastWeek (needs me here last week)
+// plan parts that can stay null. the card would ask for plots (they sit in inventory), farm and
+// stuck are only there once you've been on your farm, target needs the plot count too, goal's
+// null till you pick one, weekEnds is just extra words on a few steps and the last week line, trees
+// and owned only matter for a goal, and lastWeek needs you to have been here last week
 const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "trees", "owned", "lastWeek"]);
 
 // guess till a reviewed crop is in the market, m comes from project review

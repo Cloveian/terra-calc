@@ -9,9 +9,9 @@ import { loadJSON, saveJSON } from "./store.js";
 // 10 min
 const FARM_OLD = 10 * 60000;
 // 2 days
-const DEADLINE_SOON = 2 * DAY_MS;
+const DEADLINE_SOON = 2 * 86400000;
 // "last week" line stays 2 days into a week
-const RECAP_FOR = 2 * DAY_MS;
+const RECAP_FOR = 2 * 86400000;
 
 // why crops are stuck, "12 in review (apple)"
 const WHY_LINES = {
@@ -33,11 +33,11 @@ const STEP_LINES = {
     buySeeds: (n, plan, now, step) => `buy ${some(n, seedName(step.seed, plan))}`,
     waitForLoans: (n) => `(or wait for up to ${some(n, "loan plot")} on Wednesday, if still in review)`,
     place: (n) => `place ${some(n, "plot")}`,
-    plantBase: (n, plan, now, step) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}${deadline(plan, now, step)}`,
-    plant: (n, plan, now, step) => `plant ${some(n, seedName(step.seed, plan))}${deadline(plan, now, step)}`,
-    claim: (n) => `devlog ${n}h`,
+    plantBase: (n, plan, now, step) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}${deadline(plan.inventory.seedsDie, now, step)}`,
+    plant: (n, plan, now, step) => `plant ${some(n, seedName(step.seed, plan))}${deadline(plan.inventory.seedsDie, now, step)}`,
+    claim: (n, plan, now, step) => `devlog ${n}h${deadline(plan.weekEnds, now, step)}`,
     code: (n, plan, now, step) => `code ${n}h${step.done ? "" : pace(n, plan.weekEnds, now)}`,
-    ship: () => "ship this week's project",
+    ship: (n, plan, now, step) => `ship this week's project${deadline(plan.weekEnds, now, step)}`,
 };
 
 // ---- the page ----
@@ -311,9 +311,9 @@ function cropKinds(crops) {
     return ` (${[...counts].map(([name, n]) => `${n} ${name}`).join(", ")})`;
 }
 
-// time left to plant n water before the first seeds die, once under DEADLINE_SOON. ticked steps and plans without seeds get nothing
-function deadline(plan, now, step) {
-    const left = (plan.inventory.seedsDie ?? Infinity) - now;
+// " (1d 4h left)" once until (ms) is under DEADLINE_SOON away. ticked steps and no until get nothing
+function deadline(until, now, step) {
+    const left = (until ?? Infinity) - now;
     if (step.done || !(left > 0 && left < DEADLINE_SOON)) return "";
     return ` (${hoursLeft(left)} left)`;
 }
