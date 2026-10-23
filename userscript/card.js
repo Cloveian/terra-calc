@@ -378,5 +378,3 @@ function ago(ms) {
     if (minutes < 60) return `${minutes} min ago`;
     return `${Math.round(minutes / 60)} h ago`;
 }
-
-// TODO: site-style inputs for whatever fill.js gave null

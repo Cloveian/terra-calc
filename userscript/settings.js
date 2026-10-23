@@ -157,6 +157,8 @@ function typedRow(c) {
     const wrap = el("div");
     wrap.style.marginTop = "1em";
     const row = el("div", c.settingsRow);
+    // TODO: bok choy n eggplant seeds like site, typedInventory givs bonus {} for now
+    // TODO: "in Heidi's shop today" ticks from site, for when shop cant be read
     row.append(box("coins", "Coins"), box("plots", "Plots"), box("seeds", "Apple seeds"));
     wrap.append(el("div", c.formLabel, "If Terra Calc can't read the game, type your numbers in here"), row);
     return wrap;
