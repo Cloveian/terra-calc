@@ -165,9 +165,12 @@ async function readRest() {
 }
 
 function draw() {
-    drawCard(plan());
+    const parts = plan();
+    drawCard(parts);
     drawWantBits(treeBits);
-    drawShopBadges(shopBits);
+    // card's buy steps, { eggplant: 12 }, shop says the same
+    const toBuy = Object.fromEntries((parts?.steps ?? []).filter((step) => step.do === "buySeeds" && !step.done).map((step) => [step.seed, step.n]));
+    drawShopBadges({ ...shopBits, toBuy });
 }
 
 // + or - from terra's tree. picking on another device moves the goal there. taking out what other picks need asks first (DIY takes the whole Framework 13 path)
@@ -380,8 +383,8 @@ function plan() {
     // by id, for the maths n card names
     const crops = Object.fromEntries(shopSeeds.map(({ id, ...crop }) => [id, crop]));
     const table = { ...CROPS, ...crops };
-    // apples arent in shopSeeds, always stocked
-    shopBits = { m, seeds: [{ name: "Apple", ...CROPS.apple }, ...shopSeeds] };
+    // apples aren't in shopSeeds, they're always there
+    shopBits = { m, seeds: [{ id: "apple", name: "Apple", ...CROPS.apple }, ...shopSeeds] };
     // ready crops are from older shops, any days sell price does
     const sellTable = { ...CROPS, ...Object.fromEntries((game.shop?.seeds ?? []).map(({ id, sell }) => [id, { sell }])) };
     const selling = inventory && toSell(

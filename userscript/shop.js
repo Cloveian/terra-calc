@@ -1,4 +1,4 @@
-// coins an hour badges on heidi's seeds (SeedMenuUI)
+// coins an hour badges on heidi's seeds (SeedMenuUI), n how many the plan buys
 
 import { cssModule, watchPage } from "./page.js";
 
@@ -7,8 +7,8 @@ const BADGE_CSS = `.${BADGE} { position: absolute; right: 4%; bottom: 4%; z-inde
   padding: 0 0.35em; font-family: inherit; font-size: clamp(12px, 1.1vw, 16px); font-weight: bold;
   color: #5a3a1a; background: #ffe0a3; border: 2px solid #93582c; border-radius: 0.5em }`;
 
-let bits = null; // from drawShopBadges
-let redrawBadges = null; // from watchPage, stays null with seedBadges off
+let bits = null; // from drawShopBadges. toBuy = how many this weeks plan stil buys
+let redrawBadges = null; // from watchPage, null till mountShopBadges
 
 export function mountShopBadges() {
     const style = document.createElement("style");
@@ -52,8 +52,10 @@ function fillBadges() {
             row.append(badge);
         }
         const n = Math.round(perHour(seed, bits.m));
-        const text = `${n}/h`;
+        const buy = bits.toBuy[seed.id] ?? 0;
+        const text = buy>0 ? `${n}/h, buy ${buy}` : `${n}/h`;
         if (badge.textContent !== text) badge.textContent = text;
-        badge.title = `about ${n} coins for each hour you code, after what the seed costs (plots not counted), at a multiplier of ${Math.round(bits.m * 100) / 100}`;
+        badge.title = `about ${n} coins for each hour you code, after what the seed costs (plots not counted), at a multiplier of ${Math.round(bits.m * 100) / 100}`
+            + (buy > 0 ? `, and this week's plan has you buying ${buy} more` : "");
     }
 }
