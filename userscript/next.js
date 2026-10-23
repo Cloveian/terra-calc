@@ -2,6 +2,7 @@
 import { hoursNeeded, simulateRoute } from "../src/route.js";
 import { RENT, MAX_PLOTS, BASE_SEEDS, CROPS } from "../src/data.js";
 import { seedId } from "./fill.js";
+import { isWeekAfter } from "../src/week.js";
 
 // this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent). route for milestones, mix = first weeks seeds with thisWeek
 export function weekTarget(state, t, goal, m, thisWeek = null) {
@@ -45,6 +46,15 @@ export function plantedThisWeek(farm, weekKey) {
 // selling = toSell coins, unsold crops good as coins for the plan
 export function routeState(inventory, plots, farm, weekKey, selling = 0) {
     return { coins: inventory.coins + selling, plots, seeds: inventory.seeds + (plantedThisWeek(farm, weekKey).apple ?? 0) };
+}
+
+// this weeks record, change put in. new weekKey starts over, old one kept as last
+export function noteWeek(saved, weekKey, change) {
+    if (saved?.weekKey === weekKey) return { ...saved, ...change };
+    // only the week right before, two back isnt "last week"
+    const last = saved && isWeekAfter(saved.weekKey, weekKey) ? { coded: saved.coded, seenAt: saved.seenAt, w: saved.w } : null;
+    // coded = h credited as of seenAt (ms), w = h the plan wanted
+    return { weekKey, coded: 0, seenAt: null, w: null, ...change, last };
 }
 
 // seed ids of ready crops, ["apple", "apple", "eggplant"]

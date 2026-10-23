@@ -9,7 +9,7 @@ import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom, forSaleFrom,
 } from "./fill.js";
-import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, readyIds, toSell } from "./next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, readyIds, toSell, noteWeek } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { mountShopBadges, drawShopBadges } from "./shop.js";
@@ -22,9 +22,10 @@ const FARM_KEY = "terra-calc-farm";
 const SHOP_KEY = "terra-calc-shop";
 const GOAL_KEY = "terra-calc-goal";
 const STEPS_KEY = "terra-calc-week-steps";
+const WEEK_KEY = "terra-calc-week";
 
-// can stay null: plots (card asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one), weekEnds (just extra words on code step), trees and owned (only matter for a goal)
-const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "trees", "owned"]);
+// can stay null: plots (card asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one), weekEnds (just extra words on code step n last week line), trees and owned (only for a goal), lastWeek (needs me here last week)
+const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "trees", "owned", "lastWeek"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
 const M_GUESS = 1.1;
@@ -53,6 +54,14 @@ let savedGoal = loadMine(GOAL_KEY);
 let treeBits = null; // set in plan(), for drawWantBits
 let shopBits = null; // and drawShopBadges
 let savedSteps = loadMine(STEPS_KEY); // week checklist as it first came out, for the ticks
+let weekNote = loadMine(WEEK_KEY); // from noteWeek, next week says how this one went
+
+function noteThisWeek(weekKey, change) {
+    const next = noteWeek(weekNote, weekKey, change);
+    if (JSON.stringify(next) === JSON.stringify(weekNote)) return;
+    weekNote = next;
+    saveMine(WEEK_KEY, weekNote);
+}
 
 const settings = loadSettings();
 setDebug(settings.debug);
@@ -89,6 +98,7 @@ onGameMessage(IN.saleResult, () => {
 });
 onGameMessage(IN.hours, (body) => {
     const before = game.hours?.weekKey;
+    noteThisWeek(body.weekKey, { coded: body.week.creditedSeconds / 3600, seenAt: Date.now() });
     changed("hours", body);
     // new week = new label, maybe new upgrade prices
     if (settings.fill && before && body?.weekKey && body.weekKey !== before) readRest();
@@ -319,6 +329,8 @@ function weekSteps(steps, w) {
     // no farm (no steps) or no week key would look like everything got done
     // w null while messages still come in after a reload, ticking then threw the saved list away
     if (!game.farm || !weekKey || w === null) return steps;
+    // past week end the plan is next weeks already, weekKey stays old untill hours.update
+    if (!(Date.now() > Date.parse(game.currentWeek?.endDate ?? ""))) noteThisWeek(weekKey, { w });
     const ticked = tickSteps(savedSteps, steps, weekKey, w);
     if (JSON.stringify(ticked.saved) !== JSON.stringify(savedSteps)) {
         savedSteps = ticked.saved;
@@ -417,8 +429,10 @@ function plan() {
         selling,
         m,
         mGuessed: mRead === null,
-        // ms, for h a day on code step
+        // ms, for h a day on code step n when last week endded
         weekEnds: Date.parse(game.currentWeek?.endDate ?? "") || null,
+        // week before this one, null if not seen or no hours yet
+        lastWeek: weekNote && weekNote.weekKey === game.hours?.weekKey ? weekNote.last : null,
         // myId() null without a readable token
         onFarm: game.farmOwnerId !== null && game.farmOwnerId === myId(),
         loans,

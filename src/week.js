@@ -25,3 +25,16 @@ export function isPrep(t) {
 export function weekName(t) {
     return isPrep(t) ? `Prep ${t + 1}` : `Week ${t - PREP_WEEKS + 1}`;
 }
+
+// weekKey b right after a. ISO weeks, "2026-W43" is 19-25 Oct
+export function isWeekAfter(a, b) {
+    return isoMonday(b) - isoMonday(a) === 7 * DAY_MS;
+}
+
+// ISO week monday, ms at UTC midnight. jan 4 always in week 1
+function isoMonday(weekKey) {
+    const [, year, week] = weekKey.match(/^(\d+)-W(\d+)$/).map(Number);
+    const jan4 = Date.UTC(year, 0, 4);
+    const sinceMonday = (new Date(jan4).getUTCDay() + 6) % 7;
+    return jan4 + ((week - 1) * 7 - sinceMonday) * DAY_MS;
+}

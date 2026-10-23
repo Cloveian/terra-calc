@@ -103,6 +103,18 @@ test("a goal you can't reach says the best you'd get, one you can buy now says t
     assert.ok(now.includes("you can buy all of it now"));
 });
 
+test("the first 2 days of a week say how last week went, at least, it's only as of when it was last seen", () => {
+    // NOW is a day into the week that started 19 Oct 04:00 UTC
+    const plan = (lastWeek, now = NOW) => cardFor({
+        t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: null, stuck: null, steps: [],
+        weekEnds: Date.parse("2026-10-26T03:59:59.999Z"), lastWeek,
+    }, now).details;
+    assert.ok(plan({ coded: 31.24, seenAt: Date.parse("2026-10-19T01:00:00Z"), w: 40 }).includes("last week: coded at least 31.2 h, the plan wanted 40 h"));
+    assert.ok(plan({ coded: 20, seenAt: Date.parse("2026-10-16T12:00:00Z"), w: null }).includes("last week: coded at least 20 h"));
+    assert.ok(plan({ coded: 19.96, seenAt: Date.parse("2026-10-16T12:00:00Z"), w: null }).includes("last week: coded at least 19.9 h"));
+    assert.ok(!plan({ coded: 20, seenAt: NOW, w: 40 }, NOW + 2 * 86400000).some((line) => String(line).startsWith("last week")));
+});
+
 test("crops waiting to sell come off what's to go, and get a sell step", () => {
     const plan = {
         t: 3, inventory: { coins: 500, plots: 20, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: null, stuck: null,

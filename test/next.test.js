@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps, toSell } from "../userscript/next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps, toSell, noteWeek } from "../userscript/next.js";
 import { stuckFrom } from "../userscript/fill.js";
 import { hoursNeeded } from "../src/route.js";
 
@@ -263,6 +263,15 @@ test("stepsFrom: selling goes after harvesting and buying waits on it", () => {
         [{ do: "buySeeds", seed: "apple", n: 2 }, 2],
         [{ do: "buyPlots", n: 10 }, 2],
     ]);
+});
+
+test("noteWeek: a new week keeps the one right before as last, not one from further back", () => {
+    let week = noteWeek(null, "2026-W43", { w: 40 });
+    week = noteWeek(week, "2026-W43", { coded: 31.2, seenAt: 5 });
+    assert.deepEqual(week, { weekKey: "2026-W43", coded: 31.2, seenAt: 5, w: 40, last: null });
+    const next = noteWeek(week, "2026-W44", { coded: 1, seenAt: 6 });
+    assert.deepEqual(next, { weekKey: "2026-W44", coded: 1, seenAt: 6, w: null, last: { coded: 31.2, seenAt: 5, w: 40 } });
+    assert.equal(noteWeek(week, "2026-W45", { w: 20 }).last, null);
 });
 
 test("stepsFrom: nothing to go on without the farm", () => {

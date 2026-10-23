@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekIndex, weekName, isPrep, easternDay, LAST_WEEK } from "../src/week.js";
+import { weekIndex, weekName, isPrep, easternDay, isWeekAfter, LAST_WEEK } from "../src/week.js";
+
+test("isWeekAfter: the next ISO week, over new year too (2026 has a W53)", () => {
+    assert.equal(isWeekAfter("2026-W43", "2026-W44"), true);
+    assert.equal(isWeekAfter("2026-W43", "2026-W45"), false);
+    assert.equal(isWeekAfter("2026-W44", "2026-W43"), false);
+    assert.equal(isWeekAfter("2026-W53", "2027-W01"), true);
+    assert.equal(isWeekAfter("2026-W52", "2027-W01"), false);
+});
 
 test("weekIndex from Eastern day strings", () => {
     assert.equal(weekIndex("2026-10-09"), 1); // Prep 2

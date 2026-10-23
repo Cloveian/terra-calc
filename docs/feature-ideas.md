@@ -74,7 +74,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 - [x] A heads up when today's shop has a seed that beats apples. Ended up as a "check what Heidi has today" step when you haven't opened the shop today, and once you have, the steps buy whatever's best ("buy 12 eggplant seeds from Heidi")
 - [x] Seeds about to die, the plant steps count down for the last 2 days: "plant 6 eggplant seeds (1 day 4 h left to plant and water them)" (they go Monday 11:59 PM EDT, the items' `usableUntil`)
 - [ ] Ship and devlog reminders before the week ends, like "devlog now, 59 min aren't counting" (that's `unclaimed`)
-- [ ] A recap when the week rolls over: what you coded, what you sold, ahead or behind the plan
+- [x] A recap when the week rolls over, the first 2 days of a week: "last week: coded at least 31.2 h, the plan wanted 40 h" (at least cuz it's as of the last time Terra Calc saw that week, hackatime keeps counting with Terra closed. last week's real total from the API would fix that). What you sold's left out, a week's sales are mostly the week before's crops
 
 ## Shortcut Buttons
 

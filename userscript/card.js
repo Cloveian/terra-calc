@@ -8,6 +8,8 @@ import { cssModule, watchPage } from "./page.js";
 const FARM_OLD = 10 * 60000;
 // 2 days
 const DEADLINE_SOON = 2 * 86400000;
+// "last week" line stays 2 days into a week
+const RECAP_FOR = 2 * 86400000;
 
 // review reasons, worded like game hints (GameCanvas)
 const WHY_LINES = {
@@ -258,6 +260,8 @@ export function cardFor(plan, now = Date.now()) {
     if (!farm) tasks.push({ text: "go to your island so Terra Calc can count your plots", depth: 0, done: false });
 
     const details = [];
+    const recap = recapLine(plan.lastWeek, plan.weekEnds, now);
+    if (recap) details.push(recap);
     if (target?.out) details.push("can't afford 10 crops this week, that's rent");
     const mix = mixLine(target?.mix, plan.crops);
     if (mix) details.push(mix);
@@ -313,6 +317,15 @@ function mixLine(mix, crops) {
     if (!counts.some(([id]) => id !== "apple")) return null;
     const seeds = counts.sort((a, b) => b[1] - a[1]).map(([id, n]) => `${n} ${cropName(id, crops)}`);
     return `today's best: ${seeds.join(" + ")}`;
+}
+
+// "last week: coded at least 31.2 h, the plan wanted 40 h" for RECAP_FOR into a week
+function recapLine(last, weekEnds, now) {
+    if(!last?.seenAt || !weekEnds || now >= weekEnds - 7 * 86400000 + RECAP_FOR) return null;
+    // down, 19.96 isnt "at least 20 h"
+    const coded = Math.floor(last.coded * 10) / 10;
+    // at least cuz its as of when terra calc last saw that week, hackatime keeps crediting with terra closed
+    return `last week: coded at least ${coded} h${last.w === null ? "" : `, the plan wanted ${last.w} h`}`;
 }
 
 function pickName({ name, qty }) {
