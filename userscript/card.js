@@ -6,6 +6,8 @@ import { cssModule, watchPage } from "./page.js";
 
 // 10 min
 const FARM_OLD = 10 * 60000;
+// 2 days
+const DEADLINE_SOON = 2 * 86400000;
 
 // review reasons, worded like game hints (GameCanvas)
 const WHY_LINES = {
@@ -26,8 +28,8 @@ const STEP_LINES = {
     buySeeds: (n, plan, now, step) => `buy ${some(n, seedName(step.seed, plan))} from Heidi`,
     waitForLoans: (n) => `(or wait, if last week's review isn't back by wednesday Ratticus lends up to ${n})`,
     place: (n) => `place ${some(n, "plot")}`,
-    plantBase: (n, plan) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}`,
-    plant: (n, plan, now, step) => `plant ${some(n, seedName(step.seed, plan))}`,
+    plantBase: (n, plan, now, step) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}${deadline(plan, now, step)}`,
+    plant: (n, plan, now, step) => `plant ${some(n, seedName(step.seed, plan))}${deadline(plan, now, step)}`,
     claim: (n) => `devlog so the ${n} h since your last one count${n === 1 ? "s" : ""} as water`,
     // ticked one keeps its saved n, pace would be off
     code: (n, plan, now, step) => `code ${n} h${step.done ? "" : pace(n, plan.weekEnds, now)}`,
@@ -283,6 +285,18 @@ function cropKinds(crops) {
     }
     if (counts.size === 1) return ` (${[...counts.keys()][0]})`;
     return ` (${[...counts].map(([name, n]) => `${n} ${name}`).join(", ")})`;
+}
+
+// " (5 h left to plant and water them)" inside DEADLINE_SOON, ticked steps get nothing
+function deadline(plan, now, step) {
+    const left = (plan.inventory.seedsDie ?? Infinity) - now;
+    if (step.done || !(left > 0 && left < DEADLINE_SOON)) return "";
+    const hours = Math.floor(left / 3600000);
+    const days = Math.floor(hours / 24);
+    const when = hours < 1 ? "under an hour"
+        : days === 0 ? `${hours} h`
+            : `${some(days, "day")}${hours % 24 ? ` ${hours % 24} h` : ""}`;
+    return ` (${when} left to plant and water ${step.n === 1 ? "it" : "them"})`;
 }
 
 // " (3 days left, about 9.4 h a day)". weekEnds from current-week endDate, sunday night US eastern

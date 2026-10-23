@@ -314,7 +314,10 @@ function saveMine(key, value) {
 // my typed numbers shaped like inventoryFrom output, free seeds the usual 10
 function typedInventory(typed) {
     if (typed.coins === null) return null;
-    return { coins: typed.coins, plots: null, unplaced: 0, seeds: typed.seeds ?? 0, baseSeeds: BASE_SEEDS, baseKinds: {}, bonus: {}, water: 0 };
+    return {
+        coins: typed.coins, plots: null, unplaced: 0, seeds: typed.seeds ?? 0, baseSeeds: BASE_SEEDS, baseKinds: {}, bonus: {},
+        water: 0, seedsDie: null,
+    };
 }
 
 // everthing card needs, fill.js reads + saved goal

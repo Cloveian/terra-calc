@@ -174,6 +174,24 @@ test("per seed steps say which seed, the shop's name first, and the devlog step 
     ]);
 });
 
+test("plant steps count down to the seeds' deadline once it's under 2 days away", () => {
+    const plan = (seedsDie) => ({
+        t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {}, seedsDie }, m: 1,
+        farm: { plots: 10, empty: 10, crops: [], seenAt: NOW }, stuck: null,
+        steps: [{ do: "plant", seed: "apple", n: 4 }, { do: "plant", seed: "eggplant", n: 1, done: true }, { do: "plantBase", n: 1 }],
+    });
+    const lines = (seedsDie) => texts(cardFor(plan(seedsDie), NOW).tasks);
+    assert.deepEqual(lines(NOW + 28 * 3600000), [
+        "plant 4 apple seeds (1 day 4 h left to plant and water them)",
+        "plant 1 eggplant seed",
+        "plant 1 strawberry seed (1 day 4 h left to plant and water it)",
+    ]);
+    assert.equal(lines(NOW + 5 * 3600000)[0], "plant 4 apple seeds (5 h left to plant and water them)");
+    assert.equal(lines(NOW + 20 * 60000)[0], "plant 4 apple seeds (under an hour left to plant and water them)");
+    assert.equal(lines(NOW + 3 * 86400000)[0], "plant 4 apple seeds");
+    assert.equal(lines(null)[0], "plant 4 apple seeds");
+});
+
 test("free seeds go by name, both kinds when prep carrots are still good", () => {
     const farm = { plots: 16, empty: 16, crops: [], seenAt: NOW };
     const plan = {

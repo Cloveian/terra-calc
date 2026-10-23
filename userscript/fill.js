@@ -62,7 +62,9 @@ export function weekFrom(currentWeek) {
     return match[1] ? n - 1 : PREP_WEEKS + n - 1;
 }
 
-// coins, water and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with, always bought), baseSeeds = free ones from ratticus, baseKinds = same by seed
+// player.currency + inventory.sync -> { coins, plots, unplaced, seeds, baseSeeds, baseKinds, bonus, water },
+// counting only what you can still plant. seeds is apple seeds, what the model plans with (you always buy
+// those), baseSeeds the free ones from Ratticus and baseKinds those by seed, { strawberry: 10 }
 export function inventoryFrom(currency, inventory) {
     if (typeof currency?.coins !== "number" || !Array.isArray(inventory?.items)) return null;
     // game expiry rule, counts while weekNumber is in usableWeeks
@@ -93,7 +95,13 @@ export function inventoryFrom(currency, inventory) {
         bonus: bySeed(usable.filter((item) => item.type === "seed" && item.subtype !== "base" && item.itemId !== APPLE_SEED)),
         // water pool, devlogged hours minus what ive watered with. coded but not devlogged hours arent in it
         water: currency.water ?? 0,
+        // ms, soonest seeds die if not planted n waterd by then (monday night US eastern). null with no seeds
+        seedsDie: soonest(usable.filter((item) => item.type === "seed").map((item) => Date.parse(item.usableUntil))),
     };
+}
+
+function soonest(times) {
+    return times.length > 0 ? Math.min(...times) : null;
 }
 
 // room state (schema.js) -> my farm, null off farm or on freinds farm. owner from joinComplete, me from userIdFromToken. plots and crops both farmItems, crops point at plotId
