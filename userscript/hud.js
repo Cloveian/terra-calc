@@ -1,6 +1,7 @@
 // island / hub and goal buttons under terra's map
 
-import { LEVEL_KEY, HUB_LEVEL } from "./endpoints.js";
+import { IN, HUB_LEVEL, HUB_SPAWN } from "./endpoints.js";
+import { tellGame } from "./socket.js";
 import { cssModule, watchPage } from "./page.js";
 
 const HUD = "terra-calc-hud";
@@ -50,7 +51,7 @@ function fillHud() {
     const place = `top: calc(${map.offsetTop + map.offsetHeight}px + 0.5rem); left: ${map.offsetLeft + map.offsetWidth / 2}px; --size: ${size}px;`;
     if (hud.style.cssText !== place) hud.style.cssText = place;
     const travel = hud.firstChild;
-    const [text, title] = onFarm ? ["Hub", "Go to the hub (reloads)"] : ["Island", "Go to your island"];
+    const [text, title] = onFarm ? ["Hub", "Go to the hub"] : ["Island", "Go to your island"];
     if (travel.textContent !== text) {
         travel.textContent = text;
         travel.title = title;
@@ -86,8 +87,7 @@ function goToIsland() {
     window.dispatchEvent(new CustomEvent("visit_farm"));
 }
 
-// the dock is the only way to the hub and nothing outside the game can walk you there. a load joins the last saved level tho
+// game only goes to the hub off the dock, but it travels wherever a server redirect says. so it gets a fake one, same trip as the dock
 function goToHub() {
-    localStorage.setItem(LEVEL_KEY, HUB_LEVEL);
-    location.reload(); // lands at hub spawn, nowhere near the dock
+    tellGame(IN.redirect, { levelId: HUB_LEVEL, spawnTag: HUB_SPAWN });
 }

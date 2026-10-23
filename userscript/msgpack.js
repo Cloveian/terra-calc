@@ -1,6 +1,7 @@
-// msgpack decoder for game websocket frames (whole spec, its small)
+// msgpack for game websocket frames (decoder is the whole spec, its small)
 
 const utf8 = new TextDecoder();
+const utf8out = new TextEncoder();
 
 // end included for reading on, colyseus frames = protocol byte + type + payload back to back. bin as Uint8Array, ext as { type, data }, 64 bit ints as plain numbers (nothing in terra past 2^53)
 export function decodeMsgpack(bytes, offset = 0) {
@@ -90,4 +91,16 @@ export function decodeMsgpack(bytes, offset = 0) {
 
     const value = read();
     return { value, end: pos };
+}
+
+// for frames we hand the game ourselves. fixstr n fixmap only (under 32 bytes, under 16 keys), all redirectToLevel needs. plain byte values
+export function encodeMsgpack(value) {
+    if (typeof value === "string") {
+        const s = utf8out.encode(value);
+        if (s.length < 32) return [0xa0 | s.length, ...s];
+    } else if (value !== null && typeof value === "object") {
+        const entries = Object.entries(value);
+        if (entries.length < 16) return [0x80 | entries.length, ...entries.flatMap(([k, v]) => [...encodeMsgpack(k), ...encodeMsgpack(v)])];
+    }
+    throw new Error(`msgpack: can't encode ${JSON.stringify(value)}`);
 }

@@ -1,6 +1,6 @@
-// game websocket reader
+// game websocket reader, plus fake server frames for the game
 import { GAME_HOST, CHECKS } from "./endpoints.js";
-import { decodeMsgpack } from "./msgpack.js";
+import { decodeMsgpack, encodeMsgpack } from "./msgpack.js";
 import { decoderFromJoin } from "./schema.js";
 import { debug, debugOn, hex } from "./debug.js";
 
@@ -120,7 +120,14 @@ function asBytes(data) {
     return null;
 }
 
-// TODO: send(type, payload) through gameSocket for shortcut buttons (shop.purchase etc). needs encode side of decodeFrame(), reading first
+// TODO: send(type, payload) through gameSocket for shortcut buttons (shop.purchase etc). games own sends are msgpackr records, has to match those
 export function gameConnected() {
     return gameSocket !== null && gameSocket.readyState === 1;
+}
+
+// message on the games own socket like the server sent it. never reaches the server, only good for ones the game acts on itself
+export function tellGame(type, payload) {
+    if (!gameConnected()) return;
+    const frame = new Uint8Array([ROOM_DATA, ...encodeMsgpack(type), ...encodeMsgpack(payload)]);
+    gameSocket.dispatchEvent(new MessageEvent("message", { data: frame.buffer }));
 }

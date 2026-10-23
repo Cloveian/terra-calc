@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { decodeMsgpack } from "../userscript/msgpack.js";
+import { decodeMsgpack, encodeMsgpack } from "../userscript/msgpack.js";
 
 // bytes hand worked from msgpack spec
 const text = (s) => [...new TextEncoder().encode(s)];
@@ -75,4 +75,14 @@ test("short or broken input throws", () => {
     assert.throws(() => decode([0x92, 0x01]), /ran out of bytes/);
     assert.throws(() => decode([]), /ran out of bytes/);
     assert.throws(() => decode([0xc1]), /isn't a type/);
+});
+
+test("encoding strings and small objects", () => {
+    assert.deepEqual(encodeMsgpack("hi"), [0xa2, ...text("hi")]);
+    assert.deepEqual(encodeMsgpack({ a: "b" }), [0x81, 0xa1, ...text("a"), 0xa1, ...text("b")]);
+    const redirect = { levelId: "town-square", spawnTag: "Island return" };
+    assert.deepEqual(decode(encodeMsgpack(redirect)), redirect);
+    assert.equal(decode(encodeMsgpack("bok choy ✿")), "bok choy ✿");
+    assert.throws(() => encodeMsgpack(3), /can't encode/);
+    assert.throws(() => encodeMsgpack("x".repeat(32)), /can't encode/);
 });

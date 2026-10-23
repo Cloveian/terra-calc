@@ -87,7 +87,7 @@ What the game sends to buy, water and plant is captured now: `shop.purchase { st
 - [ ] "Buy next upgrade" through `/device-upgrades/purchase`
 - [ ] A "sell all crops" button in the market
 - [x] "Go to your island" from anywhere, a round button under Terra's map. It fires the game's own `visit_farm` window event (the friends list's "visit their farm"), with no user in it, that's your own farm
-- [x] On your island the same button goes to the hub instead. The game only goes there when you walk onto the dock, and nothing outside it can reach that, so it sets the level the game loads into (`lastLevelId`) and reloads. You land at the hub's spawn, not the dock. Neither one's been tried in the real game yet
+- [x] On your island the same button goes to the hub instead. The game only goes there when you walk onto the dock, and nothing outside it can reach that, so the button hands the game a `redirectToLevel` (the server's "go here" message) on its own socket and the game does the trip itself, dock spawn and all. Setting `lastLevelId` and reloading didn't work, you wake up on your island again. The redirect hasn't been tried in the real game yet
 - [x] "Pick your goal", the round button under that one (it was a link on the card)
 - [ ] Art for the three round buttons, they've got a word in them for now
 

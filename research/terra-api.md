@@ -206,7 +206,9 @@ The `open_*` ones close any dialogue first. `open_encyclopedia` gets fired by th
 
 The hub is the level `town-square` (the room's still called `world`). Nothing sends you there from outside the game. Each level's JSON has `exitZones`, and the farm island's is `{"id":"farm_exit_town","x":-7.4042,"z":0.8543,"width":2,"depth":2,"targetLevelId":"town-square","targetSpawnTag":"Island return"}`, by the dock. The renderer checks your position against them every frame and walking into one does `transitionToLevel(level, spawnTag)`, which is a fresh matchmake (`joinOrCreate("world", { token, levelId, spawnTag, farmOwnerId, fromSessionId })`) and then leaving the old room, no `room.send` at all. `visit_farm` is the same join with `farm-island`, `dock` and a `farmOwnerId`. The renderer and network client aren't on `window` anywhere.
 
-What a script *can* get at: `transitionToLevel` saves `localStorage.lastLevelId`, and on load the game joins `lastLevelId || "town-square"`. So setting it to `town-square` and reloading lands you at the hub, at its default spawn and not by the dock (no spawnTag on a fresh load).
+On load the game joins `localStorage.lastLevelId || "town-square"`, and nothing at unload overwrites it, but setting it to `town-square` and reloading still puts you back on your island. Prolly the server keeps your level and redirects you, the client's error text for that is "Failed to join saved world".
+
+What does work from outside: the server's `redirectToLevel { levelId, spawnTag, spawnPosition?, farmOwnerId? }` message. The game's handler loads the level's assets, sets `lastLevelId`, and does the same `joinLevel` as the dock, inside its travel transition. It also gives up if it gets sent to one level more than 5 times in 10 s ("loop detected"). A frame dispatched on the game's own socket (`ws.dispatchEvent(new MessageEvent("message", { data }))`) reaches Colyseus's `onmessage` like a real one, so `redirectToLevel { levelId: "town-square", spawnTag: "Island return" }` is the dock trip without walking there.
 
 ### Selling crops (market)
 
