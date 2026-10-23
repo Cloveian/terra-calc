@@ -1,5 +1,5 @@
 // which userscript parts are on, plus our own section in terra's settings tab
-import { MULTIPLIER } from "../src/data.js";
+import { MULTIPLIER, CROPS, BONUS_SEEDS } from "../src/data.js";
 import { cssModule, watchPage } from "./page.js";
 
 const KEY = "terra-calc-settings"; // in terra's localStorage
@@ -15,12 +15,12 @@ export const FEATURES = {
 };
 
 // m = my own multiplier, null = the games.
-// typed: numbers i typed in, each only used when the games cant be read. seeds is apples, rest by seed id
+// typed: numbers i typed in, each only used whn the games cant be read. seeds is apples, bonus ones by seed id (bokchoy)
 export function loadSettings() {
     const defaults = {
         ...Object.fromEntries(Object.entries(FEATURES).map(([id, f]) => [id, f.on])),
         m: null,
-        typed: { coins: null, plots: null, seeds: null, bokchoy: null, eggplant: null },
+        typed: { coins: null, plots: null, seeds: null, ...Object.fromEntries(BONUS_SEEDS.map((id) => [id, null])) },
     };
     try {
         const saved = { ...defaults, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") };
@@ -161,8 +161,8 @@ function typedRow(c) {
     row.append(box("coins", "Coins"), box("plots", "Plots"));
     // TODO: "in Heidi's shop today" ticks from site, for when shop cant be read
     const seeds = el("div", c.settingsRow);
-    seeds.style.marginTop="0.5em";
-    seeds.append(box("seeds", "Apple seeds"), box("bokchoy", "Bok choy seeds"), box("eggplant", "Eggplant seeds"));
+    seeds.style.marginTop = "0.5em";
+    seeds.append(box("seeds", "Apple seeds"), ...BONUS_SEEDS.map((id) => box(id, `${CROPS[id].name} seeds`)));
     wrap.append(el("div", c.formLabel, "If Terra Calc can't read the game, type your numbers in here"), row, seeds);
     return wrap;
 }

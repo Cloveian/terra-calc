@@ -22,6 +22,7 @@ export const CROPS = {
     bokchoy:  { name: "Bok Choy", buy: 10, sell: 37, water: 1, bonus: true },
     eggplant: { name: "Eggplant", buy: 15, sell: 75, water: 2, bonus: true },
 };
+export const BONUS_SEEDS = Object.keys(CROPS).filter((id) => CROPS[id].bonus);
 
 export const MULTIPLIER = { min: 0.8, max: 1.5 };
 export const STARTING_COINS = 25;

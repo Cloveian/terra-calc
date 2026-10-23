@@ -15,7 +15,7 @@ import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { mountShopBadges, drawShopBadges } from "./shop.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, LAST_WEEK } from "../src/week.js";
-import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
+import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
@@ -362,7 +362,7 @@ function typedInventory(typed) {
     if (typed.coins === null) return null;
     return {
         coins: typed.coins, plots: null, unplaced: 0, seeds: typed.seeds ?? 0, baseSeeds: BASE_SEEDS, baseKinds: {},
-        bonus: { bokchoy: typed.bokchoy ?? 0, eggplant: typed.eggplant ?? 0 },
+        bonus: Object.fromEntries(BONUS_SEEDS.map((id)=>[id, typed[id] ?? 0])),
         water: 0, seedsDie: null,
     };
 }

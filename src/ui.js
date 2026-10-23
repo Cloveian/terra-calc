@@ -1,5 +1,5 @@
 // The only module that touches the page: keeps the state, draws it, turns clicks into state changes.
-import { TREES, PRESETS, PICK_WARNINGS, MAX_PLOTS, PRICES_AS_OF, CROPS, RENT } from "./data.js";
+import { TREES, PRESETS, PICK_WARNINGS, MAX_PLOTS, PRICES_AS_OF, CROPS, RENT, BONUS_SEEDS } from "./data.js";
 import { easternDay, weekIndex, weekName, LAST_WEEK } from "./week.js";
 import { simulateRoute, hoursNeeded, milestones } from "./route.js";
 import {
@@ -19,7 +19,7 @@ const SVG = "http://www.w3.org/2000/svg";
 // inputs read through clean(), like the hash
 const FORM_FIELDS = ["coins", "plots", "seeds", "bok", "egg", "date", "m", "cap", "goal"];
 // heidi's shop ticks, checkbox ids are shop-<id>
-const SHOP_SEEDS = Object.keys(CROPS).filter((id) => CROPS[id].bonus);
+const SHOP_SEEDS = BONUS_SEEDS;
 
 // kaomoji for the result messages (found with `emoticond search`)
 const FACES = {
