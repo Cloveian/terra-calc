@@ -57,6 +57,17 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 - [ ] This week's "code N h" never asks for more than you said you'd give, and the h a day follows your days, not an even split
 - [ ] The same hours on the site, a box per week in the week table
 
+## Buying with risk
+
+"Should I buy this, and how many?" A seed you don't water by Monday night is lost at its price, so it's the newsvendor problem with your hours as the demand. It goes right after the First list, with your planned hours and a spread you set, then the full thing once Your time has your history.
+
+- [ ] Water order for a short week: best sale per water first (at m 1 that's eggplant 37.5, bok choy 37, apple 30), so the k-th seed gets water once you've coded W_k h, the water for everything ahead of it plus its own
+- [ ] Buy the k-th seed only if P(hours >= W_k) > buy / (m \* sell). The break-even chance at m 1 is apple 17%, eggplant 20%, bok choy 27%, so apples get bought generously and bok choy carefully, even tho it's cheaper than eggplant. That's exact for the last seed in the order, one further up also pushes everything behind it later by its own water, and that counts against it
+- [ ] P(hours >= x) from your plan with a spread you set, then from your history. Mid-week only the days left are uncertain
+- [ ] A rejected review pays nothing, the payoff gets \* (1 - p_rejected), yours to set
+- [ ] The card says it: "buy 6 eggplants + 4 apples, all watered if you code 26 h (3 of your last 4 weeks)", "a 7th eggplant pushes that to 28 h, skip it"
+- [ ] The same on the site with a "how sure am I about my hours" slider, it has no history
+
 ## Daily shop and deadlines
 
 - [ ] A heads up when today's shop has a seed that beats apples: "Heidi has eggplant today, buy up to 12 before midnight"
