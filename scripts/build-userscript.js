@@ -16,8 +16,9 @@ const DECL = /^(?:export\s+)?(?:async\s+)?(?:function\*?|const|let|class)\s+([A-
 function collect(file, seen = new Set(), order = []) {
     if (seen.has(file)) return order;
     seen.add(file);
-    if (/src\/(ui|outline|treeview|columns)\.js$/.test(file)) throw new Error(`${file} touches the site's page, it can't go in the userscript`);
     const text = readFileSync(file, "utf8");
+    // ui.js and the bits split off it are the only src/ files using document
+    if (file.includes("/src/") && text.includes("document.")) throw new Error(`${file} touches the site's page, it can't go in the userscript`);
     for (const [, spec] of text.matchAll(IMPORT)) collect(resolve(dirname(file), spec), seen, order);
     order.push({ file, text });
     return order;
