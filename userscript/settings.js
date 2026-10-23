@@ -15,14 +15,27 @@ export const FEATURES = {
 };
 
 // m = my own multiplier, null = the games
+// typed = my coins, plots and apple seeds, each only used when the games cant be read
 export function loadSettings() {
-    const defaults = { ...Object.fromEntries(Object.entries(FEATURES).map(([id, f]) => [id, f.on])), m: null };
+    const defaults = {
+        ...Object.fromEntries(Object.entries(FEATURES).map(([id, f]) => [id, f.on])),
+        m: null,
+        typed: { coins: null, plots: null, seeds: null },
+    };
     try {
         const saved = { ...defaults, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") };
-        return { ...saved, m: cleanM(saved.m) };
+        const typed = Object.fromEntries(Object.keys(defaults.typed).map((key) => [key, cleanCount(saved.typed?.[key])]));
+        return { ...saved, m: cleanM(saved.m), typed };
     } catch {
         return defaults; // bad json or no storage
     }
+}
+
+// box or storage count, whole and 0 or more, null = not typed
+function cleanCount(value) {
+    if (value === "" || value === null || value === undefined) return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : null;
 }
 
 // box or storage value kept in MULTIPLIER range, null = the games
@@ -66,6 +79,7 @@ function fillSettings() {
     const c = cssModule("settingsSection", "logoutBtn");
     const section = c && document.querySelector(`.${c.settingsSection}`);
     // built once per tab, goal row shows the goal as of when it opened
+    // built once per tab, nothing in it comes from the plan
     if (!section || section.querySelector(`:scope > .${OUR_SECTION}`)) return;
     const bottom = c.helpLogoutRow ? section.querySelector(`:scope > .${c.helpLogoutRow}`) : null;
     section.insertBefore(makeSection(c), bottom);
@@ -119,7 +133,33 @@ function makeSection(c) {
     ours.append(el("div", c.sectionTitle, "Terra Calc"), row);
     const goal = onGoal?.now();
     if (goal) ours.append(goalRow(c, goal));
+    ours.append(typedRow(c));
     return ours;
+}
+
+// for when a terra update breaks a reader. typed plots also go in before ive seen my farm or the shop
+function typedRow(c) {
+    const box = (key, label) => {
+        const col = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
+        const input = el("input", c.input);
+        input.type = "number";
+        input.min = "0";
+        input.step = "1";
+        input.value = current.typed[key] ?? "";
+        input.addEventListener("change", () => {
+            current.typed[key] = cleanCount(input.value);
+            input.value = current.typed[key] ?? "";
+            onSettings(current);
+        });
+        col.append(el("div", c.formLabel, label), input);
+        return col;
+    };
+    const wrap = el("div");
+    wrap.style.marginTop = "1em";
+    const row = el("div", c.settingsRow);
+    row.append(box("coins", "Coins"), box("plots", "Plots"), box("seeds", "Apple seeds"));
+    wrap.append(el("div", c.formLabel, "If Terra Calc can't read the game, type your numbers in here"), row);
+    return wrap;
 }
 
 // preset for the goal device, or a goal in coins
@@ -154,8 +194,7 @@ function goalRow(c, goal) {
     coins.step = "1";
     coins.value = goal.coins ?? "";
     coins.addEventListener("change", () => {
-        const n = Math.round(Number(coins.value));
-        const cleaned = coins.value === "" || !Number.isFinite(n) ? null : Math.max(0, n);
+        const cleaned = cleanCount(coins.value);
         coins.value = cleaned ?? "";
         onGoal.coins(cleaned);
     });

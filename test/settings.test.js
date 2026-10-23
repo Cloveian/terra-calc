@@ -25,3 +25,10 @@ test("loadSettings: a saved multiplier gets the same clamp as the box, junk is t
     stored("not json");
     assert.equal(loadSettings().m, null);
 });
+
+test("loadSettings: typed numbers are whole and 0 or more, missing ones are null", () => {
+    stored(null);
+    assert.deepEqual(loadSettings().typed, { coins: null, plots: null, seeds: null });
+    stored('{"typed": {"coins": 120.6, "plots": -3}}');
+    assert.deepEqual(loadSettings().typed, { coins: 121, plots: 0, seeds: null });
+});

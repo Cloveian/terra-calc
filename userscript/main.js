@@ -13,19 +13,21 @@ import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand } f
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { milestones } from "../src/route.js";
-import { easternDay } from "../src/week.js";
-import { RENT, CROPS, PRESETS } from "../src/data.js";
+import { easternDay, weekIndex, LAST_WEEK } from "../src/week.js";
+import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
 const GOAL_KEY = "terra-calc-goal";
 const STEPS_KEY = "terra-calc-week-steps";
 
-// can stay null: plots (card asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one), weekEnds (just extra words on code step)
-const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds"]);
+// can stay null: plots (card asks), farm and stuck (only after farm visit), target (needs plots), goal (till i pick one), weekEnds (just extra words on code step), trees and owned (only matter for a goal)
+const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "trees", "owned"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
 const M_GUESS = 1.1;
+// 30 s from page open, then typed numbers count
+const TYPED_AFTER = 30000;
 
 // latest from game. farm = last visit to my own farm, saved for reloads in town (seenAt for its age)
 const game = {
@@ -121,6 +123,8 @@ async function start() {
     if (settings.panel) mountCard(openTree);
     if (!settings.fill) return drawCard(null);
     mountWantBits(pickWant, pickPrio);
+    // typed numbers need a redraw, nothing else does one if the game sends nothing
+    setTimeout(draw, TYPED_AFTER);
     await readRest();
     if (settings.debug) {
         liveBuild().then((build) => debug("live build", build), (err) => debug("no live build", err));
@@ -135,7 +139,7 @@ async function readRest() {
         changed("currentWeek", await apiGet(REST.currentWeek));
     } catch (err) {
         console.warn("[terra-calc]", err);
-        showNotice(`Couldn't read Terra (${err.message}), type the numbers in for now.`);
+        showNotice(`Couldn't read Terra (${err.message}), so your goal's off for now.`);
     }
 }
 
@@ -300,9 +304,18 @@ function saveMine(key, value) {
     }
 }
 
+// my typed numbers shaped like inventoryFrom output, free seeds the usual 10
+function typedInventory(typed) {
+    if (typed.coins === null) return null;
+    return { coins: typed.coins, plots: null, unplaced: 0, seeds: typed.seeds ?? 0, baseSeeds: BASE_SEEDS, baseKinds: {}, bonus: {}, water: 0 };
+}
+
 // everthing card needs, fill.js reads + saved goal
 function plan() {
-    const inventory = inventoryFrom(game.currency, game.inventory);
+    // typed once the games came in unreadable or nothing came by TYPED_AFTER. sooner and old typed coins flash up while the page loads
+    const read = inventoryFrom(game.currency, game.inventory);
+    const waited = (game.currency && game.inventory) || performance.now() >= TYPED_AFTER;
+    const inventory = read ?? (waited ? typedInventory(settings.typed) : null);
     // mine beats the games, for "what if i get 1.3" planning
     const mRead = settings.m ?? multiplyerFrom(game.marketItems);
     const m = mRead ?? M_GUESS;
@@ -311,8 +324,10 @@ function plan() {
     // owned plots = placed + bag - ratticus's loans
     // todo: shop count might alredy include bag ones, needs a shop look with plots in my bag
     const placed = plotsNow();
-    const plots = inventory && placed !== null ? placed + inventory.unplaced - loans : null;
-    const t = weekFrom(game.currentWeek);
+    const plots = inventory && (placed !== null ? placed + inventory.unplaced - loans : settings.typed.plots);
+    // off todays date like the site when current-week cant be read, null outside terra
+    const today = weekIndex(new Date());
+    const t = weekFrom(game.currentWeek) ?? (today >= 0 && today <= LAST_WEEK ? today : null);
     const trees = treesFrom(game.deviceUpgrades);
     const owned = ownedFrom(game.deviceUpgrades);
     // own is per goal device, maybe not my main one

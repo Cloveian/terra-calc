@@ -9,7 +9,7 @@ What makes it feel finished, before anything new. In order:
 1. ~~The steps go by the mix ("buy 12 eggplant seeds", "plant 12 eggplants"), and "code N h" is the water your crops still need minus what's in your pool~~ done 22 Oct
 2. People can install and update the userscript: the built file where its update URL points, and an install bit in the README
 3. ~~Goals without the console: presets and a custom coin box in our settings section~~ done 22 Oct
-4. The fallback, when reading Terra fails you type the numbers in by hand (Plumbing)
+4. ~~The fallback, when reading Terra fails you type the numbers in by hand (Plumbing)~~ done 22 Oct
 5. One go through everything in the real game: the settings section, the tags' new look, ticking, bonus seeds
 6. Site: the week table scrolls sideways around 1280 px, and bok choy and eggplant need their own icons
 
@@ -107,7 +107,7 @@ What the game sends to buy, water and plant is captured now: `shop.purchase { st
 - [x] A WebSocket hook at `document-start` that reads the game's messages
 - [x] One file for every URL and message name, and checks that each response looks the way it should
 - [x] Tests against saved responses, starting with the HAR shapes and later a Chrome capture
-- [ ] A fallback: if anything fails, type the numbers in by hand like the site does now (First, 4)
+- [x] A fallback: if anything fails, type the numbers in by hand like the site does now (First, 4)
 - [x] Your farm, goal and checklist saved per account, another account on the same browser doesn't get them
 - [x] A notice when Terra changes something the plan uses (farm fields renamed, the apple price moved)
 - [x] `terraCalc` in the console, for the plan, a goal by hand and debug logging
