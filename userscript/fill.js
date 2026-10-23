@@ -160,7 +160,7 @@ function stageOf(crop) {
 // why ({ review: 2, changes: 1 }) and with the crops themselves so the card can say what they are.
 // no weekKey and every crop in review counts. week keys compare fine as strings, the number's always two digits
 export function stuckFrom(farm, weekKey) {
-    const stuck = (farm?.crops ?? []).filter((crop) => crop.stage === "review" && (!weekKey || crop.week < weekKey));
+    const stuck = farm.crops.filter((crop) => crop.stage === "review" && (!weekKey || crop.week < weekKey));
     const why = {};
     for (const crop of stuck) why[crop.review ?? "review"] = (why[crop.review ?? "review"] ?? 0) + 1;
     return { count: stuck.length, why, crops: stuck };

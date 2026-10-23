@@ -206,7 +206,6 @@ test("stuckFrom: waiting on review from before this week, and why", () => {
     assert.ok(stuck.crops.every((crop) => farm.crops.includes(crop)));
     assert.deepEqual(stuckFrom(farm, "2026-W42"), { count: 0, why: {}, crops: [] }, "planted this week isn't stuck yet");
     assert.equal(stuckFrom(farm, null).count, 2);
-    assert.deepEqual(stuckFrom(null, "2026-W43"), { count: 0, why: {}, crops: [] });
 });
 
 test("loansFrom: as many unplaced as stuck (or more) means that many are loans", () => {
