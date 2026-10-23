@@ -33,8 +33,8 @@ export function wMax(B, n, a) {
 
 // coins from the 10 base crops of a w hour week, carrots in prep, the rent after
 export function baseSales(w, m, prep) {
-    const carrots = prep ? CROPS.carrot.sell * Math.min(w, BASE_SEEDS) : RENT_PAY; // rent pays 20 for all 10
-    return m * carrots;
+    const base = prep ? CROPS.carrot.sell * Math.min(w, BASE_SEEDS) : RENT_PAY; // rent pays 20 for all 10
+    return m * base;
 }
 
 // coins from selling a week's crops
