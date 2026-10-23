@@ -9,8 +9,8 @@ export const FEATURES = {
     fill: { name: "Fill in from the game", on: true },
     // still panel, its the key in everyones saved settings
     panel: { name: "Steps in the This Week card", on: true },
-    hud: { name: "Island and goal buttons under the map", on: true },
-    seedBadges: { name: "Coins an hour and how many to buy in Heidi's shop", on: false },
+    hud: { name: "Buttons under the map", on: true },
+    seedBadges: { name: "Badges in Heidi's shop", on: false },
     buttons: { name: "Buy and sell buttons", on: false },
     debug: { name: "Log everything to the console", on: false },
 };
@@ -164,7 +164,7 @@ function typedRow(c) {
     const seeds = el("div", c.settingsRow);
     seeds.style.marginTop = "0.5em";
     seeds.append(box("seeds", "Apple seeds"), ...BONUS_SEEDS.map((id) => box(id, `${CROPS[id].name} seeds`)));
-    wrap.append(el("div", c.formLabel, "If Terra Calc can't read the game, type your numbers in here"), row, seeds);
+    wrap.append(el("div", c.formLabel, "For when the game can't be read"), row, seeds);
     return wrap;
 }
 

@@ -125,7 +125,7 @@ onGameMessage(ROOM.joined, ({ decoder }) => {
     game.farmReadable = missing.length === 0;
     if (!game.farmReadable) {
         debug("farm items look different, missing", missing);
-        showNotice(`Terra's farm changed (no ${missing.join(", ")}), so Terra Calc can't read your crops or plots till it catches up.`);
+        showNotice(`Can't read your farm (no ${missing.join(", ")})`);
     }
 });
 onGameMessage(IN.joinComplete, (body) => {
@@ -172,7 +172,7 @@ async function readRest() {
         changed("currentWeek", await apiGet(REST.currentWeek));
     } catch (err) {
         console.warn("[terra-calc]", err);
-        showNotice(`Couldn't read Terra (${err.message}), so your goal's off for now.`);
+        showNotice(`Can't read Terra, goal's off (${err.message})`);
     }
 }
 
@@ -320,7 +320,7 @@ function checkShopPrices() {
     const problems = shopProblems(game.shop, game.farm?.plots ?? null);
     if (problems.length > 0) debug("shop doesn't match the plan", problems);
     for (const { kind, text } of problems) {
-        if(kind === "apple") showNotice(`Terra's prices changed: ${text}. The plan's off till Terra Calc catches up.`);
+        if(kind === "apple") showNotice(`Prices changed, the plan's off: ${text}`);
     }
 }
 

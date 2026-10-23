@@ -11,32 +11,31 @@ const DEADLINE_SOON = 2 * 86400000;
 // "last week" line stays 2 days into a week
 const RECAP_FOR = 2 * 86400000;
 
-// review reasons, worded like game hints (GameCanvas)
+// why crops are stuck, "12 in review (apple)"
 const WHY_LINES = {
-    review: "waiting on last week's review",
-    changes: "waiting on you, a reviewer asked for changes",
-    short: "need more approved hours",
-    rejected: "won't grow, last week's ship was rejected",
+    review: "in review",
+    changes: "need changes",
+    short: "short on hours",
+    rejected: "rejected",
 };
 
 // next.js steps, n = whatever that step counts. plan for ones needing more words, step for its seed n done
 const STEP_LINES = {
     clear: (n) => `clear ${n} withered`,
     harvest: (n) => `harvest ${n}`,
-    sell: (n, plan, now, step) => `sell ${some(n, "crop")} at the market${step.coins > 0 ? ` for about ${some(step.coins, "coin")}` : ""}`,
-    reship: (n) => `reship last week's project, ${n} waiting on changes`,
-    devlog: (n) => `devlog and reship last week's project, ${n} short on hours`,
-    buyPlots: (n) => `buy ${some(n, "plot")} from Heidi`,
-    checkShop: () => "check what Heidi has today, the seeds change every day",
-    buySeeds: (n, plan, now, step) => `buy ${some(n, seedName(step.seed, plan))} from Heidi`,
-    waitForLoans: (n) => `(or wait, if last week's review isn't back by wednesday Ratticus lends up to ${n})`,
+    sell: (n, plan, now, step) => `sell ${some(n, "crop")}${step.coins > 0 ? ` (~${some(step.coins, "coin")})` : ""}`,
+    reship: () => "reship last week's project",
+    devlog: () => "devlog and reship last week's project",
+    buyPlots: (n) => `buy ${some(n, "plot")}`,
+    checkShop: () => "check Heidi's shop",
+    buySeeds: (n, plan, now, step) => `buy ${some(n, seedName(step.seed, plan))}`,
+    waitForLoans: (n) => `(or wait for up to ${some(n, "loan plot")} on Wednesday, if still in review)`,
     place: (n) => `place ${some(n, "plot")}`,
     plantBase: (n, plan, now, step) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}${deadline(plan, now, step)}`,
     plant: (n, plan, now, step) => `plant ${some(n, seedName(step.seed, plan))}${deadline(plan, now, step)}`,
-    claim: (n) => `devlog so the ${n} h since your last one count${n === 1 ? "s" : ""} as water`,
-    // ticked one keeps its saved n, pace would be off
-    code: (n, plan, now, step) => `code ${n} h${step.done ? "" : pace(n, plan.weekEnds, now)}`,
-    ship: (n) => `ship this week's project so the ${n} grow`,
+    claim: (n) => `devlog ${n}h`,
+    code: (n, plan, now, step) => `code ${n}h${step.done ? "" : pace(n, plan.weekEnds, now)}`,
+    ship: () => "ship this week's project",
 };
 
 // ---- the page ----
@@ -67,7 +66,7 @@ export function mountCard() {
     redrawCard();
 }
 
-// red line under plan like "Couldn't read Terra", no dupes
+// red line under plan like "Can't read Terra", no dupes
 export function showNotice(text) {
     if (notices.includes(text)) return;
     notices = [...notices, text];
@@ -211,7 +210,7 @@ function drawBar(line, { coins, selling, goal }) {
         return div;
     };
     line.classList.add("terra-calc-bar");
-    line.title = `${some(Math.floor(coins), "coin")}${selling > 0 ? ` + about ${selling} once you sell your crops` : ""}, out of ${goal}`;
+    line.title = `${some(Math.floor(coins), "coin")}${selling > 0 ? ` + ~${selling} after selling` : ""}, of ${goal}`;
     line.append(part(coins), part(Math.max(0, Math.min(selling, goal - coins))));
     return line;
 }
@@ -246,12 +245,12 @@ export function cardFor(plan, now = Date.now()) {
         done: step.done ?? false,
     }));
     // the steps need the farm to count from, the goal doesn't
-    if (!farm) tasks.push({ text: "go to your island so Terra Calc can count your plots", depth: 0, done: false });
+    if (!farm) tasks.push({ text: "go to your island", depth: 0, done: false });
 
     const details = [];
     const recap = recapLine(plan.lastWeek, plan.weekEnds, now);
     if (recap) details.push(recap);
-    if (target?.out) details.push("can't afford 10 crops this week, that's rent");
+    if (target?.out) details.push("can't make rent this week");
     const mix = mixLine(target?.mix, plan.crops);
     if (mix) details.push(mix);
     // stuck = from before this week (all of them if week unkown)
@@ -259,7 +258,7 @@ export function cardFor(plan, now = Date.now()) {
         const these = stuck.crops.filter((crop) => (crop.review ?? "review") === why);
         details.push(`${these.length} ${WHY_LINES[why] ?? `stuck (${why})`}${cropKinds(these)}`);
     }
-    if (loans > 0) details.push(`${some(loans, "loan plot")} from Ratticus, he takes them back when you harvest the stuck crops`);
+    if (loans > 0) details.push(`${some(loans, "loan plot")} from Ratticus`);
     if (goal) details.push(...goalLines(goal, target, inventory.coins, plan.selling?.coins ?? 0));
     // only once its old enough to throw the steps off
     if (farm?.seenAt && now - farm.seenAt >= FARM_OLD) details.push(`(farm as of ${ago(now - farm.seenAt)})`);
@@ -286,15 +285,15 @@ function cropName(id, crops) {
 // "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)
 // selling = coins unsold crops bring, already in route so "now" can mean after selling
 function goalLines(goal, target, coins, selling = 0) {
-    const later = selling > 0 && coins < goal.coins ? " once you sell your crops" : "";
+    const later = selling > 0 && coins < goal.coins ? " after selling" : "";
     const lines = [`goal: ${some(goal.coins, "coin")}${goal.custom ? "" : ` (${goal.device})`}, ${Math.max(0, Math.ceil(goal.coins - coins - selling))} to go${later}`];
     if (goal.coins > 0) lines.push({ bar: { coins, selling, goal: goal.coins } });
     if (target?.reachable === false) {
-        lines.push(`can't get all of it even at 45 h, best is ${Math.floor(target.route.at(-1).endCoins)} coins`);
+        lines.push(`out of reach, max ${Math.floor(target.route.at(-1).endCoins)} coins`);
     }
     const picks = goal.milestones;
     const next = picks.find((pick) => !pick.now);
-    if (picks.length > 0 && !next) lines.push(`you can buy all of it ${coins >= picks.at(-1).total ? "now" : "once you sell your crops"}`);
+    if (picks.length > 0 && !next) lines.push(`all affordable ${coins >= picks.at(-1).total ? "now" : "after selling"}`);
     if (next) lines.push(`next pick: ${pickName(next)} ${when(next)}`);
     if (next && next !== picks.at(-1)) lines.push(`all of it ${when(picks.at(-1))}`);
     return lines;
@@ -308,13 +307,12 @@ function mixLine(mix, crops) {
     return `today's best: ${seeds.join(" + ")}`;
 }
 
-// "last week: coded at least 31.2 h, the plan wanted 40 h" for RECAP_FOR into a week
+// "last week: 31.2h+ (plan 40h)", the + cuz hackatime keeps counting with terra closed
 function recapLine(last, weekEnds, now) {
     if(!last?.seenAt || !weekEnds || now >= weekEnds - 7 * 86400000 + RECAP_FOR) return null;
-    // down, 19.96 isnt "at least 20 h"
+    // down, 19.96 isnt "20h+"
     const coded = Math.floor(last.coded * 10) / 10;
-    // at least cuz its as of when terra calc last saw that week, hackatime keeps crediting with terra closed
-    return `last week: coded at least ${coded} h${last.w === null ? "" : `, the plan wanted ${last.w} h`}`;
+    return `last week: ${coded}h+${last.w === null ? "" : ` (plan ${last.w}h)`}`;
 }
 
 function pickName({ name, qty }) {
@@ -336,25 +334,28 @@ function cropKinds(crops) {
     return ` (${[...counts].map(([name, n]) => `${n} ${name}`).join(", ")})`;
 }
 
-// " (5 h left to plant and water them)" inside DEADLINE_SOON, ticked steps get nothing
+// " (1d 4h left)" to plant n water, once the seeds die in under DEADLINE_SOON. ticked steps and plans without seeds get nothing
 function deadline(plan, now, step) {
     const left = (plan.inventory.seedsDie ?? Infinity) - now;
     if (step.done || !(left > 0 && left < DEADLINE_SOON)) return "";
-    const hours = Math.floor(left / 3600000);
-    const days = Math.floor(hours / 24);
-    const when = hours < 1 ? "under an hour"
-        : days === 0 ? `${hours} h`
-            : `${some(days, "day")}${hours % 24 ? ` ${hours % 24} h` : ""}`;
-    return ` (${when} left to plant and water ${step.n === 1 ? "it" : "them"})`;
+    return ` (${hoursLeft(left)} left)`;
 }
 
-// " (3 days left, about 9.4 h a day)". weekEnds from current-week endDate, sunday night US eastern
+// h a day till weekEnds (current-week endDate, sunday night US eastern). under a day just whats left
 function pace(n, weekEnds, now) {
     if (!weekEnds || weekEnds <= now) return "";
-    const days = (weekEnds - now) / 86400000;
-    if (days < 1 / 24) return " (under an hour left in the week)";
-    if (days < 1) return ` (${Math.floor(days * 24)} h left in the week)`;
-    return ` (${some(Math.floor(days), "day")} left, about ${Math.round((n / days) * 10) / 10} h a day)`;
+    const left = weekEnds - now;
+    if (left < 86400000) return ` (${hoursLeft(left)} left in week)`;
+    return ` (${Math.round((n / (left / 86400000)) * 10) / 10}h/d)`;
+}
+
+// rounded down, "1d 4h" / "5h" / "<1h"
+function hoursLeft(ms) {
+    const hours = Math.floor(ms / 3600000);
+    const days = Math.floor(hours / 24);
+    if (hours < 1) return "<1h";
+    if (days === 0) return `${hours}h`;
+    return `${days}d${hours % 24 ? ` ${hours % 24}h` : ""}`;
 }
 
 function some(n, word) {
@@ -365,5 +366,5 @@ function ago(ms) {
     const minutes = Math.round(ms / 60000);
     if (minutes < 1) return "just now";
     if (minutes < 60) return `${minutes} min ago`;
-    return `${Math.round(minutes / 60)} h ago`;
+    return `${Math.round(minutes / 60)}h ago`;
 }

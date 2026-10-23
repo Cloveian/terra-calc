@@ -33,7 +33,7 @@ What makes it feel finished, before anything new. In order:
 
 - [x] Remaining hours needed this week
 - [x] A live progress bar toward your goal: coins now plus crops ready to sell (faded), under the goal line on the This Week card
-- [x] Crops you've grown and not sold count as coins: the market's list, the ready ones on your farm and the ones harvested since, with a sell step that buying waits on and "N to go once you sell your crops"
+- [x] Crops you've grown and not sold count as coins: the market's list, the ready ones on your farm and the ones harvested since, with a sell step that buying waits on and "N to go after selling"
 - [x] Simple plan summary: "this week: buy 5 plots + 25 apple seeds, code 35 h"
 - [x] Priorities: a number per pick, RAM and SSD tiers each their own, with the week it's covered and the h/week to get that far
 - [x] This week's best seed mix out of today's shop and your bag, the most profit that fits your hours, coins and plots (apples fill the rest)
@@ -71,10 +71,10 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 
 ## Daily shop and deadlines
 
-- [x] A heads up when today's shop has a seed that beats apples. Ended up as a "check what Heidi has today" step when you haven't opened the shop today, and once you have, the steps buy whatever's best ("buy 12 eggplant seeds from Heidi")
-- [x] Seeds about to die, the plant steps count down for the last 2 days: "plant 6 eggplant seeds (1 day 4 h left to plant and water them)" (they go Monday 11:59 PM EDT, the items' `usableUntil`)
+- [x] A heads up when today's shop has a seed that beats apples. Ended up as a "check Heidi's shop" step when you haven't opened the shop today, and once you have, the steps buy whatever's best ("buy 12 eggplant seeds")
+- [x] Seeds about to die, the plant steps count down for the last 2 days: "plant 6 eggplant seeds (1d 4h left)" (they go Monday 11:59 PM EDT, the items' `usableUntil`)
 - [ ] Ship and devlog reminders before the week ends, like "devlog now, 59 min aren't counting" (that's `unclaimed`)
-- [x] A recap when the week rolls over, the first 2 days of a week: "last week: coded at least 31.2 h, the plan wanted 40 h" (at least cuz it's as of the last time Terra Calc saw that week, hackatime keeps counting with Terra closed. last week's real total from the API would fix that). What you sold's left out, a week's sales are mostly the week before's crops
+- [x] A recap when the week rolls over, the first 2 days of a week: "last week: 31.2h+ (plan 40h)" (the + cuz it's as of the last time Terra Calc saw that week, hackatime keeps counting with Terra closed. last week's real total from the API would fix that). What you sold's left out, a week's sales are mostly the week before's crops
 
 ## Shortcut Buttons
 

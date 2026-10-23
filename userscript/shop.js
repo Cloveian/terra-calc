@@ -61,8 +61,7 @@ function fillBadges() {
         const buy = bits.toBuy?.[seed.id] ?? 0;
         const text = buy > 0 ? `${n}/h, buy ${buy}` : `${n}/h`;
         if (badge.textContent !== text) badge.textContent = text;
-        badge.title = `about ${n} coins for each hour you code, after what the seed costs (plots not counted), at a multiplier of ${Math.round(bits.m * 100) / 100}`
-            + (buy > 0 ? `, and this week's plan has you buying ${buy} more` : "");
+        badge.title = `${n} coins/h after seed cost (multiplier ${Math.round(bits.m * 100) / 100})`;
     }
 }
 
@@ -82,6 +81,6 @@ function fillWarning() {
         line.className = `${message.className} ${WARNING}`;
         message.after(line);
     }
-    const text = `Terra Calc: this week's plan doesn't need more ${plain(seed.name)} seeds. Seeds you don't plant and water by Monday night are lost.`;
-    if(line.textContent !== text) line.textContent = text;
+    const text = `Terra Calc: the plan doesn't need more ${plain(seed.name)} seeds`;
+    if (line.textContent !== text) line.textContent = text;
 }
