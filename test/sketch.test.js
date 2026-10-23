@@ -83,7 +83,7 @@ test("outlineMargin: the drawn line never reaches the box's edge (nothing gets c
     const lineWidth = 2.5;
     const margin = outlineMargin(lineWidth, wobble);
     for (const [W, H, r] of [[168, 150, 12], [1100, 140, 12], [300, 40, 8], [360, 1200, 12], [60, 30, 8], [100, 60, 0]]) {
-        // the line is drawn on a box `margin` smaller on every side, like ui.js does
+        // the line is drawn on a box `margin` smaller on every side, like outline.js does
         const [w, h] = [W - 2 * margin, H - 2 * margin];
         for (let seed = 1; seed <= 150; seed++) {
             for (const [x, y] of curvePoints(wobblyRect(w, h, r, seed * 7919, { wobble }))) {

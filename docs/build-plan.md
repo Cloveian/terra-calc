@@ -34,7 +34,7 @@ terra-calc/
 └── docs/
 ```
 
-Rule: **only `ui.js` touches the page.** Everything else is pure functions (inputs in, numbers out), so it can be tested in Node without a browser.
+Rule: **only `ui.js` (and `outline.js`, its box outlines) touches the page.** Everything else is pure functions (inputs in, numbers out), so it can be tested in Node without a browser.
 
 ## Data (`src/data.js`)
 

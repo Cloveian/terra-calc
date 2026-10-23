@@ -810,7 +810,7 @@ input[type="checkbox"]:checked {
     background-color: var(--outline);
 }
 
-/* ---- hand-drawn outlines (drawn by ui.js, maths in src/sketch.js) ----
+/* ---- hand-drawn outlines (drawn by src/outline.js, maths in src/sketch.js) ----
    Each box's outline is a generated SVG background. The real border goes transparent but keeps
    its space, so nothing moves; without JavaScript the normal borders show instead.
    Per box: --sketch-color, --sketch-width (px), --sketch-opacity, --sketch-dash. */
@@ -893,7 +893,7 @@ input[type="checkbox"]:checked {
 }
 
 /* filled boxes: their colour is drawn inside the wobbly outline instead
-   (clipped boxes keep theirs: they're cut to the wobble instead, see ui.js) */
+   (clipped boxes keep theirs: they're cut to the wobble instead, see outline.js) */
 .sketched:not(.sketch-clip) {
     background-color: transparent !important;
 }
@@ -976,7 +976,7 @@ input:not([type=checkbox]):focus, select:focus {
     color: var(--ink);
 }
 
-/* ---- more hand-drawn things (ui.js "clipped" boxes keep their own colours) ---- */
+/* ---- more hand-drawn things (outline.js "clipped" boxes keep their own colours) ---- */
 
 /* the tree window: cut to a wobbly shape, its line drawn by the frame on top (same shape) */
 .tree-view {
@@ -1081,9 +1081,9 @@ button:focus-visible, input[type="checkbox"]:focus-visible {
     --sketch-fill: color-mix(in srgb, var(--ink) 5%, var(--view));
 }
 
-/* the drawing inside a box (ui.js): fills the box, behind everything else in it */
+/* the drawing inside a box (outline.js): fills the box, behind everything else in it */
 .sketch-art {
-    position: absolute; /* size and position set by ui.js, to cover the whole box */
+    position: absolute; /* size and position set by outline.js, to cover the whole box */
     z-index: -1;
     overflow: visible;
     pointer-events: none;

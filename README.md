@@ -62,9 +62,10 @@ src/
   tree.js         picking upgrades: prerequisites, goal cost
   state.js        reading and writing the link
   view.js         zoom and pan maths for the tree
-  sketch.js       the wobbly hand-drawn outlines
-  ui.js           everything on the page (the only file that touches it)
-test/             tests for everything except ui.js
+  sketch.js       the maths for the wobbly hand-drawn outlines
+  outline.js      draws those outlines on the page
+  ui.js           everything else on the page
+test/             tests for everything except ui.js and outline.js
 research/         how Terra works, prices, the maths
 docs/             design notes and the build plan
 assets/           logos and hand-drawn icons
