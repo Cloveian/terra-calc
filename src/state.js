@@ -17,8 +17,6 @@ const LABELS = {
     cap: "Hours/week", goal: "Goal", device: "Device", own: "Own", want: "Want", first: "Buy order",
 };
 
-export const HASH_KEYS = ["coins", "plots", "seeds", ...BONUS_KEYS, "shop", "date", "m", "cap", "goal", "device", "own", "want", "first"];
-
 export function defaults(today) {
     return {
         coins: STARTING_COINS, plots: FREE_PLOTS, seeds: 0, ...bonusEach(() => 0), shop: [], date: today, m: 1, cap: RENT,
