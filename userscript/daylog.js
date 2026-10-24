@@ -1,5 +1,5 @@
 // per terra day log of heidi's bonus seeds n how far into the weeks hours i was
-// raw on purpose, the day predictions n the better-seed odds get worked out from these later
+// raw on purpose, the day predictions n the better-seed odds get worked out from these
 
 // ~2 months, a few KB
 export const KEEP_DAYS = 60;

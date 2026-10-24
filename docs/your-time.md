@@ -73,6 +73,6 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 3. `given` as `{ fixed, open }` in the route (the "Days" model), the site's week boxes moved onto it. **Done** (`weekHours` in route.js)
 4. userscript: saved days, each week's `{ fixed, open }`, the goal line, the code step capped, What can I get on the tags. **Done** minus a way to type days, that was `terraCalc.day("2026-10-26", 4)` in the console till the calendar boxes. This week only goes by days once i typed one in it, so nothing typed = the old card. The goal line says "not on my days, a flat 31 h/week would do it", the code step follows this week's days, and the tags say "doesn't fit" like before
 5. the day boxes on Terra's calendar. **Done**, untested in the real game: `calendar.js` finds the week page by its css module, gets monday off the range text ("Oct 12 - Oct 18"), and puts a box in each `._dayBox_` from today on
-6. history: the hours log (running since 23 Oct), `week-track` (needs that capture first), the optional Hackatime key, then the per-day predictions
+6. history: the hours log (running since 23 Oct), `week-track` (needs that capture first), the optional Hackatime key, then the per-day predictions. Started: `dayHours` (a day = its snapshot minus the day before, gaps flagged `lumped`) and `typicalDays` (median of the clean ones per weekday, needs 3 of a weekday) in predict.js, nothing shows them yet, the log's a day old
 
 The risk stuff in "Buying with risk" and "Waiting for a better seed" comes after all that, it wants real hours to stand on.

@@ -1,0 +1,68 @@
+// day hours off the hours log, a typical day per weekday, n the wait-for-a-better-seed odds
+// nothing reads these yet, they need a couple weeks of daylog.js first
+import { weekDay, DAY_MS } from "../src/week.js";
+
+// a weekday needs this many clean days before it gets a typical number
+export const MIN_SAMPLES = 3;
+
+// [{ day, h, lumped }], lumped = days before it werent logged so their hours landed here too
+export function dayHours(log) {
+    const days = Object.keys(log).sort();
+    return days.map((day, i) => {
+        const prev = days[i - 1];
+        const same = prev !== undefined && log[prev].weekKey === log[day].weekKey;
+        const h = (log[day].seconds - (same ? log[prev].seconds : 0)) / 3600;
+        // fine = the day right before is logged, or its monday n the week starts at 0
+        const lumped = same ? Date.parse(day) - Date.parse(prev) > DAY_MS : weekDay(day) !== 0;
+        return { day, h, lumped };
+    });
+}
+
+// median clean h per weekday, [mon ... sun], null till MIN_SAMPLES of them
+export function typicalDays(days) {
+    const byDay = Array.from({ length: 7 }, () => []);
+    for (const { day, h, lumped } of days) {
+        if (!lumped) byDay[weekDay(day)].push(h);
+    }
+    return byDay.map((hs) => (hs.length < MIN_SAMPLES ? null : median(hs)));
+}
+
+function median(xs) {
+    const sorted = [...xs].sort((a, b) => a - b);
+    const mid = sorted.length >> 1;
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+// share of logged shop days each bonus seed was in, { eggplant: 0.4 }
+export function seedOdds(shopLog) {
+    const days = Object.values(shopLog);
+    const counts = {};
+    for (const seeds of days) {
+        for (const id of seeds) counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return Object.fromEntries(Object.entries(counts).map(([id, n]) => [id, n / days.length]));
+}
+
+// what a water's worth with n shop days still to come, [V_0 ... V_days], V_0 = apple (always there on the last day)
+// V_n = E[max(best seed in that day's shop, V_(n-1))], each seed in on its own with its odds. house-selling problem, worked back from sunday
+// values = perHour (shop.js) per seed. buy today's seed for water i'm sure of if its value >= V_(days left after today)
+export function waitTable(values, odds, apple, days = 6) {
+    const ids = Object.keys(values).filter((id) => odds[id] > 0);
+    const table = [apple];
+    for (let n = 1; n <= days; n++) {
+        let worth = 0;
+        // every mix of whos in the shop, 2^ids (2 bonus seeds = 4)
+        for (let mask = 0; mask < 1 << ids.length; mask++) {
+            let p = 1;
+            let best = apple;
+            ids.forEach((id, i) => {
+                const there = (mask >> i) & 1;
+                p *= there ? odds[id] : 1 - odds[id];
+                if (there) best = Math.max(best, values[id]);
+            });
+            worth += p * Math.max(best, table[n - 1]);
+        }
+        table.push(worth);
+    }
+    return table;
+}
