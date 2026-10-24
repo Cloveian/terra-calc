@@ -1,6 +1,6 @@
 # Goal Picker
 
-*How the upgrade tree on the page turns picks into a goal (drafted with Claude). The general decisions are in [random-ah-design-specs.md](random-ah-design-specs.md).*
+*How the upgrade tree on the page turns picks into a goal. The general decisions are in [random-ah-design-specs.md](random-ah-design-specs.md).*
 
 ## Why
 

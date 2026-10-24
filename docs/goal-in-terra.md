@@ -1,6 +1,6 @@
 # Goal in Terra
 
-*How the userscript lets you set your goal without ever leaving Terra, plus a pile of other stuff it should do once it has one (drafted with Claude, 20 Oct). The site's version of all this is [goal-picker.md](goal-picker.md), and most of it carries over as-is.*
+*How the userscript lets you set your goal without ever leaving Terra, plus a pile of other stuff it should do once it has one.
 
 ## Why
 

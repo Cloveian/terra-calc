@@ -10,7 +10,7 @@ import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom, forSaleFrom,
 } from "./fill.js";
-import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, readyIds, toSell, noteWeek, daysGiven } from "./next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, readyIds, toSell, noteWeek, daysGiven, projection } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { mountShopBadges, drawShopBadges } from "./shop.js";
@@ -504,13 +504,18 @@ function plan() {
         ? Object.entries(hackatime.days).map(([day, h]) => ({ day, h, lumped: false }))
         : dayHours(hoursLog);
     const past = history.filter((d) => d.day < today);
-    const shape = weekShape(typicalDays(past));
+    const typical = typicalDays(past);
+    const shape = weekShape(typical);
+    // hackatime counts AI time full, so off a key its a bit over terra's
+    const usualWeek = typical.includes(null) ? null : typical.reduce((sum, h) => sum + h, 0);
     const given = daysGiven(savedDays, today, codedBefore(hoursLog, today, game.hours?.weekKey), shape);
     const target = start && weekTarget(start, t, coinsGoal, m, thisWeek, given);
     let rows = [];
+    let usual = null;
     if (cleaned && target) {
-        const picks = milestones(target.route, goalItems(picked, trees, cleaned.own));
-        rows = rowHours(start, t, picks, m, thisWeek, given);
+        const items = goalItems(picked, trees, cleaned.own);
+        rows = rowHours(start, t, milestones(target.route, items), m, thisWeek, given);
+        usual = projection(start, t, items, m, thisWeek, given, usualWeek);
     }
     const tags = {
         trees, owned, milestones: rows,
@@ -562,6 +567,7 @@ function plan() {
             coins: coinsGoal,
             custom: picked.goal !== null,
             milestones: rows,
+            usual, // null till every weekday has a typical
         },
         steps: ticked.steps,
     };

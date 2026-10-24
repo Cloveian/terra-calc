@@ -1,7 +1,5 @@
 # Art Assets
 
-*Everything on the page that could be hand-drawn, drafted with Claude from the current page. Tick things off as you draw them.*
-
 ## How to draw them
 
 - **SVG** where possible (sharp at any size, small). PNG only for textures, at 2× the shown size.

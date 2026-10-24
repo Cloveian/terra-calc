@@ -345,7 +345,7 @@ Steps 1-6 is a shippable first version.
 - Live GitHub Pages link + repo link
 - Short demo video (screen recording of putting in an inventory and getting a route)
 - README: what it is, how to use it, where the numbers come from
-- Devlog: what you built, and which parts were AI (e.g. this plan, the formula derivations, any code Claude wrote)
+- Devlog: what you built, and which parts were AI
 
 ## Unknowns to keep as settings
 

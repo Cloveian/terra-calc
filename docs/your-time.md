@@ -1,6 +1,6 @@
 # Your time
 
-*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md) (drafted with Claude, 23 Oct): the plan starts from the hours you actually have, not the hours it would like you to have. Steps 1 to 5 are in (the route, the site's week boxes, the per-day model, the userscript, the calendar boxes), step 6's started (the hours log and predict.js, waiting on data). The calendar boxes haven't been tried in the real game yet. Per day and the calendar got decided 23 Oct, the rest of the Decision lines are open.*
+*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md): the plan starts from the hours you actually have, not the hours it would like you to have. Steps 1 to 5 are in (the route, the site's week boxes, the per-day model, the userscript, the calendar boxes), step 6's started (the hours log and predict.js, waiting on data). The calendar boxes haven't been tried in the real game yet. Per day and the calendar got decided 23 Oct, the rest of the Decision lines are open.*
 
 ## Why
 

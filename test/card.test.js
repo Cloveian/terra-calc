@@ -86,6 +86,22 @@ test("a goal shows before the farm's been seen, with the next pick and when it's
     ]);
 });
 
+test("my usual week's line: all of it, some of it, or rent running out", () => {
+    const milestones = [{ name: "Core 3 304", qty: 1, now: false, week: 5 }, { name: "RAM 16 GB", qty: 1, now: false, week: 8 }];
+    const plan = (usual, picks = milestones) => ({
+        t: 3, inventory: { coins: 42.6, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, farm: null, stuck: null,
+        target: { w: 18, cap: 18, reachable: true, out: false, route: [] }, steps: [], selling: { crops: 0, coins: 0 },
+        goal: { device: "Framework 12", coins: 2800, custom: false, milestones: picks, usual },
+    });
+    const last = (usual, picks) => cardFor(plan(usual, picks), NOW).details.at(-1);
+    assert.equal(last({ h: 24, fit: 2, of: 2, week: 7, outFrom: null }), "at my usual 24 h/week: all of it in Week 5");
+    assert.equal(last({ h: 12, fit: 1, of: 2, week: 9, outFrom: null }), "at my usual 12 h/week: 1 of 2 picks by Week 12");
+    assert.equal(last({ h: 6, fit: 0, of: 2, week: null, outFrom: 7 }), "at my usual 6 h/week: rent runs out in Week 5");
+    assert.equal(last(null), "all of it in Week 6"); // no usual week yet, no line
+    const now = milestones.map((pick) => ({ ...pick, now: true, week: null }));
+    assert.equal(last({ h: 24, fit: 2, of: 2, week: null, outFrom: null }, now), "all affordable after selling");
+});
+
 test("a goal you can't reach says the best you'd get, one you can buy now says that", () => {
     const route = [{ endCoins: 900 }, { endCoins: 11685.4 }];
     const base = { t: 3, inventory: { coins: 3000, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, farm: null, stuck: null, steps: [], selling: { crops: 0, coins: 0 } };

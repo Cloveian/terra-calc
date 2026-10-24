@@ -1,6 +1,6 @@
 # This Week, with priorities
 
-*Plan for two things that go together (drafted with Claude, 22 Oct): ranking the upgrades you care about most, down to single RAM and SSD tiers, and putting the plan inside Terra's own "This Week" card instead of the floating panel. Follows on from [goal-in-terra.md](goal-in-terra.md). How the card is drawn is in [how-terra-looks.md](../research/how-terra-looks.md).*
+*Plan for two things that go together: ranking the upgrades you care about most, down to single RAM and SSD tiers, and putting the plan inside Terra's own "This Week" card instead of the floating panel. Follows on from [goal-in-terra.md](goal-in-terra.md). How the card is drawn is in [how-terra-looks.md](../research/how-terra-looks.md).*
 
 ## Why
 

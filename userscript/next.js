@@ -1,5 +1,5 @@
 // next steps: farm chores now + this weeks crops and hours from site route
-import { hoursNeeded, simulateRoute, EVEN_WEEK } from "../src/route.js";
+import { hoursNeeded, simulateRoute, milestones, EVEN_WEEK } from "../src/route.js";
 import { RENT, MAX_PLOTS, BASE_SEEDS, BASE_KINDS, CROPS } from "../src/data.js";
 import { isWeekAfter, weekIndex, weekDay } from "../src/week.js";
 
@@ -22,6 +22,22 @@ export function weekTarget(state, t, goal, m, thisWeek = null, given = {}) {
     }
     const row = route[0];
     return { w: row?.hours ?? 0, cap, reachable, flat, out: row?.out ?? false, route, mix: row?.mix ?? null };
+}
+
+// the same plan at my usual h/week (typicalDays added up), how many goal items (goalItems) it gets n by when
+// week = last one it needed, outFrom = first week rent didnt get paid, null if it always did
+export function projection(state, t, items, m, thisWeek, given, usualWeek) {
+    if (usualWeek === null || items.length === 0) return null;
+    const h = Math.min(Math.round(usualWeek), MAX_PLOTS);
+    const route = simulateRoute(state, t, h, m, thisWeek, given);
+    const fit = milestones(route, items).filter((pick) => pick.now || pick.week !== null);
+    return {
+        h,
+        fit: fit.length,
+        of: items.length,
+        week: fit.at(-1)?.week ?? null,
+        outFrom: route.find((row) => row.out)?.week ?? null,
+    };
 }
 
 // h/week from now to have each milestone row (n everything above it) by Week 12, null past 45 h. totals only go up so each search starts at the last cap, ~36 route runs for the whole list

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps, toSell, noteWeek, daysGiven } from "../userscript/next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps, toSell, noteWeek, daysGiven, projection } from "../userscript/next.js";
 import { stuckFrom } from "../userscript/fill.js";
 import { weekShape } from "../userscript/predict.js";
 import { hoursNeeded } from "../src/route.js";
@@ -85,6 +85,20 @@ test("rowHours: each row's h/week, same as hoursNeeded on its own (build plan nu
     const prep2 = { coins: 4, plots: 13, seeds: 3 };
     const rows = rowHours(prep2, 1, [{ total: 3050 }, { total: 10700 }, { total: 13850 }], 1);
     assert.deepEqual(rows.map((row) => row.hours), [17, 42, null]);
+});
+
+test("projection: the plan at my usual week, how many items it gets (same numbers as rowHours)", () => {
+    const prep2 = { coins: 4, plots: 13, seeds: 3 };
+    const items = [{ cost: 3050 }, { cost: 7650 }, { cost: 3150 }]; // 3050, 10700, 13850 running
+    const at = (usual) => {
+        const p = projection(prep2, 1, items, 1, null, {}, usual);
+        return p && { h: p.h, fit: p.fit, of: p.of, out: p.outFrom !== null };
+    };
+    assert.deepEqual(at(20.4), { h: 20, fit: 1, of: 3, out: false }); // 3050 needs 17
+    assert.deepEqual(at(50), { h: 45, fit: 2, of: 3, out: false }); // 10700 needs 42, 45 tops
+    assert.equal(at(6).out, true); // under 10 h a main week cant pay rent
+    assert.equal(at(null), null);
+    assert.equal(projection(prep2, 1, [], 1, null, {}, 20), null);
 });
 
 test("routeState: this week's planted apples count as seeds you've got", () => {

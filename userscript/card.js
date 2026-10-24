@@ -1,5 +1,5 @@
 // what to do next, inside terra's own This Week card
-import { weekName, isPrep, DAY_MS } from "../src/week.js";
+import { weekName, isPrep, DAY_MS, LAST_WEEK } from "../src/week.js";
 import { CROPS, BASE_KINDS } from "../src/data.js";
 import { mixWords } from "../src/farm.js";
 import { nestSteps } from "./next.js";
@@ -286,7 +286,17 @@ function goalLines(goal, target, coins, selling = 0) {
     if (picks.length > 0 && !next) lines.push(`all affordable ${coins >= picks.at(-1).total ? "now" : "after selling"}`);
     if (next) lines.push(`next pick: ${pickName(next)} ${when(next)}`);
     if (next && next !== picks.at(-1)) lines.push(`all of it ${when(picks.at(-1))}`);
+    // all of it now is the same at any h/week
+    if (goal.usual && next) lines.push(usualLine(goal.usual));
     return lines;
+}
+
+// goal.usual = projection() from next.js
+function usualLine({ h, fit, of, week, outFrom }) {
+    const start = `at my usual ${h} h/week:`;
+    if (outFrom !== null) return `${start} rent runs out in ${weekName(outFrom)}`;
+    if (fit === of) return `${start} all of it in ${weekName(week)}`;
+    return `${start} ${fit} of ${of} picks by ${weekName(LAST_WEEK)}`;
 }
 
 // "last week: 31.2h+ (plan 40h)", the + cuz hackatime keeps counting with terra closed

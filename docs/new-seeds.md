@@ -1,6 +1,6 @@
 # New seeds
 
-*Bok Choy and Eggplant showed up in Heidi's shop on 22 Oct (drafted with Claude the same day). How the site, then the userscript, plan with them. The general maths is in [how-terra-works.md, part 10](../research/how-terra-works.md#more-than-one-seed-type), this is the "what we actually do" version.*
+*Bok Choy and Eggplant showed up in Heidi's shop on 22 Oct. How the site, then the userscript, plan with them. The general maths is in [how-terra-works.md, part 10](../research/how-terra-works.md#more-than-one-seed-type), this is the "what we actually do" version.*
 
 ## What's real
 
