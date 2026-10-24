@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { simulateRoute, hoursNeeded, milestones } from "../src/route.js";
+import { LAST_WEEK } from "../src/week.js";
 
 const PREP2 = { coins: 4, plots: 13, seeds: 3 }; // at t = 1
 
@@ -58,6 +59,39 @@ test("hoursNeeded matches the tables in the notes", () => {
 test("hoursNeeded totalHours adds up the route", () => {
     const result = hoursNeeded(PREP2, 1, 3050, 1);
     assert.equal(result.totalHours, result.route.reduce((sum, row) => sum + row.hours, 0));
+});
+
+// weeks i set myself, the rest get the flat cap
+const allWeeks = (t, h) => Object.fromEntries(Array.from({ length: LAST_WEEK + 1 - t }, (_, i) => [t + i, h]));
+
+test("simulateRoute with weeks given at the cap is the old route", () => {
+    assert.deepEqual(simulateRoute(PREP2, 1, 30, 1, null, { 3: 30, 9: 30 }), simulateRoute(PREP2, 1, 30, 1));
+});
+
+test("simulateRoute plans given weeks at their own hours", () => {
+    const route = simulateRoute(PREP2, 1, 30, 1, null, { 5: 12 });
+    assert.equal(route.find((row) => row.week === 5).hours, 12);
+    assert.equal(route.find((row) => row.week === 6).hours, 30);
+});
+
+test("simulateRoute stops at a given main week under 10 h", () => {
+    const route = simulateRoute(PREP2, 1, 30, 1, null, { 5: 6 });
+    assert.equal(route.at(-1).week, 5);
+    assert.equal(route.at(-1).out, true);
+});
+
+test("hoursNeeded makes up a short week on the blank ones", () => {
+    const flat = hoursNeeded(PREP2, 1, 3050, 1);
+    const finals = hoursNeeded(PREP2, 1, 3050, 1, 10, null, { 6: 10 });
+    assert.ok(finals.cap > flat.cap);
+    assert.equal(finals.route.find((row) => row.week === 6).hours, 10);
+});
+
+test("hoursNeeded with every week given is one run, no cap", () => {
+    const given = allWeeks(1, 45);
+    const best = simulateRoute(PREP2, 1, 45, 1).at(-1).endCoins; // 11685
+    assert.equal(hoursNeeded(PREP2, 1, best, 1, 10, null, given).cap, null);
+    assert.equal(hoursNeeded(PREP2, 1, best + 1, 1, 10, null, given), null);
 });
 
 test("simulateRoute with an empty thisWeek is the old route", () => {

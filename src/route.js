@@ -9,26 +9,28 @@ const EPS = 1e-9;
 // Play every week from t to Week 12 with w = min(cap, wMax). Before Terra (t < 0) plans from Prep 1.
 // A row with `out: true` means a main week came out under 10 h, and the route stops there.
 // thisWeek (bonus seeds in the shop, onHand, the game's crops table) plans the first week with bestMix, apples only after
-export function simulateRoute(state, t, cap, m, thisWeek = null) {
+// given = { week: hours } for weeks i set myself, the rest get cap
+export function simulateRoute(state, t, cap, m, thisWeek = null, given = {}) {
     const rows = [];
     for (let week = Math.max(t, 0); week <= LAST_WEEK; week++) {
         const prep = isPrep(week);
         const max = wMax(state.coins, state.plots, state.seeds);
+        const want = given[week] ?? cap;
         // hours = water, crops = what takes plots, only dihfrent with a mix
         let hours, crops, spent, sold, mix;
         let canUse = max;
         if (thisWeek && rows.length === 0) {
-            mix = bestMix(Math.max(0, cap - BASE_SEEDS), state.coins, state.plots,
+            mix = bestMix(Math.max(0, want - BASE_SEEDS), state.coins, state.plots,
                 { apple: state.seeds, ...thisWeek.onHand }, ["apple", ...thisWeek.seeds], m,
                 { ...CROPS, ...thisWeek.crops });
-            hours = Math.min(cap, BASE_SEEDS) + mix.water;
+            hours = Math.min(want, BASE_SEEDS) + mix.water;
             crops = mix.crops;
             spent = mix.cost;
             sold = m * (baseSales(hours, 1, prep) + mix.sales); // m once, same as weekSales
-            // wMax is apples only, a mix can use more. short of the cap = coins ran out right there, else its at least the cap
-            canUse = hours < cap ? hours : Math.max(max, hours);
+            // wMax is apples only, a mix can use more. short of the week's hours = coins ran out right there, else its at least that
+            canUse = hours < want ? hours : Math.max(max, hours);
         } else {
-            hours = crops = Math.min(cap, max);
+            hours = crops = Math.min(want, max);
             spent = weekCost(hours, state.plots, state.seeds);
             sold = weekSales(hours, m, prep);
         }
@@ -69,15 +71,20 @@ export function milestones(route, items) {
 
 // Lowest flat h/week cap that ends with at least goalCoins, or null if 45 h isn't enough.
 // `from` skips caps already known too low (a smaller goal needed that much)
-export function hoursNeeded(state, t, goalCoins, m, from = RENT, thisWeek = null) {
-    for (let cap = from; cap <= MAX_PLOTS; cap++) {
-        const route = simulateRoute(state, t, cap, m, thisWeek);
+// the cap only goes on weeks missing from given. none missing = one run, and cap comes back null
+export function hoursNeeded(state, t, goalCoins, m, from = RENT, thisWeek = null, given = {}) {
+    let blank = false;
+    for (let week = Math.max(t, 0); week <= LAST_WEEK; week++) {
+        if (given[week] == null) blank = true;
+    }
+    for (let cap = from; cap <= (blank ? MAX_PLOTS : from); cap++) {
+        const route = simulateRoute(state, t, cap, m, thisWeek, given);
         const last = route[route.length - 1];
         if (last?.out) continue;
         const endCoins = last ? last.endCoins : state.coins;
         if (endCoins >= goalCoins - EPS) {
             const totalHours = route.reduce((sum, row) => sum + row.hours, 0);
-            return { cap, totalHours, route };
+            return { cap: blank ? cap : null, totalHours, route };
         }
     }
     return null;

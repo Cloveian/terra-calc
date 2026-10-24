@@ -1,6 +1,6 @@
 # Your time
 
-*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md) (drafted with Claude, 23 Oct): the plan starts from the hours you actually have, not the hours it would like you to have. Nothing's built yet, the Decision lines are open.*
+*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md) (drafted with Claude, 23 Oct): the plan starts from the hours you actually have, not the hours it would like you to have. The route side's in (step 1), nothing on screen yet, the Decision lines are open.*
 
 ## Why
 
@@ -27,8 +27,8 @@ Right now the route finds the lowest *flat* h/week that reaches the goal, `hours
 
 ## What the plan does with it
 
-- `simulateRoute(state, t, cap, m, thisWeek)` takes `cap` as a number or `{ week: hours }` for the weeks you set, falling back to the flat cap for the rest. One loop, the per-week lookup is the only change
-- `hoursNeeded` searches the flat cap over the blank weeks only. With every week set it's one route run
+- ~~`simulateRoute(state, t, cap, m, thisWeek)` takes `cap` as a number or `{ week: hours }`~~ `simulateRoute(state, t, cap, m, thisWeek, given)` takes `given = { week: hours }` (week index `t`) for the weeks you set, falling back to the flat `cap` for the rest. A separate argument, so `cap` stays one thing. One loop, the per-week lookup is the only change. **Done 23 Oct**
+- `hoursNeeded` searches the flat cap over the blank weeks only. With every week set it's one route run and `cap` comes back `null` (the site can't print "null h/week", so it says something else). **Done 23 Oct**
 - **What can I get:** when your hours don't reach the goal, plan at your hours and walk `milestones` down your priority list, everything that's covered by Week 12 is in, the bottom falls off. Same "bottom falls off" rule as [this-week.md](this-week.md), it just finally has a reason to happen
 - **Both numbers when it doesn't fit:** "needs 31 h a week, you've got 20", on the card's goal line and the site's result
 - **The tags:** picks that don't fit get marked on the tree tags and in the site's milestone list (greyed, "not with your hours")
@@ -58,7 +58,7 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 
 ## Order to build it
 
-1. `cap` per week in `simulateRoute` and the blank-weeks search in `hoursNeeded`, tests (old ones pass unchanged, that's the point of blank = flat)
+1. `given` weeks in `simulateRoute` and the blank-weeks search in `hoursNeeded`, tests (old ones pass unchanged, that's the point of blank = flat). **Done**
 2. site: the box per week in the table, the hash key, "needs X, you've got Y"
 3. userscript: saved hours, the goal line, the code step capped, What can I get on the tags
 4. the boxes on Terra's calendar
