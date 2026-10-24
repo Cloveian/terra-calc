@@ -18,7 +18,7 @@
 4. **Your plan** shows:
    - the hours a week you need, and from which week
    - when you can afford each pick (use the arrows to buy something sooner or later)
-   - a week-by-week table: plots, hours, coins spent and sold
+   - a week-by-week table: plots, hours, coins spent and sold. Type the hours you can give into any week (finals week, a trip), and the weeks you leave blank make up the rest
 
 Everything you type is saved in the page's link, so you can bookmark it or send it to someone.
 

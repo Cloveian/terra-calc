@@ -1,6 +1,6 @@
 # Your time
 
-*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md) (drafted with Claude, 23 Oct): the plan starts from the hours you actually have, not the hours it would like you to have. The route side's in (step 1), nothing on screen yet, the Decision lines are open.*
+*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md) (drafted with Claude, 23 Oct): the plan starts from the hours you actually have, not the hours it would like you to have. The route side's in (step 1) and the site has its boxes (step 2), nothing in the userscript yet, the Decision lines are open.*
 
 ## Why
 
@@ -54,12 +54,12 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 ## Data
 
 - userscript, saved per account like the goal: `hours: { "2026-W44": 20, "2026-W45": 10 }`, keyed by the same `weekKey` `hours.update` sends. Days later as `days: { "2026-10-26": 4 }`, and a week with days set is just their sum
-- site: one more hash key, the 12 weeks in order with blanks, so a link with no hours is the same link as today
+- site: one more hash key, ~~the 12 weeks in order with blanks~~ only the weeks you set as week index:hours (`hours=5:20,6:10`), so a link with no hours is the same link as today
 
 ## Order to build it
 
 1. `given` weeks in `simulateRoute` and the blank-weeks search in `hoursNeeded`, tests (old ones pass unchanged, that's the point of blank = flat). **Done**
-2. site: the box per week in the table, the hash key, "needs X, you've got Y"
+2. site: the box per week in the table, the hash key, "needs X, you've got Y". **Done**, mostly. "Needs X" only shows when every week's set ("A flat 23 h/week would get there"), with some blank and still out of reach it's the old "Not reachable" at 45 h on the blanks
 3. userscript: saved hours, the goal line, the code step capped, What can I get on the tags
 4. the boxes on Terra's calendar
 5. history from `week-track` (needs that capture first), then the suggestions

@@ -36,6 +36,26 @@ test("bonus seeds on hand and the shop ticks round-trip, unknown shop ids are dr
     ]);
 });
 
+test("week hours round-trip, 0 is kept, bad ones are reported", () => {
+    const { state, problems } = clean(raw("hours=5:20,6:10,1:0"), TODAY);
+    assert.deepEqual(problems, []);
+    assert.deepEqual(state.hours, { 1: 0, 5: 20, 6: 10 });
+    assert.deepEqual(clean(raw(toHash(state, TODAY)), TODAY).state, state);
+    assert.ok(!toHash(defaults(TODAY), TODAY).includes("hours"));
+
+    const bad = clean(raw("hours=15:20,x:3,4,5:,6:99,7:12.4,8:1:2"), TODAY);
+    assert.deepEqual(bad.state.hours, { 6: 45, 7: 12 });
+    assert.deepEqual(bad.problems, [
+        `Week hours: "15:20" isn't week:hours`,
+        `Week hours: "x:3" isn't week:hours`,
+        `Week hours: "4" isn't week:hours`,
+        `Week hours: "5:" isn't week:hours`,
+        `Week hours: 99 is out of range, used 45`,
+        `Week hours: 12.4 is out of range, used 12`,
+        `Week hours: "8:1:2" isn't week:hours`,
+    ]);
+});
+
 test("buy order: a tier of a tiered node is fine, a tier of anything else or past the last isn't", () => {
     const { state, problems } = clean(raw("first=ram_12:2,ssd_12:3,cpu_12:1,ram_12:0,ram_12:2:1,cpu_12"), TODAY);
     assert.deepEqual(state.first, ["ram_12:2", "cpu_12"]);

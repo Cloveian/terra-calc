@@ -461,6 +461,16 @@ button {
     text-align: right;
 }
 
+/* the hours i'll give each week, just wide enough for "45". faded placeholder = what the plan picked */
+#route input.week-hours {
+    width: 3.6em;
+    height: auto;
+    margin: 0;
+    padding: 0.1rem 0.35rem;
+    font-size: inherit;
+    text-align: right;
+}
+
 /* milestones: a heading per week, the picks for it indented under it:
    name ×qty | cost · running total | priority arrows, lined up the same in every group */
 #milestones {

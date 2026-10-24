@@ -1,10 +1,12 @@
 // Page state and URL hash.
-// state = { coins, plots, seeds, bok, egg, shop, date, m, cap, goal, device, own, want, first }
+// state = { coins, plots, seeds, bok, egg, shop, date, m, cap, hours, goal, device, own, want, first }
 //   goal: null = use the tree picks, a number = custom goal typed by hand
 //   own / want: { id: qty }, first: ids (or id:n for one tier) to buy first (milestone order)
 //   bok / egg: bonus seeds on hand, named by their CROPS key, shop: bonus seed ids in heidis shop today
+//   hours: { week index: h } for weeks i set myself, route.js `given`
 import { TREES, CROPS, BONUS_SEEDS, FREE_PLOTS, MAX_PLOTS, RENT, MULTIPLIER, STARTING_COINS } from "./data.js";
 import { normalize, limitOf, byId } from "./tree.js";
+import { LAST_WEEK } from "./week.js";
 
 export const DEFAULT_DEVICE = "framework_12";
 export const BONUS_KEYS = BONUS_SEEDS.map((id) => CROPS[id].key);
@@ -14,13 +16,13 @@ const bonusEach = (value) => Object.fromEntries(BONUS_SEEDS.map((id) => [CROPS[i
 const LABELS = {
     coins: "Coins", plots: "Dirt plots", seeds: "Apple seeds", ...bonusEach((id) => `${CROPS[id].name} seeds`),
     shop: "Heidi's shop", date: "Date", m: "Multiplier",
-    cap: "Hours/week", goal: "Goal", device: "Device", own: "Own", want: "Want", first: "Buy order",
+    cap: "Hours/week", hours: "Week hours", goal: "Goal", device: "Device", own: "Own", want: "Want", first: "Buy order",
 };
 
 export function defaults(today) {
     return {
         coins: STARTING_COINS, plots: FREE_PLOTS, seeds: 0, ...bonusEach(() => 0), shop: [], date: today, m: 1, cap: RENT,
-        goal: null, device: DEFAULT_DEVICE, own: {}, want: {}, first: [],
+        hours: {}, goal: null, device: DEFAULT_DEVICE, own: {}, want: {}, first: [],
     };
 }
 
@@ -79,6 +81,11 @@ export function formatSelection(selection) {
         .join(",");
 }
 
+// { 5: 20, 6: 10 } -> "5:20,6:10", 0 kept
+export function formatHours(hours) {
+    return Object.entries(hours).map(([week, h]) => `${week}:${h}`).join(",");
+}
+
 // anything normalize had to cut down (over the limit) is a problem; added prerequisites aren't
 function reportClamps(tree, label, before, after, problems) {
     for (const [id, qty] of Object.entries(before)) {
@@ -134,6 +141,21 @@ export function clean(raw, today, trees = TREES) {
         else problems.push(`${LABELS.shop}: there's no bonus seed called "${id}"`);
     }
 
+    // "5:20,6:10", week index:hours. 0 is a real answer (skipping a prep week)
+    const hours = {};
+    for (const part of (raw.hours ?? "").split(",")) {
+        if (part === "") continue;
+        const [weekText, hText = "", extra] = part.split(":");
+        const week = Number(weekText);
+        const h = Number(hText);
+        if (extra !== undefined || weekText === "" || hText === "" || !Number.isInteger(week) || week < 0 || week > LAST_WEEK || !Number.isFinite(h)) {
+            problems.push(`${LABELS.hours}: "${part}" isn't week:hours`);
+            continue;
+        }
+        hours[week] = clamp(Math.round(h), 0, MAX_PLOTS);
+        if (hours[week] !== h) problems.push(`${LABELS.hours}: ${h} is out of range, used ${hours[week]}`);
+    }
+
     const seedCount = (n) => Math.max(0, Math.round(n));
     const state = {
         coins: number(raw, "coins", d.coins, problems, (n) => Math.max(0, n)),
@@ -144,6 +166,7 @@ export function clean(raw, today, trees = TREES) {
         date,
         m: number(raw, "m", d.m, problems, (n) => clamp(n, MULTIPLIER.min, MULTIPLIER.max)),
         cap: number(raw, "cap", d.cap, problems, (n) => clamp(Math.round(n), RENT, MAX_PLOTS)),
+        hours,
         goal,
         device,
         own,
@@ -162,6 +185,8 @@ export function toHash(state, today) {
     for (const key of BONUS_KEYS) if (state[key] > 0) params.set(key, state[key]);
     if (state.shop.length) params.set("shop", state.shop.join(","));
     if (state.date !== today) params.set("date", state.date);
+    const hours = formatHours(state.hours);
+    if (hours) params.set("hours", hours);
     if (state.goal !== null) params.set("goal", state.goal);
     params.set("device", state.device);
     for (const key of ["own", "want"]) {

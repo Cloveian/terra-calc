@@ -7,7 +7,7 @@ import {
     goalCost, nextPrice, nodeHours, unpick, dependentsOf, normalize, buyOrder, displayOrder, treeLayout,
     waitsOn, prioFrom, sameSelection, byId,
 } from "./tree.js";
-import { clean, toHash, canAdd, BONUS_KEYS } from "./state.js";
+import { clean, toHash, canAdd, formatHours, BONUS_KEYS } from "./state.js";
 import { wobblyLine, seedOf } from "./sketch.js";
 import { SVG, SKETCH_BRANCHES, drawOutline, sketchAll, sketch, redrawOutlines } from "./outline.js";
 import { mountDivider } from "./columns.js";
@@ -298,18 +298,42 @@ function drawTree() {
     showTree(state.device);
 }
 
-// [header, cell, icon (optional)]
+// [header, cell, icon (optional)]. cell gives the text, or fills the td itself
 const COLUMNS = [
     ["Week", (row) => weekName(row.week), "calendar"],
     ["Start coins", (row) => coins(row.startCoins)],
     ["Plots", (row) => row.plots, "dirt-plot"],
     ["Can use (h)", (row) => row.wMax], // the most hours you can afford seeds and plots for
-    ["Planned (h)", (row) => (row.out ? `${row.hours} (under 10 h: out)` : row.hours), "water-drop"],
+    ["Planned (h)", fillHours, "water-drop"],
     ["New plots", (row) => row.newPlots],
     ["Spent", (row) => coins(row.spent)],
     ["Sold", (row) => coins(row.sold)],
     ["End coins", (row) => coins(row.endCoins), "coin"],
 ];
+
+function fillCell(td, cell, row) {
+    const text = cell(row, td);
+    if (text !== undefined && td.textContent !== String(text)) td.textContent = text;
+    return td;
+}
+
+// box for the hours i'll give that week, blank = whatever the plan needs (faded in the box)
+function fillHours(row, td) {
+    let box = td.querySelector("input");
+    if (!box) {
+        box = el("input");
+        Object.assign(box, { type: "number", min: 0, max: MAX_PLOTS, className: "week-hours" });
+        td.replaceChildren(box, el("span"));
+    }
+    box.dataset.week = row.week;
+    box.id = `week-hours-${row.week}`; // update() puts focus back by id
+    box.setAttribute("aria-label", `Hours in ${weekName(row.week)}`);
+    box.placeholder = row.hours;
+    const set = state.hours[row.week];
+    if (document.activeElement !== box) box.value = set ?? "";
+    // set more than the coins can plant -> what it actually plans
+    td.lastChild.textContent = row.out ? " under 10 h: out" : set !== undefined && row.hours < set ? ` (${row.hours})` : "";
+}
 
 function drawTable(route) {
     const table = $("route");
@@ -325,23 +349,18 @@ function drawTable(route) {
     // hand-drawn bands) stay as they are
     const body = table.tBodies[0];
     if (body && body.rows.length === route.length) {
-        route.forEach((row, i) => COLUMNS.forEach(([, cell], j) => {
-            const td = body.rows[i].cells[j];
-            const text = String(cell(row));
-            if (td.textContent !== text) td.textContent = text;
-        }));
+        route.forEach((row, i) => COLUMNS.forEach(([, cell], j) => fillCell(body.rows[i].cells[j], cell, row)));
         return;
     }
     const head = el("tr", ...COLUMNS.map(([name, , iconName]) => (iconName ? el("th", icon(iconName), " ", name) : el("th", name))));
-    const rows = route.map((row) => el("tr", ...COLUMNS.map(([, cell]) => el("td", String(cell(row))))));
+    const rows = route.map((row) => el("tr", ...COLUMNS.map(([, cell]) => fillCell(el("td"), cell, row))));
     table.replaceChildren(el("thead", head), el("tbody", ...rows));
     sketchAll([head, ...rows.filter((_, i) => i % 2 === 1)], (row) => `route:${row.rowIndex}`, true);
 }
 
-// The buy order, grouped by when you can afford each pick: a heading per week ("after Week 2"),
-// the picks for that week indented under it ([name ×qty | cost, running total | priority arrows]),
-// each name pushed in further by how deep it is in the upgrade tree, so you can see what needs what.
-function drawMilestones(route, cap) {
+// The buy order, grouped by when you can afford each pick: a heading per week ("after Week 2"), the picks for that week indented under it ([name ×qty | cost, running total | priority arrows]), each name pushed in further by how deep it is in the upgrade tree, so you can see what needs what.
+// pace: "17 h/week", "your hours"...
+function drawMilestones(route, pace) {
     const box = $("milestones-box");
     box.hidden = state.goal !== null || route.length === 0;
     if (box.hidden) return;
@@ -406,7 +425,7 @@ function drawMilestones(route, cap) {
     sketchAll($("milestones").querySelectorAll(".badge, button"), (b) => b.id || `badge:${b.textContent}`);
     drawMilestoneLines();
     $("reset-order").hidden = state.first.length === 0;
-    $("milestones-note").textContent = `Bought in this order at ${cap} h/week, each one indented under what it needs first.`
+    $("milestones-note").textContent = `Bought in this order at ${pace}, each one indented under what it needs first.`
         + " Use the arrows to buy something sooner or later.";
 }
 
@@ -487,7 +506,7 @@ function render() {
         summary.dataset.tone = "info";
         summary.replaceChildren("Terra's over! ", face("over"));
         drawTable([]);
-        drawMilestones([], 0);
+        drawMilestones([], "");
         return;
     }
 
@@ -497,32 +516,57 @@ function render() {
     const thisWeek = { seeds: state.shop, onHand: Object.fromEntries(BONUS_SEEDS.map((id) => [id, state[CROPS[id].key]])) };
     let route;
     let cap = state.cap;
+    // weeks i set in the table, only the ones still to come count
+    const given = Object.fromEntries(Object.entries(state.hours).filter(([week]) => week >= t));
+    const givenCount = Object.keys(given).length;
+    const allGiven = givenCount === LAST_WEEK - Math.max(t, 0) + 1;
+    const onBlanks = givenCount > 0 ? " on the weeks you left blank" : "";
     if (goal > 0) {
-        const result = hoursNeeded(inventory, t, goal, state.m, RENT, thisWeek);
-        if (result) {
+        const result = hoursNeeded(inventory, t, goal, state.m, RENT, thisWeek, given);
+        if (result?.cap === null) {
+            // every week set, nothing to work out
+            route = result.route;
+            cap = null;
+            summary.dataset.tone = "positive";
+            summary.replaceChildren(
+                "Your hours get there: you end with ", el("strong", `${coins(route.at(-1).endCoins)} coins`),
+                ` (${result.totalHours} h ${weeksSpan(route)}), the goal is ${coins(goal)}. `, face("reachable"),
+            );
+        } else if (result) {
             route = result.route;
             cap = result.cap;
             summary.dataset.tone = "positive";
             summary.replaceChildren(
-                "You need ", el("strong", `${result.cap} h/week`),
+                "You need ", el("strong", `${result.cap} h/week`), onBlanks,
                 ` ${weeksSpan(route)} (${route.length} weeks, ${result.totalHours} h) to reach ${coins(goal)} coins. `,
                 face("reachable"),
             );
+        } else if (allGiven) {
+            cap = null;
+            route = simulateRoute(inventory, t, MAX_PLOTS, state.m, thisWeek, given);
+            const end = route.at(-1).endCoins;
+            const flat = hoursNeeded(inventory, t, goal, state.m, RENT, thisWeek);
+            const need = flat ? `A flat ${flat.cap} h/week would get there.` : `Even ${MAX_PLOTS} h every week wouldn't.`;
+            summary.dataset.tone = "error";
+            summary.replaceChildren(
+                el("strong", "Not with your hours."), ` You end with ${coins(end)} coins, ${coins(goal - end)} short. ${need} `,
+                face("unreachable"),
+            );
         } else {
             cap = MAX_PLOTS;
-            route = simulateRoute(inventory, t, cap, state.m, thisWeek);
+            route = simulateRoute(inventory, t, cap, state.m, thisWeek, given);
             summary.dataset.tone = "error";
             summary.replaceChildren(
                 el("strong", "Not reachable."),
-                ` The best you can get is ${coins(route.at(-1).endCoins)} coins, at ${MAX_PLOTS} h/week ${weeksSpan(route)}. `,
+                ` The best you can get is ${coins(route.at(-1).endCoins)} coins, at ${MAX_PLOTS} h/week${onBlanks} ${weeksSpan(route)}. `,
                 face("unreachable"),
             );
         }
     } else {
-        route = simulateRoute(inventory, t, state.cap, state.m, thisWeek);
+        route = simulateRoute(inventory, t, state.cap, state.m, thisWeek, given);
         summary.dataset.tone = "info";
         summary.replaceChildren(
-            `At ${state.cap} h/week ${weeksSpan(route)} you end with `,
+            `At ${state.cap} h/week${onBlanks} ${weeksSpan(route)} you end with `,
             el("strong", `${coins(route.at(-1).endCoins)} coins`), ". ", face("rich"),
         );
     }
@@ -531,7 +575,10 @@ function render() {
     warning.dataset.tone = t < 0 ? "info" : "warning";
     if (t < 0) {
         warning.replaceChildren("Terra hasn't started yet, so this plans from Prep 1. ", face("notStarted"));
-    } else if (cap > route[0].wMax) {
+    } else if (route.at(-1).out) {
+        // only a week i set can go under 10
+        warning.replaceChildren(`${weekName(route.at(-1).week)} is under 10 h, that's no rent for Ratticus, so the plan stops there. `, face("warning"));
+    } else if ((given[route[0].week] ?? cap) > route[0].wMax) {
         warning.replaceChildren(
             `This week you can only use ${route[0].wMax} h: you can't afford seeds and plots for more, so extra hours would be wasted water. `, face("warning"),
         );
@@ -541,7 +588,8 @@ function render() {
     const capUsed = goal === 0;
     $("cap").disabled = !capUsed;
     $("cap").closest(".number-wrap")?.querySelectorAll("button").forEach((b) => { b.disabled = !capUsed; });
-    drawMilestones(goal > 0 ? route : [], cap);
+    const pace = cap === null ? "your hours" : `${cap} h/week${givenCount > 0 ? " (yours on the weeks you set)" : ""}`;
+    drawMilestones(goal > 0 ? route : [], pace);
     drawTable(route);
     redrawOutlines(); // message boxes may have changed colour or text
 }
@@ -751,6 +799,14 @@ fillForm();
 update();
 
 document.addEventListener("input", (event) => {
+    // a box in the week table: blank takes the week back off my list
+    if (event.target.classList.contains("week-hours")) {
+        const hours = { ...state.hours, [event.target.dataset.week]: event.target.value };
+        if (event.target.value === "") delete hours[event.target.dataset.week];
+        state = clean({ ...rawOf(state), hours: formatHours(hours) }, TODAY).state;
+        update();
+        return;
+    }
     const shopTick = BONUS_SEEDS.some((id) => event.target.id === `shop-${id}`);
     if (!FORM_FIELDS.includes(event.target.id) && !shopTick) return;
     const form = Object.fromEntries(FORM_FIELDS.map((key) => [key, $(key).value]));
