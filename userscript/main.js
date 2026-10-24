@@ -19,7 +19,7 @@ import { logShop, logHours, codedBefore, knownSeeds } from "./daylog.js";
 import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, weekDay, LAST_WEEK, DAY_MS } from "../src/week.js";
-import { waitFor, dayHours, typicalDays, weekShape } from "./predict.js";
+import { waitFor, dayHours, typicalDays, weekShape, sinceStart } from "./predict.js";
 import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
@@ -505,7 +505,7 @@ function plan() {
         ? Object.entries(hackatime.days).map(([day, h]) => ({ day, h, lumped: false }))
         : dayHours(hoursLog);
     const past = history.filter((d) => d.day < today);
-    const typical = typicalDays(past);
+    const typical = typicalDays(sinceStart(past));
     const shape = weekShape(typical);
     // hackatime counts AI time full, so off a key its a bit over terra's
     const usualWeek = typical.includes(null) ? null : typical.reduce((sum, h) => sum + h, 0);

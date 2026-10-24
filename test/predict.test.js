@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayHours, typicalDays, weekShape, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
+import { dayHours, sinceStart, typicalDays, weekShape, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
 import { EVEN_WEEK } from "../src/route.js";
 import { perHour } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
@@ -33,6 +33,13 @@ test("dayHours: differences day to day, a gap gets lumped", () => {
         { day: "2026-10-23", h: 6, lumped: true },
         { day: "2026-10-27", h: 3, lumped: true },
     ]);
+});
+
+test("sinceStart: from terra's first week n my first day with hours", () => {
+    const day = (d, h) => ({ day: d, h, lumped: false });
+    const days = [day("2026-09-30", 2), day("2026-09-21", 5), day("2026-09-28", 0), day("2026-09-29", 0), day("2026-10-01", 0)];
+    assert.deepEqual(sinceStart(days).map((d) => d.day), ["2026-09-30", "2026-10-01"]); // the 21st is before prep 1
+    assert.deepEqual(sinceStart([day("2026-10-01", 0)]), []);
 });
 
 test("typicalDays: median of clean days per weekday, null till there's enough", () => {

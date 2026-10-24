@@ -1,5 +1,5 @@
 // day hours off the hours log, a typical day per weekday n the week shape, n the wait-for-a-better-seed odds
-import { weekDay, DAY_MS } from "../src/week.js";
+import { weekDay, weekIndex, DAY_MS } from "../src/week.js";
 import { perHour } from "../src/farm.js";
 import { EVEN_WEEK } from "../src/route.js";
 import { idsOn } from "./daylog.js";
@@ -20,6 +20,13 @@ export function dayHours(log) {
         const lumped = same ? Date.parse(day) - Date.parse(prev) > DAY_MS : weekDay(day) !== 0;
         return { day, h, lumped };
     });
+}
+
+// days from terra's first week n the first one i coded anything, before i joined it was all 0s n every median came out 0
+export function sinceStart(days) {
+    const terra = days.filter((d) => weekIndex(d.day) >= 0).sort((a, b) => a.day.localeCompare(b.day));
+    const first = terra.findIndex((d) => d.h > 0);
+    return first < 0 ? [] : terra.slice(first);
 }
 
 // median clean h per weekday, [mon ... sun], null till MIN_SAMPLES of them
