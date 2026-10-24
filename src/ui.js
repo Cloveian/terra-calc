@@ -360,7 +360,8 @@ function drawTable(route) {
 
 // The buy order, grouped by when you can afford each pick: a heading per week ("after Week 2"), the picks for that week indented under it ([name ×qty | cost, running total | priority arrows]), each name pushed in further by how deep it is in the upgrade tree, so you can see what needs what.
 // pace: "17 h/week", "your hours"...
-function drawMilestones(route, pace) {
+// mine: a week box from this week on is set
+function drawMilestones(route, pace, mine) {
     const box = $("milestones-box");
     box.hidden = state.goal !== null || route.length === 0;
     if (box.hidden) return;
@@ -378,8 +379,9 @@ function drawMilestones(route, pace) {
     };
 
     const groups = [];
+    const missed = mine ? "not with your hours" : "not by Week 12";
     items.forEach((item, index) => {
-        const when = item.now ? "now" : item.week === null ? "not by Week 12" : `after ${weekName(item.week)}`;
+        const when = item.now ? "now" : item.week === null ? missed : `after ${weekName(item.week)}`;
         let group = groups.at(-1);
         if (group?.when !== when) {
             group = { when, ok: item.now || item.week !== null, rows: [] };
@@ -476,6 +478,12 @@ function drawMilestoneLines() {
     list.append(lines);
 }
 
+// what a plan without my week boxes would need, for when they come up short
+function flatWords(inventory, t, goal, thisWeek) {
+    const flat = hoursNeeded(inventory, t, goal, state.m, RENT, thisWeek);
+    return flat ? `A flat ${flat.cap} h/week would get there.` : `Even ${MAX_PLOTS} h every week wouldn't.`;
+}
+
 // "from Prep 2 to Week 12": which weeks a plan covers (prep weeks included)
 function weeksSpan(route) {
     return `from ${weekName(route[0].week)} to Week 12`;
@@ -545,20 +553,20 @@ function render() {
             cap = null;
             route = simulateRoute(inventory, t, MAX_PLOTS, state.m, thisWeek, given);
             const end = route.at(-1).endCoins;
-            const flat = hoursNeeded(inventory, t, goal, state.m, RENT, thisWeek);
-            const need = flat ? `A flat ${flat.cap} h/week would get there.` : `Even ${MAX_PLOTS} h every week wouldn't.`;
             summary.dataset.tone = "error";
             summary.replaceChildren(
-                el("strong", "Not with your hours."), ` You end with ${coins(end)} coins, ${coins(goal - end)} short. ${need} `,
+                el("strong", "Not with your hours."), ` You end with ${coins(end)} coins, ${coins(goal - end)} short. ${flatWords(inventory, t, goal, thisWeek)} `,
                 face("unreachable"),
             );
         } else {
             cap = MAX_PLOTS;
             route = simulateRoute(inventory, t, cap, state.m, thisWeek, given);
+            // with weeks set it might just be those weeks
+            const flat = givenCount > 0 ? `${flatWords(inventory, t, goal, thisWeek)} ` : "";
             summary.dataset.tone = "error";
             summary.replaceChildren(
                 el("strong", "Not reachable."),
-                ` The best you can get is ${coins(route.at(-1).endCoins)} coins, at ${MAX_PLOTS} h/week${onBlanks} ${weeksSpan(route)}. `,
+                ` The best you can get is ${coins(route.at(-1).endCoins)} coins, at ${MAX_PLOTS} h/week${onBlanks} ${weeksSpan(route)}. ${flat}`,
                 face("unreachable"),
             );
         }
@@ -589,7 +597,7 @@ function render() {
     $("cap").disabled = !capUsed;
     $("cap").closest(".number-wrap")?.querySelectorAll("button").forEach((b) => { b.disabled = !capUsed; });
     const pace = cap === null ? "your hours" : `${cap} h/week${givenCount > 0 ? " (yours on the weeks you set)" : ""}`;
-    drawMilestones(goal > 0 ? route : [], pace);
+    drawMilestones(goal > 0 ? route : [], pace, givenCount > 0);
     drawTable(route);
     redrawOutlines(); // message boxes may have changed colour or text
 }

@@ -69,7 +69,7 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 ## Order to build it
 
 1. `given` weeks in `simulateRoute` and the blank-weeks search in `hoursNeeded`, tests (old ones pass unchanged, that's the point of blank = flat). **Done**
-2. site: the box per week in the table, the hash key, "needs X, you've got Y". **Done**, mostly. "Needs X" only shows when every week's set ("A flat 23 h/week would get there"), with some blank and still out of reach it's the old "Not reachable" at 45 h on the blanks
+2. site: the box per week in the table, the hash key, "needs X, you've got Y". **Done**. "A flat 27 h/week would get there" when my weeks come up short, all set or some, and the milestone list's red group says "not with your hours"
 3. `given` as `{ fixed, open }` in the route (the "Days" model), the site's week boxes moved onto it. **Done** (`weekHours` in route.js)
 4. userscript: saved days, each week's `{ fixed, open }`, the goal line, the code step capped, What can I get on the tags. **Done** minus a way to type days, that was `terraCalc.day("2026-10-26", 4)` in the console till the calendar boxes. This week only goes by days once i typed one in it, so nothing typed = the old card. The goal line says "not on my days, a flat 31 h/week would do it", the code step follows this week's days, and the tags say "doesn't fit" like before
 5. the day boxes on Terra's calendar. **Done**, untested in the real game: `calendar.js` finds the week page by its css module, gets monday off the range text ("Oct 12 - Oct 18"), and puts a box in each `._dayBox_` from today on

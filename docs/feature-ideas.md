@@ -52,9 +52,9 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 - [ ] Your hours history on the calendar, read from your devlogs and ships (Terra's number, AI time already only counts a third)
 - [ ] Suggested hours for each day and week from that history, as the default till you change it
 - [ ] A projection: at the hours you usually do, what you end up with by Week 12
-- [ ] "What can I get": when your goal doesn't fit your hours, plan at your hours and say which picks you get, in your priority order
-- [ ] Picks that don't fit your hours get marked on the tree tags and in the site's milestone list
-- [ ] Show both when it doesn't fit: "needs 31 h a week, you've got 20"
+- [x] "What can I get": when your goal doesn't fit your hours, plan at your hours and say which picks you get, in your priority order
+- [x] Picks that don't fit your hours get marked on the tree tags ("doesn't fit") and in the site's milestone list ("not with your hours")
+- [x] Show both when it doesn't fit: "needs 31 h a week, you've got 20". Ended up as "A flat 27 h/week would get there" on the site, "not on my days, a flat 31 h/week would do it" on the card
 - [ ] This week's "code N h" never asks for more than you said you'd give, and the h a day follows your days, not an even split
 - [x] The same hours on the site, a box per week in the week table
 - [x] A log per day of the week's credited hours so far (`daylog.js`), raw stuff for the day predictions
