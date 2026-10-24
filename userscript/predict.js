@@ -55,6 +55,29 @@ function median(xs) {
     return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
+// best seed by water on one logged day, old id-only days off table. null on a day heidi had nothing
+function bestOn(seeds, table, m) {
+    let best = null;
+    for (const seed of seeds) {
+        const crop = seed.id ? seed : table[seed];
+        if (crop?.water && (best === null || perHour(crop, m) > perHour(best, m))) best = crop;
+    }
+    return best;
+}
+
+// the made-up 1 water crop weeks after this one plant: every logged day's best seed, its buy n sell per water averaged
+// a day with nothing counts as 0. under MIN_SHOP_DAYS just the last day that had something, null if none did
+// a 2 water seed only takes 1 plot, as 1 water crops it asks for a few too many plots, so it comes out a bit careful
+export function typicalCrop(shopLog, table, m) {
+    const days = Object.keys(shopLog).sort().map((day) => bestOn(shopLog[day], table, m));
+    if (days.length < MIN_SHOP_DAYS) {
+        const last = days.filter(Boolean).at(-1);
+        return last ? { buy: last.buy / last.water, sell: last.sell / last.water, water: 1 } : null;
+    }
+    const perWater = (key) => days.reduce((sum, crop) => sum + (crop ? crop[key] / crop.water : 0), 0) / days.length;
+    return { buy: perWater("buy"), sell: perWater("sell"), water: 1 };
+}
+
 // share of logged shop days each seed was in, { eggplant: 0.4, apple: 0.9 }
 export function seedOdds(shopLog) {
     const days = Object.values(shopLog);

@@ -128,6 +128,19 @@ test("simulateRoute with only apples this week is the old route", () => {
     }
 });
 
+test("simulateRoute: weeks after this one plant thisWeek.later, apples without one", () => {
+    const state = { coins: 300, plots: 20, seeds: 0 };
+    const apples = simulateRoute(state, 5, 20, 1, { seeds: ["apple"], onHand: {} });
+    const cabbage = simulateRoute(state, 5, 20, 1, { seeds: ["apple"], onHand: {}, later: { buy: 2, sell: 20, water: 1 } });
+    // this week's the shop either way, only wMax (counted in the later crop) moves
+    const { wMax: _a, ...appleWeek } = apples[0];
+    const { wMax: _c, ...cabbageWeek } = cabbage[0];
+    assert.deepEqual(cabbageWeek, appleWeek);
+    // next week: 10 bought seeds, apples 10 * (30 - 5) vs cabbage 10 * (20 - 2), plots already there
+    assert.equal(apples[1].endCoins - apples[1].startCoins, 20 + 10 * 25);
+    assert.equal(cabbage[1].endCoins - cabbage[1].startCoins, 20 + 10 * 18);
+});
+
 test("simulateRoute first week with eggplants", () => {
     // main week (t = 5), 300 coins, 20 plots, cap 30 -> k = 20, plots up to 20 crops are free.
     // apples only: wMax(300, 20, 0) = 36, so 30 h, 20 apples (100) + 10 plots (10 each, 100) = 200

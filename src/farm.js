@@ -12,21 +12,21 @@ export function plotCost(w, n) {
     return cost;
 }
 
-// apples needed for w hours (the first 10 crops are the free base seeds)
-function applesFor(w) {
+// bought seeds needed for w hours (the first 10 crops are the free base seeds)
+function boughtFor(w) {
     return Math.max(0, w - BASE_SEEDS);
 }
 
-// coins spent to use w hours: apple seeds you don't have yet + new plots
-export function weekCost(w, n, a) {
-    const k = applesFor(w);
-    return CROPS.apple.buy * Math.max(0, k - a) + plotCost(w, n);
+// coins spent to use w hours: seeds you don't have yet + new plots. crop = any 1 water seed, apples or the typical shop day in the userscript
+export function weekCost(w, n, a, crop = CROPS.apple) {
+    const k = boughtFor(w);
+    return crop.buy * Math.max(0, k - a) + plotCost(w, n);
 }
 
 // biggest w <= 45 you can afford with B coins
-export function wMax(B, n, a) {
+export function wMax(B, n, a, crop = CROPS.apple) {
     for (let w = MAX_PLOTS; w > 0; w--) {
-        if (weekCost(w, n, a) <= B) return w;
+        if (weekCost(w, n, a, crop) <= B) return w;
     }
     return 0;
 }
@@ -38,10 +38,10 @@ export function baseSales(w, m, prep) {
 }
 
 // coins from selling a week's crops
-export function weekSales(w, m, prep) {
-    const k = applesFor(w);
+export function weekSales(w, m, prep, crop = CROPS.apple) {
+    const k = boughtFor(w);
     // m once over the lot, m * a + m * b is off in the last digit for m like 1.1
-    return m * (baseSales(w, 1, prep) + CROPS.apple.sell * k);
+    return m * (baseSales(w, 1, prep) + crop.sell * k);
 }
 
 // coins per hour of water, sold at m minus seed price. plots not in it

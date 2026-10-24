@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayHours, sinceStart, typicalDays, weekShape, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
+import { dayHours, sinceStart, typicalDays, weekShape, typicalCrop, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
 import { EVEN_WEEK } from "../src/route.js";
 import { perHour } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
@@ -62,6 +62,19 @@ test("weekShape: shares of my week, a weekday with no number yet gets the averag
 test("the values waitTable gets, perHour off CROPS: eggplant 30, bok choy 27, apple 25 at m 1", () => {
     assert.deepEqual(["eggplant", "bokchoy", "apple"].map((id) => perHour(CROPS[id], 1)), [30, 27, 25]);
     assert.equal(perHour(CROPS.eggplant, 1.2), 37.5);
+});
+
+test("typicalCrop: each day's best seed per water, averaged, a day with nothing is 0", () => {
+    const cabbage = { id: "cabbage", name: "Cabbage", buy: 2, sell: 20, water: 1 };
+    const eggplant = { id: "eggplant", name: "Eggplant", buy: 15, sell: 75, water: 2 };
+    // under MIN_SHOP_DAYS: the last day that had something
+    assert.deepEqual(typicalCrop({ a: [eggplant], b: [cabbage], c: [] }, CROPS, 1), { buy: 2, sell: 20, water: 1 });
+    assert.deepEqual(typicalCrop({ a: [cabbage, eggplant] }, CROPS, 1), { buy: 7.5, sell: 37.5, water: 1 }); // eggplant's 30 a water beats 18
+    assert.deepEqual(typicalCrop({ a: ["eggplant"] }, CROPS, 1), { buy: 7.5, sell: 37.5, water: 1 }); // old id-only day off the table
+    assert.equal(typicalCrop({}, CROPS, 1), null);
+    // 14 days, eggplant on half of them n nothing on the rest
+    const log = Object.fromEntries(Array.from({ length: 14 }, (_, i) => [`day${String(i).padStart(2, "0")}`, i < 7 ? [eggplant] : []]));
+    assert.deepEqual(typicalCrop(log, CROPS, 1), { buy: 3.75, sell: 18.75, water: 1 });
 });
 
 test("seedOdds: share of logged days", () => {

@@ -20,7 +20,7 @@ import { logShop, logHours, codedBefore, knownSeeds } from "./daylog.js";
 import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, weekDay, LAST_WEEK, DAY_MS } from "../src/week.js";
-import { waitFor, dayHours, typicalDays, weekShape, sinceStart } from "./predict.js";
+import { waitFor, dayHours, typicalDays, weekShape, sinceStart, typicalCrop } from "./predict.js";
 import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
@@ -510,6 +510,8 @@ function plan() {
         onHand: bonusOnHand(inventory, game.farm, game.hours?.weekKey),
         // known seeds, not just todays. yesterdays cabbage in the bag still needs its numbers
         crops: shop.table,
+        // weeks after this one, a typical shop day off the log. null = apples off data.js
+        later: typicalCrop(shopLog, shop.table, m),
     };
     // how my weeks go, off hackatime with a key or my hours log. today's not done yet
     const history = hackatime?.days

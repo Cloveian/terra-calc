@@ -8,13 +8,14 @@ const EPS = 1e-9;
 
 // Play every week from t to Week 12 with w = min(cap, wMax). Before Terra (t < 0) plans from Prep 1.
 // A row with `out: true` means a main week came out under 10 h, and the route stops there.
-// thisWeek (every seed buyable today, onHand, the game's crops table) plans the first week with bestMix, apples only after
+// thisWeek (every seed buyable today, onHand, the game's crops table, later) plans the first week with bestMix
 // given = { week: { fixed, open } }, hours of the days i set + how many are still open
 export function simulateRoute(state, t, cap, m, thisWeek = null, given = {}) {
     const rows = [];
+    const later = thisWeek?.later ?? CROPS.apple; // weeks after the first, a 1 water crop (typical shop day in the userscript)
     for (let week = Math.max(t, 0); week <= LAST_WEEK; week++) {
         const prep = isPrep(week);
-        const max = wMax(state.coins, state.plots, state.seeds);
+        const max = wMax(state.coins, state.plots, state.seeds, later);
         const want = weekHours(given[week], cap);
         // hours = water, crops = what takes plots, only dihfrent with a mix
         let hours, crops, spent, sold, mix;
@@ -27,12 +28,12 @@ export function simulateRoute(state, t, cap, m, thisWeek = null, given = {}) {
             crops = mix.crops;
             spent = mix.cost;
             sold = m * (baseSales(hours, 1, prep) + mix.sales); // m once, same as weekSales
-            // wMax is apples only, a mix can use more. short of the week's hours = coins ran out right there, else its at least that
+            // wMax is one 1 water crop, a mix can use more. short of the week's hours = coins ran out right there, else its at least that
             canUse = hours < want ? hours : Math.max(max, hours);
         } else {
             hours = crops = Math.min(want, max);
-            spent = weekCost(hours, state.plots, state.seeds);
-            sold = weekSales(hours, m, prep);
+            spent = weekCost(hours, state.plots, state.seeds, later);
+            sold = weekSales(hours, m, prep, later);
         }
         const row = {
             week,
