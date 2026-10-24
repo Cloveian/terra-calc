@@ -38,11 +38,15 @@ export function typicalDays(days) {
     return byDay.map((hs) => (hs.length < MIN_SAMPLES ? null : median(hs)));
 }
 
-// typicalDays -> share of my week per weekday, adds to 1. even till every weekday has a number, or if they're all 0
+// typicalDays -> share of my week per weekday, adds to 1. no number yet = average of the known ones, even split if none known or all 0
 export function weekShape(typical) {
-    const total = typical.reduce((sum, h) => sum + (h ?? 0), 0);
-    if (typical.includes(null) || total <= 0) return EVEN_WEEK;
-    return typical.map((h) => h / total);
+    const known = typical.filter((h) => h !== null);
+    const knownSum = known.reduce((sum, h) => sum + h, 0);
+    if (knownSum <= 0) return EVEN_WEEK;
+    const average = knownSum / known.length;
+    const filled = typical.map((h) => h ?? average);
+    const total = filled.reduce((sum, h) => sum + h, 0);
+    return filled.map((h) => h / total);
 }
 
 function median(xs) {

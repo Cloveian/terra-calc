@@ -49,9 +49,11 @@ test("typicalDays: median of clean days per weekday, null till there's enough", 
     assert.equal(typical[1], null); // one tuesday < MIN_SAMPLES
 });
 
-test("weekShape: shares of my week, even till every weekday has a number", () => {
+test("weekShape: shares of my week, a weekday with no number yet gets the average of the known ones", () => {
     assert.deepEqual(weekShape([1, 1, 1, 1, 2, 3, 1]), [0.1, 0.1, 0.1, 0.1, 0.2, 0.3, 0.1]);
-    assert.deepEqual(weekShape([1, 1, 1, 1, 2, null, 1]), EVEN_WEEK);
+    // weekends only so far: 6 n 4, the 5 weekdays get 5 each
+    assert.deepEqual(weekShape([null, null, null, null, null, 6, 4]), [5, 5, 5, 5, 5, 6, 4].map((h) => h / 35));
+    assert.deepEqual(weekShape(Array(7).fill(null)), EVEN_WEEK);
     assert.deepEqual(weekShape([0, 0, 0, 0, 0, 0, 0]), EVEN_WEEK);
 });
 
