@@ -104,6 +104,7 @@ userscript/       Terra Calc inside Terra, uses the src/ files that don't touch 
   settings.js     the Terra Calc section in Terra's settings
   page.js         Terra's class names, and redrawing our bits when the page changes
   store.js        saving to Terra's localStorage
+  daylog.js       a small log per day: Heidi's bonus seeds, and your hours so far that week
   debug.js        console logging
   meta.js         the userscript header
 scripts/

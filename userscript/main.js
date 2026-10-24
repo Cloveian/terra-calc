@@ -15,6 +15,7 @@ import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { mountShopBadges, drawShopBadges } from "./shop.js";
 import { mountHud, drawHud } from "./hud.js";
+import { logShop, logHours } from "./daylog.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, LAST_WEEK } from "../src/week.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
@@ -25,6 +26,8 @@ const SHOP_KEY = "terra-calc-shop";
 const GOAL_KEY = "terra-calc-goal";
 const STEPS_KEY = "terra-calc-week-steps";
 const WEEK_KEY = "terra-calc-week";
+const SHOP_LOG_KEY = "terra-calc-shop-log";
+const HOURS_LOG_KEY = "terra-calc-hours-log";
 
 // plan parts that can stay null. the card would ask for plots (they sit in inventory), farm and
 // stuck are only there once you've been on your farm, target needs the plot count too, goal's
@@ -58,6 +61,8 @@ const game = {
 let savedGoal = loadMine(GOAL_KEY);
 let savedSteps = loadMine(STEPS_KEY); // week checklist as it first came out, for the ticks
 let weekNote = loadMine(WEEK_KEY); // from noteWeek, next week says how this one went
+let shopLog = loadMine(SHOP_LOG_KEY) ?? {};
+let hoursLog = loadMine(HOURS_LOG_KEY) ?? {};
 
 function noteThisWeek(weekKey, change) {
     weekNote = saveChanged(WEEK_KEY, weekNote, noteWeek(weekNote, weekKey, change));
@@ -99,6 +104,7 @@ onGameMessage(IN.saleResult, () => {
 onGameMessage(IN.hours, (body) => {
     const before = game.hours?.weekKey;
     noteThisWeek(body.weekKey, { coded: body.week.creditedSeconds / 3600, seenAt: Date.now() });
+    hoursLog = saveChanged(HOURS_LOG_KEY, hoursLog, logHours(hoursLog, easternDay(new Date()), body.weekKey, body.week.creditedSeconds));
     changed("hours", body);
     // new week = new label, maybe new upgrade prices
     if (settings.fill && before && body.weekKey !== before) readRest();
@@ -110,6 +116,7 @@ onGameMessage(IN.shopStock, (body) => {
         game.shop = { ...shop, seeds: seedsFrom(body), dateKey: body.dateKey ?? null, seenAt: Date.now() };
         // saved like the farm, for reloads
         saveMine(SHOP_KEY, game.shop);
+        shopLog = saveChanged(SHOP_LOG_KEY, shopLog, logShop(shopLog, game.shop.dateKey, game.shop.seeds));
     }
     checkShopPrices();
     draw();
