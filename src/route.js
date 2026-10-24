@@ -69,14 +69,19 @@ export function milestones(route, items) {
     });
 }
 
+// every week from t to Week 12 set in given
+export function allGiven(t, given) {
+    for (let week = Math.max(t, 0); week <= LAST_WEEK; week++) {
+        if (given[week] == null) return false;
+    }
+    return true;
+}
+
 // Lowest flat h/week cap that ends with at least goalCoins, or null if 45 h isn't enough.
 // `from` skips caps already known too low (a smaller goal needed that much)
 // the cap only goes on weeks missing from given. none missing = one run, and cap comes back null
 export function hoursNeeded(state, t, goalCoins, m, from = RENT, thisWeek = null, given = {}) {
-    let blank = false;
-    for (let week = Math.max(t, 0); week <= LAST_WEEK; week++) {
-        if (given[week] == null) blank = true;
-    }
+    const blank = !allGiven(t, given);
     for (let cap = from; cap <= (blank ? MAX_PLOTS : from); cap++) {
         const route = simulateRoute(state, t, cap, m, thisWeek, given);
         const last = route[route.length - 1];

@@ -1,7 +1,7 @@
 // The page: keeps the state, draws it, turns clicks into state changes. Box outlines, tree dragging and the column divider are in outline.js, treeview.js and columns.js.
 import { TREES, PRESETS, PICK_WARNINGS, MAX_PLOTS, PRICES_AS_OF, CROPS, RENT, BONUS_SEEDS } from "./data.js";
 import { easternDay, weekIndex, weekName, LAST_WEEK } from "./week.js";
-import { simulateRoute, hoursNeeded, milestones } from "./route.js";
+import { simulateRoute, hoursNeeded, milestones, allGiven } from "./route.js";
 import { mixWords } from "./farm.js";
 import {
     goalCost, nextPrice, nodeHours, unpick, dependentsOf, normalize, buyOrder, displayOrder, treeLayout,
@@ -519,7 +519,6 @@ function render() {
     // weeks i set in the table, only the ones still to come count
     const given = Object.fromEntries(Object.entries(state.hours).filter(([week]) => week >= t));
     const givenCount = Object.keys(given).length;
-    const allGiven = givenCount === LAST_WEEK - Math.max(t, 0) + 1;
     const onBlanks = givenCount > 0 ? " on the weeks you left blank" : "";
     if (goal > 0) {
         const result = hoursNeeded(inventory, t, goal, state.m, RENT, thisWeek, given);
@@ -541,7 +540,7 @@ function render() {
                 ` ${weeksSpan(route)} (${route.length} weeks, ${result.totalHours} h) to reach ${coins(goal)} coins. `,
                 face("reachable"),
             );
-        } else if (allGiven) {
+        } else if (allGiven(t, given)) {
             cap = null;
             route = simulateRoute(inventory, t, MAX_PLOTS, state.m, thisWeek, given);
             const end = route.at(-1).endCoins;
