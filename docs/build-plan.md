@@ -120,6 +120,8 @@ Prices and limits are from [`research/device-trees.md`](../research/device-trees
 
 The code currently has `CROPS = { carrot, apple }` with just `buy` / `sell`, and `farm.js` hardcodes `CROPS.apple` for the extra hours. The plan is to rename it `SEEDS` with the shape above and make `farm.js` read the list instead of `apple`. Seed ids should be Terra's own item ids once known, same as tree nodes. The dev says prices already in the game are unlikely to change but small adjustments are possible before Week 1 (19 Oct): re-check `SEEDS`, the shop and `TREES` on 19 Oct and bump `PRICES_AS_OF`.
 
+The rename never happened lol. It's still `CROPS` in `data.js`, it just grew `water` and a `bonus` flag when bok choy and eggplant showed up, and `BONUS_SEEDS` is the list of those. Rent's paid in strawberries since Week 1 too (`BASE_KINDS`), not carrots. Everywhere this doc says `SEEDS`, read `CROPS`. `farm.js` only reads the list in `bestMix` (this week's mix), the weeks after still go through `applesFor` / `weekSales` with apples hardcoded, which is the "apples only after this week" default from [new-seeds.md](new-seeds.md). `weeks`, `stock`, `from` / `until` and `free` never got added, nothing's needed them yet.
+
 ## Functions
 
 ### `week.js`
