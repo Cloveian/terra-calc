@@ -25,7 +25,7 @@ let pickGoal = null;
 export function mountHud(onPickGoal) {
     pickGoal = onPickGoal;
     if (!hudBit.mount(HUD_CSS)) return;
-    // map size is in vmin, a resize moves it without touching the DOM
+    // terra's column is sized in vmin, a resize moves it without touching the DOM
     window.addEventListener("resize", hudBit.redraw);
     hudBit.redraw();
 }
