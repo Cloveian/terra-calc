@@ -441,8 +441,8 @@ function plan() {
     const placed = plotsNow();
     const plots = inventory && (placed !== null ? placed + inventory.unplaced - loans : settings.typed.plots);
     // off todays date like the site when current-week cant be read, null outside terra
-    const today = weekIndex(new Date());
-    const t = weekFrom(game.currentWeek) ?? (today >= 0 && today <= LAST_WEEK ? today : null);
+    const dateWeek = weekIndex(new Date());
+    const t = weekFrom(game.currentWeek) ?? (dateWeek >= 0 && dateWeek <= LAST_WEEK ? dateWeek : null);
     const trees = treesFrom(game.deviceUpgrades);
     const owned = ownedFrom(game.deviceUpgrades);
     // own is per goal device, maybe not my main one
