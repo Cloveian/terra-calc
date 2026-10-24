@@ -37,7 +37,7 @@ const HACKATIME_KEY = "terra-calc-hackatime-key";
 const HACKATIME_DAYS_KEY = "terra-calc-hackatime-days";
 
 // plan parts that can stay null. the card would ask for plots (they sit in inventory)
-// farm and stuck are only there once you've been on your farm, target needs the plot count too, goal's null till you pick one
+// farm only once you've been on your farm today (stuck any day), target needs the plot count too, goal's null till you pick one
 // weekEnds is just extra words on a few steps and the last week line, trees and owned only matter for a goal, lastWeek needs you to have been here last week
 // todayLeft only if i typed today, wait only when waiting beats todays bonus seed
 const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "todayLeft", "wait", "trees", "owned", "lastWeek"]);
@@ -395,11 +395,11 @@ function plotsNow() {
 }
 
 // steps with done ones ticked off (tickSteps). saved = the list to keep, null for nothing to keep
-function weekSteps(steps, w) {
+function weekSteps(steps, w, farm) {
     const weekKey = game.hours?.weekKey;
     // no farm (no steps) or no week key would look like everything got done
     // w null while messages still come in after a reload, ticking then threw the saved list away
-    if (!game.farm || !weekKey || w === null) return { steps, saved: null };
+    if (!farm || !weekKey || w === null) return { steps, saved: null };
     return tickSteps(savedSteps, steps, weekKey, w);
 }
 
@@ -471,6 +471,9 @@ function plan() {
     // yours beats the game's, it's for "what if i get 1.3" planning
     const mRead = settings.m ?? multiplyerFrom(game.marketItems);
     const m = mRead ?? M_GUESS;
+    const today = easternDay(new Date());
+    // steps only off a farm ive seen today (US eastern like heidi's shop), older ones guessed my plots n seeds. route still takes it
+    const farmToday = game.farm && easternDay(new Date(game.farm.seenAt)) === today ? game.farm : null;
     const stuck = game.farm && stuckFrom(game.farm, game.hours?.weekKey);
     const loans = loansFrom(inventory, stuck);
     // owned plots = placed + bag - ratticus's loans
@@ -499,7 +502,6 @@ function plan() {
         // known seeds, not just todays. yesterdays cabbage in the bag still needs its numbers
         crops: shop.table,
     };
-    const today = easternDay(new Date());
     // how my weeks go, off hackatime with a key or my hours log. today's not done yet
     const history = hackatime?.days
         ? Object.entries(hackatime.days).map(([day, h]) => ({ day, h, lumped: false }))
@@ -531,7 +533,7 @@ function plan() {
     const weekEnds = Date.parse(game.currentWeek?.endDate ?? "") || null;
     const w = target?.w ?? null;
     const ticked = weekSteps(stepsFrom({
-        farm: game.farm,
+        farm: farmToday,
         inventory,
         stuck,
         loans,
@@ -543,7 +545,7 @@ function plan() {
         table: shop.table,
         shopToday: shop.today,
         selling,
-    }), w);
+    }), w, farmToday);
     const parts = {
         trees,
         owned,
@@ -559,7 +561,7 @@ function plan() {
         // the week before, null if it wasnt seen
         lastWeek: weekNote && weekNote.weekKey === game.hours?.weekKey ? weekNote.last : null,
         loans,
-        farm: game.farm,
+        farm: farmToday, // null = "go to your island" on the card
         stuck,
         target,
         // today's bonus seeds, for their names
