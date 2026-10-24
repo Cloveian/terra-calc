@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { logShop, logHours, codedBefore, KEEP_DAYS } from "../userscript/daylog.js";
+import { logShop, logHours, codedBefore, knownSeeds, idsOn, KEEP_DAYS } from "../userscript/daylog.js";
 
 test("codedBefore: the week's hours as of the latest day before today", () => {
     const h = 3600;
@@ -14,11 +14,24 @@ test("codedBefore: the week's hours as of the latest day before today", () => {
     assert.equal(codedBefore(log, "2026-10-19", "2026-W43"), 0); // monday, nothing yet
 });
 
-test("logShop keeps the day's bonus seed ids, an empty day too", () => {
-    let log = logShop({}, "2026-10-22", [{ id: "eggplant" }, { id: "bokchoy" }]);
-    log = logShop(log, "2026-10-23", []);
-    assert.deepEqual(log, { "2026-10-22": ["bokchoy", "eggplant"], "2026-10-23": [] });
+test("logShop keeps the day's seed rows by id, an empty day too", () => {
+    const cabbage = { id: "cabbage", name: "Cabbage", buy: 2, sell: 20, water: 1 };
+    const apple = { id: "apple", name: "Apple", buy: 5, sell: 30, water: 1 };
+    let log = logShop({}, "2026-10-23", [cabbage, apple]);
+    log = logShop(log, "2026-10-24", []);
+    assert.deepEqual(log, { "2026-10-23": [apple, cabbage], "2026-10-24": [] });
     assert.equal(logShop(log, null, []), log); // no dateKey, nothing to say
+});
+
+test("knownSeeds: newest numbers win, old id-only days have none", () => {
+    const log = {
+        "2026-10-22": ["apple", "eggplant"],
+        "2026-10-23": [{ id: "cabbage", name: "Cabbage", buy: 3, sell: 20, water: 1 }],
+        "2026-10-24": [{ id: "cabbage", name: "Cabbage", buy: 2, sell: 20, water: 1 }],
+    };
+    assert.deepEqual(knownSeeds(log), { cabbage: { name: "Cabbage", buy: 2, sell: 20, water: 1 } });
+    assert.deepEqual(idsOn(log["2026-10-22"]), ["apple", "eggplant"]);
+    assert.deepEqual(idsOn(log["2026-10-24"]), ["cabbage"]);
 });
 
 test("logHours keeps the last snapshot of each day", () => {

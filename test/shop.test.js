@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { perHour } from "../userscript/shop.js";
+import { perHour } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
 
 test("perHour: apple 25, bok choy 27, eggplant 30 at m 1, eggplant's 2 water halves it", () => {

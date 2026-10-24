@@ -1,6 +1,7 @@
 // coins an hour badges on heidi's seeds (SeedMenuUI), how many the plan buys n a warning on ones it doesnt want
 
 import { cssModule, ourBit } from "./page.js";
+import { perHour } from "../src/farm.js";
 
 const BADGE = "terra-calc-badge";
 const WARNING = "terra-calc-warning";
@@ -23,11 +24,6 @@ export function mountShopBadges() {
 // toBuy = how many this weeks plan still buys of each, null with no steps to go by (farm not seen)
 export function drawShopBadges(bits) {
     badges.draw(bits);
-}
-
-// coins per hour of water, sold at m minus seed price. plots not in it
-export function perHour({ buy, sell, water }, m) {
-    return (m * sell - buy) / water;
 }
 
 // "Eggplant Seeds" and "Eggplant" both -> "eggplant", seedsFrom drops " Seeds", the row doesnt

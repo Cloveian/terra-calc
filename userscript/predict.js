@@ -1,7 +1,8 @@
 // day hours off the hours log, a typical day per weekday n the week shape, n the wait-for-a-better-seed odds
 import { weekDay, DAY_MS } from "../src/week.js";
-import { perHour } from "./shop.js";
+import { perHour } from "../src/farm.js";
 import { EVEN_WEEK } from "../src/route.js";
+import { idsOn } from "./daylog.js";
 
 // a weekday needs this many clean days before it gets a typical number
 export const MIN_SAMPLES = 3;
@@ -48,14 +49,14 @@ export function seedOdds(shopLog) {
     const days = Object.values(shopLog);
     const counts = {};
     for (const seeds of days) {
-        for (const id of seeds) counts[id] = (counts[id] ?? 0) + 1;
+        for (const id of idsOn(seeds)) counts[id] = (counts[id] ?? 0) + 1;
     }
     return Object.fromEntries(Object.entries(counts).map(([id, n]) => [id, n / days.length]));
 }
 
 // what a water's worth with n shop days still to come, [V_0 ... V_days], V_0 = apple
 // V_n = E[max(best seed in that day's shop, V_(n-1))], each seed in on its own with its odds. house-selling problem, worked back from sunday
-// values = perHour (shop.js) per seed. buy today's seed for water i'm sure of if its value >= V_(days left after today)
+// values = perHour (farm.js) per seed. buy today's seed for water i'm sure of if its value >= V_(days left after today)
 // todo: apples arent always there either, sunday without them is worth less
 export function waitTable(values, odds, apple, days = 6) {
     const ids = Object.keys(values).filter((id) => odds[id] > 0);
@@ -81,7 +82,8 @@ export function waitTable(values, odds, apple, days = 6) {
 // { best: today's bonus seed, top: the one worth waiting for, odds: its share of days }, or null
 // only on days heidi has a bonus seed, with MIN_SHOP_DAYS of log, n when waiting actually wins. daysLeft = shop days after today this week
 export function waitFor(shopLog, today, crops, m, daysLeft) {
-    const bonus = today.filter((id) => crops[id]);
+    // not apples, todays stock has them too
+    const bonus = today.filter((id) => crops[id] && id !== "apple");
     if (bonus.length === 0 || daysLeft < 1 || Object.keys(shopLog).length < MIN_SHOP_DAYS) return null;
     const value = (id) => perHour(crops[id], m);
     const odds = seedOdds(shopLog);

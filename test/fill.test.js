@@ -265,8 +265,9 @@ const stock22 = {
     ],
 };
 
-test("seedsFrom: today's bonus seeds, apples left out", () => {
+test("seedsFrom: every seed in today's stock, apples too", () => {
     assert.deepEqual(seedsFrom(stock22), [
+        { id: "apple", name: "Apple", buy: 5, sell: 30, water: 1 },
         { id: "eggplant", name: "Eggplant", buy: 15, sell: 75, water: 2 },
         { id: "bokchoy", name: "Bok Choy", buy: 10, sell: 37, water: 1 },
     ]);

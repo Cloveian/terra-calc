@@ -230,11 +230,11 @@ export function shopProblems(shop, plots) {
     return problems;
 }
 
-// todays bonus seeds from shop.stock, [] when closed. apples left out (applePrice has them), and entries without cropValue and waterNeeded
+// todays seeds from shop.stock, apples too when they're in, [] when closed. entries without cropValue and waterNeeded left out
 export function seedsFrom(shopStock) {
     if (shopStock?.status !== "available" || !Array.isArray(shopStock.entries)) return [];
     return shopStock.entries
-        .filter((entry) => entry.category === "bonus_seeds" && entry.itemId && entry.itemId !== APPLE_SEED
+        .filter((entry) => entry.category === "bonus_seeds" && entry.itemId
             && typeof entry.cropValue === "number" && typeof entry.waterNeeded === "number")
         .map((entry) => ({
             id: seedId(entry.itemId),

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { dayHours, typicalDays, weekShape, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
 import { EVEN_WEEK } from "../src/route.js";
-import { perHour } from "../userscript/shop.js";
+import { perHour } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
 
 // n days of shop log, eggplant on the first `egg` of them
@@ -13,7 +13,7 @@ test("waitFor: only with enough log, a bonus seed today, n waiting ahead", () =>
     assert.deepEqual(waitFor(shopLog(14, 7), ["bokchoy"], CROPS, 1, 1), { best: "bokchoy", top: "eggplant", odds: 0.5 });
     assert.equal(waitFor(shopLog(MIN_SHOP_DAYS - 1, 7), ["bokchoy"], CROPS, 1, 1), null); // not enough log yet
     assert.equal(waitFor(shopLog(14, 7), ["eggplant"], CROPS, 1, 1), null); // nothing beats it
-    assert.equal(waitFor(shopLog(14, 7), [], CROPS, 1, 3), null); // apples only today, nothing to decide
+    assert.equal(waitFor(shopLog(14, 7), ["apple"], CROPS, 1, 3), null); // apples only today, nothing to decide
     assert.equal(waitFor(shopLog(14, 7), ["bokchoy"], CROPS, 1, 0), null); // sunday, last shop of the week
     assert.equal(waitFor(shopLog(14, 2), ["bokchoy"], CROPS, 1, 1), null); // eggplant's rare, 25 + 5/7 < 27
 });

@@ -8,7 +8,7 @@ const EPS = 1e-9;
 
 // Play every week from t to Week 12 with w = min(cap, wMax). Before Terra (t < 0) plans from Prep 1.
 // A row with `out: true` means a main week came out under 10 h, and the route stops there.
-// thisWeek (bonus seeds in the shop, onHand, the game's crops table) plans the first week with bestMix, apples only after
+// thisWeek (every seed buyable today, onHand, the game's crops table) plans the first week with bestMix, apples only after
 // given = { week: { fixed, open } }, hours of the days i set + how many are still open
 export function simulateRoute(state, t, cap, m, thisWeek = null, given = {}) {
     const rows = [];
@@ -21,7 +21,7 @@ export function simulateRoute(state, t, cap, m, thisWeek = null, given = {}) {
         let canUse = max;
         if (thisWeek && rows.length === 0) {
             mix = bestMix(Math.max(0, want - BASE_SEEDS), state.coins, state.plots,
-                { apple: state.seeds, ...thisWeek.onHand }, ["apple", ...thisWeek.seeds], m,
+                { apple: state.seeds, ...thisWeek.onHand }, thisWeek.seeds, m,
                 { ...CROPS, ...thisWeek.crops });
             hours = Math.min(want, BASE_SEEDS) + mix.water;
             crops = mix.crops;

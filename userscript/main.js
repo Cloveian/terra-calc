@@ -15,7 +15,7 @@ import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { mountShopBadges, drawShopBadges } from "./shop.js";
 import { mountHud, drawHud } from "./hud.js";
-import { logShop, logHours, codedBefore } from "./daylog.js";
+import { logShop, logHours, codedBefore, knownSeeds } from "./daylog.js";
 import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, weekDay, LAST_WEEK, DAY_MS } from "../src/week.js";
@@ -134,9 +134,7 @@ onGameMessage(IN.shopStock, (body) => {
         game.shop = { ...shop, seeds: seedsFrom(body), dateKey: body.dateKey ?? null, seenAt: Date.now() };
         // saved like the farm, for reloads
         saveMine(SHOP_KEY, game.shop);
-        // apples too, they're not always there either
-        const stocked = game.shop.applePrice === null ? game.shop.seeds : [...game.shop.seeds, { id: "apple" }];
-        shopLog = saveChanged(SHOP_LOG_KEY, shopLog, logShop(shopLog, game.shop.dateKey, stocked));
+        shopLog = saveChanged(SHOP_LOG_KEY, shopLog, logShop(shopLog, game.shop.dateKey, game.shop.seeds));
     }
     checkShopPrices();
     draw();
@@ -456,16 +454,15 @@ function shopNow() {
         today,
         seeds,
         crops,
-        table: { ...CROPS, ...crops },
-        // any days sell price does, a ready crop can be from an older shop
-        sellTable: { ...CROPS, ...Object.fromEntries((game.shop?.seeds ?? []).map(({ id, sell }) => [id, { sell }])) },
+        // data.js, then every seed the log's seen. any days sell price does, a ready crop can be from an older shop
+        table: { ...CROPS, ...knownSeeds(shopLog) },
     };
 }
 
 // grown n not sold, market list + ready ones since
-function sellingNow(inventory, m, sellTable) {
+function sellingNow(inventory, m, table) {
     const forSale = game.sold ? null : forSaleFrom(game.marketItems);
-    return toSell([...readyIds(game.farm), ...game.harvested], forSale, m, inventory, sellTable);
+    return toSell([...readyIds(game.farm), ...game.harvested], forSale, m, inventory, table);
 }
 
 // what card, want tags n shop badges need, fill.js reads + saved goal. draw() keeps n draws it
@@ -490,15 +487,17 @@ function plan() {
     const picked = cleaned?.goal ?? null;
     const coinsGoal = cleaned && goalCoins(picked, trees, cleaned.own);
     const shop = shopNow();
-    const selling = inventory && sellingNow(inventory, m, shop.sellTable);
+    const selling = inventory && sellingNow(inventory, m, shop.table);
     const start = t !== null && plots !== null
         ? routeState(inventory, plots, game.farm, game.hours?.weekKey, selling.coins)
         : null;
-    // bonus seeds for this weeks mix, the shops + mine (bag or planted)
+    // seeds for this weeks mix, the shops + mine (bag or planted)
     const thisWeek = inventory && {
-        seeds: shop.seeds.map((seed) => seed.id),
+        // shop not open yet today = apples off data.js till it is
+        seeds: shop.today ? shop.seeds.map((seed) => seed.id) : ["apple"],
         onHand: bonusOnHand(inventory, game.farm, game.hours?.weekKey),
-        crops: shop.crops,
+        // known seeds, not just todays. yesterdays cabbage in the bag still needs its numbers
+        crops: shop.table,
     };
     const today = easternDay(new Date());
     // how my weeks go, off hackatime with a key or my hours log. today's not done yet
@@ -528,8 +527,7 @@ function plan() {
         trees, owned, milestones: rows,
         goal: cleaned && { device: picked.device, want: picked.want, own: cleaned.own, prio: picked.prio },
     };
-    // apples aren't in shop.seeds, no apple row in the shop = no badge
-    const badges = { m, seeds: [{ id: "apple", name: "Apple", ...CROPS.apple }, ...shop.seeds] };
+    const badges = { m, seeds: shop.seeds };
     const weekEnds = Date.parse(game.currentWeek?.endDate ?? "") || null;
     const w = target?.w ?? null;
     const ticked = weekSteps(stepsFrom({

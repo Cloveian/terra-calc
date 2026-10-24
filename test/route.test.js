@@ -111,9 +111,9 @@ test("hoursNeeded with every week given is one run, no cap", () => {
     assert.equal(hoursNeeded(PREP2, 1, best + 1, 1, 10, null, given), null);
 });
 
-test("simulateRoute with an empty thisWeek is the old route", () => {
-    // no bonus seeds -> bestMix only has apples, takes min(cap - 10, wMax - 10) of them, same as w = min(cap, wMax)
-    const empty = { seeds: [], onHand: {} };
+test("simulateRoute with only apples this week is the old route", () => {
+    // apples only -> bestMix takes min(cap - 10, wMax - 10) of them, same as w = min(cap, wMax)
+    const empty = { seeds: ["apple"], onHand: {} };
     const strip = (route) => route.map(({ mix, ...row }) => row);
     // m 1.1 too, that's where m * a + m * b comes out a last digit off
     for (const m of [1, 1.1]) {

@@ -521,8 +521,8 @@ function render() {
 
     const goal = state.goal ?? total;
     const inventory = { coins: state.coins, plots: state.plots, seeds: state.seeds };
-    // bonus seeds, first week only (route.js)
-    const thisWeek = { seeds: state.shop, onHand: Object.fromEntries(BONUS_SEEDS.map((id) => [id, state[CROPS[id].key]])) };
+    // todays seeds, first week only (route.js). no stock to read on the site, apples always in
+    const thisWeek = { seeds: ["apple", ...state.shop], onHand: Object.fromEntries(BONUS_SEEDS.map((id) => [id, state[CROPS[id].key]])) };
     let route;
     let cap = state.cap;
     // weeks i set in the table, only the ones still to come count

@@ -44,12 +44,23 @@ export function weekSales(w, m, prep) {
     return m * (baseSales(w, 1, prep) + CROPS.apple.sell * k);
 }
 
-// best seeds for k extra hours past the 10 free crops, from seedIds (always has apple). onHand ones are free, table = the game's prices when the userscript knows them
+// coins per hour of water, sold at m minus seed price. plots not in it
+export function perHour({ buy, sell, water }, m) {
+    return (m * sell - buy) / water;
+}
+
+// best seeds for k extra hours past the 10 free crops, from seedIds. onHand ones are free, table = the game's prices when the userscript knows them
 export function bestMix(k, coins, plots, onHand, seedIds, m, table = CROPS) {
     // seedIds = buyable today, seeds already in the bag get planted either way
     const buyable = new Set(seedIds);
     const held = Object.keys(onHand).filter((id) => onHand[id] > 0 && table[id]);
-    const rest = [...new Set([...seedIds, ...held])].filter((id) => id !== "apple"); // apples fill whatever's left at the end
+    // best a water out of whats buyable fills whatever's left at the end (apple most days, cabbage on a bad one). none buyable = no filler
+    let filler = null;
+    for (const id of seedIds) {
+        if (table[id] && (filler === null || perHour(table[id], m) > perHour(table[filler], m))) filler = id;
+    }
+    const rest = [...new Set([...seedIds, ...held])].filter((id) => id !== filler && table[id]);
+    const fill = filler ? table[filler] : null;
     const counts = {};
     let best = null;
     let bestValue = -Infinity;
@@ -72,18 +83,19 @@ export function bestMix(k, coins, plots, onHand, seedIds, m, table = CROPS) {
             delete counts[id];
             return;
         }
-        // apples: as many as still fit, an apple is profit even on a 10 coin plot
-        let x = Math.min(k - water, MAX_PLOTS - BASE_SEEDS - extra);
-        const total = (a) => cost + seedCost("apple", a) + plotCost(BASE_SEEDS + extra + a, plots);
+        // filler: as many as still fit, every seed so far is profit even on a 10 coin plot (cabbage 20 - 2 - 10)
+        let x = fill ? Math.min(Math.floor((k - water) / fill.water), MAX_PLOTS - BASE_SEEDS - extra) : 0;
+        const total = (a) => cost + (fill ? seedCost(filler, a) : 0) + plotCost(BASE_SEEDS + extra + a, plots);
         while (x >= 0 && total(x) > coins) x--;
         if (x < 0) return;
         const crops = BASE_SEEDS + extra + x;
-        const value = m * (sales + table.apple.sell * x) - total(x);
+        const fillSales = fill ? fill.sell * x : 0;
+        const value = m * (sales + fillSales) - total(x);
         if (value > bestValue || (value === bestValue && crops < best.crops)) {
-            const c = { ...counts, apple: x };
+            const c = fill ? { ...counts, [filler]: x } : { ...counts };
             for (const id in c) if (c[id] === 0) delete c[id];
             // sales before m
-            best = { counts: c, crops, water: water + x, cost: total(x), sales: sales + table.apple.sell * x };
+            best = { counts: c, crops, water: water + (fill ? fill.water * x : 0), cost: total(x), sales: sales + fillSales };
             bestValue = value;
         }
     }

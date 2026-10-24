@@ -96,6 +96,14 @@ test("bestMix takes the game's own seed table, for seeds data.js doesn't know ye
     assert.equal(mix.cost, 200);
 });
 
+test("bestMix with no apples: a cabbage only day fills with cabbage, an empty shop plants only what's on hand", () => {
+    const table = { ...CROPS, cabbage: { buy: 2, sell: 20, water: 1 } };
+    assert.deepEqual(bestMix(10, 1000, 30, {}, ["cabbage"], 1, table).counts, { cabbage: 10 });
+    const empty = bestMix(10, 1000, 30, { eggplant: 2 }, [], 1, table);
+    assert.deepEqual(empty.counts, { eggplant: 2 });
+    assert.equal(empty.water, 4);
+});
+
 test("bestMix plants eggplants you've got even when the shop doesn't have them today, but can't buy more", () => {
     // 6 on hand, shop has apples only, k = 20, plenty of coins: 6 eggplants (12 water, free) + 8 apples
     const mix = bestMix(20, 1000, 30, { eggplant: 6 }, ["apple"], 1);
