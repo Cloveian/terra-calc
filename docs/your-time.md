@@ -1,6 +1,6 @@
 # Your time
 
-*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md) (drafted with Claude, 23 Oct): the plan starts from the hours you actually have, not the hours it would like you to have. The route side's in (step 1) and the site has its boxes (step 2), nothing in the userscript yet, the Decision lines are open.*
+*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md) (drafted with Claude, 23 Oct): the plan starts from the hours you actually have, not the hours it would like you to have. The route side's in (step 1) and the site has its boxes (step 2), nothing in the userscript yet. Per day and the calendar got decided 23 Oct, the rest of the Decision lines are open.*
 
 ## Why
 
@@ -10,10 +10,20 @@ Right now the route finds the lowest *flat* h/week that reaches the goal, `hours
 
 | Decision | What it does |
 | --- | --- |
-| Per week or per day | **Decision:** a number per week first, days later, or per day from the start? Default: per week first. The week's the unit everything plans in (seeds die Monday, rent's weekly), days only change the card's "h a day", which splits evenly over the days left for now |
+| Per week or per day | **Decided (23 Oct):** per day from the start, projected but overrideable. Each day shows what it's projected at, faded, and typing a number fixes that day. See "Days" below for how a week adds up |
 | Blank weeks | A week you didn't set is "whatever it takes", the search fills those in with the lowest flat cap that still reaches the goal, like now. So setting nothing gives exactly today's plan |
 | All set | Nothing left to search, the route just runs your hours and says where you end up ("What can I get", below) |
 | Under 10 h | A main week under 10 h can't pay rent and the route already stops there (`out: true`). The box warns instead of letting you type 6 and quietly ending the plan in Week 5 |
+
+## Days
+
+What i'd build for "projected but overrideable" (my default, not decided yet):
+
+- a day i type is fixed, the days i didn't touch are open, and each open day gets 1/7 of the flat cap, so a week = fixed hours + open days \* cap / 7
+- none set = 7 open = exactly the cap, same as now. All 7 set = a fully fixed week, the cap doesn't touch it
+- this week: days already gone count what i actually coded (the hours log), the open ones are the days left at cap / 7 each. That's *not* the card's "h a day": the card splits what's still needed for this week's target over the days left, so falling behind pushes its h a day up, while the route's open days just run at the pace it's searching for. Different questions, both fine
+- the site's week boxes are the same thing with all 7 fixed at once, so the route only knows one shape: `given = { week: { fixed, open } }`, hours = round(fixed + open \* cap / 7)
+- the projection shown faded on an open day is cap / 7 now, and later the per-day prediction from my history (the hours log, or Hackatime with a key), at which point the open days stop being an even split and follow how my weeks actually go (no school on saturday, whatever)
 
 ## Where you set it
 
@@ -22,7 +32,7 @@ Right now the route finds the lowest *flat* h/week that reaches the goal, `hours
 
 | Decision | What it does |
 | --- | --- |
-| Userscript home | **Decision:** the calendar's week page, or a row of boxes in our settings section? Default: the calendar, it's where Terra already shows your weeks, and the settings one would be 12 boxes in a tiny tab |
+| Userscript home | **Decided (23 Oct):** Terra's calendar, a box in each of the week page's 7 day boxes |
 | Keys | The box `stopPropagation`s keys like the tree tag's priority box does, or typing 2 walks you somewhere |
 
 ## What the plan does with it
@@ -53,15 +63,16 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 
 ## Data
 
-- userscript, saved per account like the goal: `hours: { "2026-W44": 20, "2026-W45": 10 }`, keyed by the same `weekKey` `hours.update` sends. Days later as `days: { "2026-10-26": 4 }`, and a week with days set is just their sum
+- userscript, saved per account like the goal: ~~`hours: { "2026-W44": 20 }`, keyed by `weekKey`~~ `days: { "2026-10-26": 4 }`, only the days i typed, Eastern days like Terra's. Each week's `{ fixed, open }` comes from those
 - site: one more hash key, ~~the 12 weeks in order with blanks~~ only the weeks you set as week index:hours (`hours=5:20,6:10`), so a link with no hours is the same link as today
 
 ## Order to build it
 
 1. `given` weeks in `simulateRoute` and the blank-weeks search in `hoursNeeded`, tests (old ones pass unchanged, that's the point of blank = flat). **Done**
 2. site: the box per week in the table, the hash key, "needs X, you've got Y". **Done**, mostly. "Needs X" only shows when every week's set ("A flat 23 h/week would get there"), with some blank and still out of reach it's the old "Not reachable" at 45 h on the blanks
-3. userscript: saved hours, the goal line, the code step capped, What can I get on the tags
-4. the boxes on Terra's calendar
-5. history from `week-track` (needs that capture first), then the suggestions
+3. `given` as `{ fixed, open }` in the route (the "Days" model), the site's week boxes moved onto it
+4. userscript: saved days, each week's `{ fixed, open }`, the goal line, the code step capped, What can I get on the tags
+5. the day boxes on Terra's calendar
+6. history: the hours log (running since 23 Oct), `week-track` (needs that capture first), the optional Hackatime key, then the per-day predictions
 
-Days and the risk stuff in "Buying with risk" come after all that, they both want real hours to stand on.
+The risk stuff in "Buying with risk" and "Waiting for a better seed" comes after all that, it wants real hours to stand on.
