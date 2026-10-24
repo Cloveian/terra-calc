@@ -55,7 +55,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 - [x] "What can I get": when your goal doesn't fit your hours, plan at your hours and say which picks you get, in your priority order
 - [x] Picks that don't fit your hours get marked on the tree tags ("doesn't fit") and in the site's milestone list ("not with your hours")
 - [x] Show both when it doesn't fit: "needs 31 h a week, you've got 20". Ended up as "A flat 27 h/week would get there" on the site, "not on my days, a flat 31 h/week would do it" on the card
-- [x] This week's "code N h" never asks for more than you said you'd give, and the h a day follows your days, not an even split. "code 28h (4h today)" when today's typed in the calendar
+- [x] This week's "code N h" never asks for more than you said you'd give, and the h a day follows your days, not an even split. "code 28h (2.5h left today)" when today's typed in the calendar, the calendar says it under today's box too
 - [x] The same hours on the site, a box per week in the week table
 - [x] A log per day of the week's credited hours so far (`daylog.js`), raw stuff for the day predictions
 - [x] An optional Hackatime API key in our settings, real per-day hours right away instead of waiting on the log. Only ever sent to Hackatime (API n where it's kept in Your time's History)

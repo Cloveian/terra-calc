@@ -4,12 +4,12 @@ import { easternDay, DAY_MS } from "../src/week.js";
 import { clamp } from "../src/state.js";
 
 const DAY_BIT = "terra-calc-day";
-const CODED_BIT = "terra-calc-coded"; // gone days, what i coded
+const NOTE_BIT = "terra-calc-day-note"; // under a day, what i coded or whats left of today
 // same cream box as the tree tags, small enough to sit under the date
 const DAY_CSS = `.${DAY_BIT} { font: 700 .75em/1.3 var(--game-font, "Pleasurize", cursive); margin-top: .2em; z-index: 1 }
 .${DAY_BIT} input { font: inherit; width: 3.4em; text-align: center; color: #462114; background: #fff9; border: 1px solid #93582c; border-radius: 1em; padding: 0 .3em }
 .${DAY_BIT} input::placeholder { color: #93582c; opacity: .6 }
-.${CODED_BIT} { font: 700 .75em/1.3 var(--game-font, "Pleasurize", cursive); margin-top: .35em; color: #93582c; position: relative; z-index: 1 }`;
+.${NOTE_BIT} { font: 700 .75em/1.3 var(--game-font, "Pleasurize", cursive); margin-top: .35em; color: #93582c; position: relative; z-index: 1 }`;
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -22,7 +22,7 @@ export function mountDayBoxes(setDay) {
     dayBit.mount(DAY_CSS);
 }
 
-// days = { "2026-10-26": 4 }, perDay = planned h per weekday [mon ... sun], null = no plan. codedOn = { "2026-10-20": 3.2 } h on gone days
+// days = { "2026-10-26": 4 }, perDay = planned h per weekday [mon ... sun], null = no plan. codedOn = { "2026-10-20": 3.2 } h on gone days, todayLeft = h left of what i typed for today or null
 export function drawDayBoxes(state) {
     dayBit.draw(state);
 }
@@ -62,32 +62,42 @@ function fillDays(state) {
     if (!monday) return;
     [...page.querySelectorAll(`.${c.dayBox}`)].forEach((cell, i) => {
         const day = new Date(Date.parse(monday) + i * DAY_MS).toISOString().slice(0, 10);
-        let wrap = cell.querySelector(`.${DAY_BIT}`);
-        let done = cell.querySelector(`.${CODED_BIT}`);
-        // gone days are what i coded, nothing to type
-        if (day < today) {
-            wrap?.remove();
-            const h = state.codedOn[day];
-            if (h === undefined) return done?.remove();
-            if (!done) {
-                done = document.createElement("div");
-                done.className = CODED_BIT;
-                cell.append(done);
-            }
-            done.textContent = codedWords(h);
-            return;
+        const words = day < today ? goneDay(cell, state, day) : openDay(cell, state, day, today, i);
+        let note = cell.querySelector(`.${NOTE_BIT}`);
+        if (words === null) return note?.remove();
+        if (!note) {
+            note = document.createElement("div");
+            note.className = NOTE_BIT;
+            cell.append(note);
         }
-        done?.remove();
-        if (!wrap) {
-            wrap = numberBox({ min: 0, max: 24, step: 0.1 }, null, cleanHours, (h) => onDay?.(wrap.dataset.day, h));
-            wrap.classList.add(DAY_BIT);
-            keepFromGame(wrap, [...POINTER, ...KEYS]);
-            cell.append(wrap);
-        }
-        const box = wrap.firstChild;
-        wrap.dataset.day = day;
-        box.title = `Hours you'll code on ${day}, blank = whatever the plan needs`;
-        box.placeholder = state.perDay === null ? "" : String(Math.round(state.perDay[i] * 10) / 10);
-        if (document.activeElement !== box) box.value = state.days[day] ?? "";
+        note.textContent = words;
     });
+}
+
+// gone days are what i coded, nothing to type
+function goneDay(cell, state, day) {
+    cell.querySelector(`.${DAY_BIT}`)?.remove();
+    const h = state.codedOn[day];
+    return h === undefined ? null : codedWords(h);
+}
+
+// box from today on. today typed = whats left of it
+function openDay(cell, state, day, today, i) {
+    let wrap = cell.querySelector(`.${DAY_BIT}`);
+    if (!wrap) {
+        wrap = numberBox({ min: 0, max: 24, step: 0.1 }, null, cleanHours, (h) => onDay?.(wrap.dataset.day, h));
+        wrap.classList.add(DAY_BIT);
+        keepFromGame(wrap, [...POINTER, ...KEYS]);
+        // note goes under it, a gone day's note can still be there from before midnight
+        cell.querySelector(`.${NOTE_BIT}`)?.remove();
+        cell.append(wrap);
+    }
+    const box = wrap.firstChild;
+    wrap.dataset.day = day;
+    box.title = `Hours you'll code on ${day}, blank = whatever the plan needs`;
+    box.placeholder = state.perDay === null ? "" : String(Math.round(state.perDay[i] * 10) / 10);
+    if (document.activeElement !== box) box.value = state.days[day] ?? "";
+    if (day !== today || state.todayLeft === null) return null;
+    // under a minute is done, like the card
+    return Math.round(state.todayLeft * 60) > 0 ? `${codedWords(state.todayLeft)} left` : "done";
 }

@@ -333,12 +333,15 @@ function deadline(until, now, step) {
     return ` (${hoursLeft(left)} left)`;
 }
 
-// h a day till weekEnds (current-week endDate, sunday night US eastern). under a day just whats left. what i typed for today wins
-function pace(n, { weekEnds, todayHours }, now) {
+// h a day till weekEnds (current-week endDate, sunday night US eastern). under a day just whats left. whats left of what i typed for today wins
+function pace(n, { weekEnds, todayLeft }, now) {
     if (!weekEnds || weekEnds <= now) return "";
     const left = weekEnds - now;
     if (left < DAY_MS) return ` (${hoursLeft(left)} left in week)`;
-    if (todayHours != null) return ` (${Math.min(todayHours, n)}h today)`;
+    if (todayLeft != null) {
+        const h = Math.round(Math.min(todayLeft, n) * 10) / 10;
+        return h > 0 ? ` (${h}h left today)` : " (today's done)";
+    }
     return ` (${Math.round((n / (left / DAY_MS)) * 10) / 10}h/d)`;
 }
 

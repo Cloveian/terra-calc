@@ -36,11 +36,11 @@ const DAYS_KEY = "terra-calc-days";
 const HACKATIME_KEY = "terra-calc-hackatime-key";
 const HACKATIME_DAYS_KEY = "terra-calc-hackatime-days";
 
-// plan parts that can stay null. the card would ask for plots (they sit in inventory), farm and
-// stuck are only there once you've been on your farm, target needs the plot count too, goal's
-// null till you pick one, weekEnds is just extra words on a few steps and the last week line, trees
-// and owned only matter for a goal, and lastWeek needs you to have been here last week. todayHours only if i typed today, wait only when waiting beats todays bonus seed
-const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "todayHours", "wait", "trees", "owned", "lastWeek"]);
+// plan parts that can stay null. the card would ask for plots (they sit in inventory)
+// farm and stuck are only there once you've been on your farm, target needs the plot count too, goal's null till you pick one
+// weekEnds is just extra words on a few steps and the last week line, trees and owned only matter for a goal, lastWeek needs you to have been here last week
+// todayLeft only if i typed today, wait only when waiting beats todays bonus seed
+const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "todayLeft", "wait", "trees", "owned", "lastWeek"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
 const M_GUESS = 1.1;
@@ -508,7 +508,12 @@ function plan() {
     const shape = weekShape(typical);
     // hackatime counts AI time full, so off a key its a bit over terra's
     const usualWeek = typical.includes(null) ? null : typical.reduce((sum, h) => sum + h, 0);
-    const given = daysGiven(savedDays, today, codedBefore(hoursLog, today, game.hours?.weekKey), shape);
+    const before = codedBefore(hoursLog, today, game.hours?.weekKey);
+    const given = daysGiven(savedDays, today, before, shape);
+    // what i typed for today minus terra's credited so far today, null till today's typed
+    const todayLeft = savedDays[today] == null || !game.hours
+        ? null
+        : Math.max(0, savedDays[today] - (game.hours.week.creditedSeconds / 3600 - before));
     const target = start && weekTarget(start, t, coinsGoal, m, thisWeek, given);
     let rows = [];
     let usual = null;
@@ -550,7 +555,7 @@ function plan() {
         mGuessed: mRead === null,
         // ms, for the h a day on the code step and when last week ended
         weekEnds,
-        todayHours: savedDays[today] ?? null, // typed in the calendar, the code step says it over the even h a day
+        todayLeft, // the code step says it over the even h a day
         // the week before, null if it wasnt seen
         lastWeek: weekNote && weekNote.weekKey === game.hours?.weekKey ? weekNote.last : null,
         loans,
@@ -581,6 +586,7 @@ function plan() {
         perDay: target?.cap ? shape.map((share) => share * target.cap) : null,
         // lumped ones have gone days in them too, under 0 = terra took credit back. blank beats wrong
         codedOn: Object.fromEntries(past.filter((d) => !d.lumped && d.h >= 0).map((d) => [d.day, d.h])),
+        todayLeft,
     };
     return { parts: enough ? parts : null, tags, badges, days, problems: cleaned?.problems ?? [], keep };
 }
