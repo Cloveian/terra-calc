@@ -5,9 +5,9 @@ import { clamp } from "../src/state.js";
 
 const DAY_BIT = "terra-calc-day";
 // same cream box as the tree tags, small enough to sit under the date
-const DAY_CSS = `.${DAY_BIT} { font: 700 .75em/1.3 var(--game-font, "Pleasurize", cursive); width: 3.4em; margin-top: .2em; text-align: center;
-  color: #462114; background: #fff9; border: 1px solid #93582c; border-radius: 1em; padding: 0 .3em; position: relative; z-index: 1 }
-.${DAY_BIT}::placeholder { color: #93582c; opacity: .6 }`;
+const DAY_CSS = `.${DAY_BIT} { font: 700 .75em/1.3 var(--game-font, "Pleasurize", cursive); margin-top: .2em; z-index: 1 }
+.${DAY_BIT} input { font: inherit; width: 3.4em; text-align: center; color: #462114; background: #fff9; border: 1px solid #93582c; border-radius: 1em; padding: 0 .3em }
+.${DAY_BIT} input::placeholder { color: #93582c; opacity: .6 }`;
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -54,15 +54,17 @@ function fillDays(state) {
     if (!monday) return;
     [...page.querySelectorAll(`.${c.dayBox}`)].forEach((cell, i) => {
         const day = new Date(Date.parse(monday) + i * DAY_MS).toISOString().slice(0, 10);
-        let box = cell.querySelector(`.${DAY_BIT}`);
+        let wrap = cell.querySelector(`.${DAY_BIT}`);
         // gone days are what i coded, nothing to type
-        if (day < today) return box?.remove();
-        if (!box) {
-            box = numberBox({ className: DAY_BIT, min: 0, max: 24, step: 0.1 }, null, cleanHours, (h) => onDay?.(box.dataset.day, h));
-            keepFromGame(box, [...POINTER, ...KEYS]);
-            cell.append(box);
+        if (day < today) return wrap?.remove();
+        if (!wrap) {
+            wrap = numberBox({ min: 0, max: 24, step: 0.1 }, null, cleanHours, (h) => onDay?.(wrap.dataset.day, h));
+            wrap.classList.add(DAY_BIT);
+            keepFromGame(wrap, [...POINTER, ...KEYS]);
+            cell.append(wrap);
         }
-        box.dataset.day = day;
+        const box = wrap.firstChild;
+        wrap.dataset.day = day;
         box.title = `Hours you'll code on ${day}, blank = whatever the plan needs`;
         box.placeholder = state.perDay === null ? "" : String(Math.round(state.perDay * 10) / 10);
         if (document.activeElement !== box) box.value = state.days[day] ?? "";

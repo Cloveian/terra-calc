@@ -87,13 +87,20 @@ function el(tag, cls, text = null) {
     return node;
 }
 
+// terra's input is width 100%, an inline wrap shrank it
+function inputBox(c, props, value, clean, onChange) {
+    const wrap = numberBox({ className: c.input ?? "", ...props }, value, clean, onChange);
+    wrap.style.display = "block";
+    return wrap;
+}
+
 function makeSection(c) {
     const ours = el("div", OUR_SECTION);
     keepFromGame(ours, KEYS);
 
     const mCol = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
     const range = { min: String(MULTIPLIER.min), max: String(MULTIPLIER.max), step: "0.01", placeholder: "the game's" };
-    const m = numberBox({ className: c.input ?? "", ...range }, current.m, cleanM, (n) => {
+    const m = inputBox(c, range, current.m, cleanM, (n) => {
         current.m = n;
         onSettings(current);
     });
@@ -126,7 +133,7 @@ function makeSection(c) {
 function typedRow(c) {
     const box = (key, label) => {
         const col = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
-        const input = numberBox({ className: c.input ?? "", min: "0", step: "1" }, current.typed[key], cleanCount, (n) => {
+        const input = inputBox(c, { min: "0", step: "1" }, current.typed[key], cleanCount, (n) => {
             current.typed[key] = n;
             onSettings(current);
         });
@@ -172,7 +179,7 @@ function goalRow(c, goal) {
     pickCol.append(el("div", c.formLabel, "Goal"), selectRow);
 
     const coinsCol = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
-    const coins = numberBox({ className: c.input ?? "", min: "0", step: "1" }, goal.coins, cleanCount, (n) => onGoal.coins(n));
+    const coins = inputBox(c, { min: "0", step: "1" }, goal.coins, cleanCount, (n) => onGoal.coins(n));
     coinsCol.append(el("div", c.formLabel, "Goal in coins (empty uses your picks)"), coins);
 
     const row = el("div", c.settingsRow);

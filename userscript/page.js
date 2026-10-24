@@ -1,4 +1,5 @@
 // terra's real class names + one observer redrawing all our bits inside its DOM, n what those bits share
+import { stepped, holdRepeat } from "../src/stepper.js";
 
 const WATCH = { childList: true, subtree: true };
 
@@ -51,8 +52,22 @@ export function keepFromGame(el, types) {
     for (const type of types) el.addEventListener(type, (event) => event.stopPropagation());
 }
 
-// cleaned on change (enter or clicking off), cleaned number goes back in the box
+const NUMBER_BIT = "terra-calc-number";
+// terra brown chevrons inside the box's right end, chrome's grey spinner off
+const NUMBER_CSS = `.${NUMBER_BIT} { position: relative; display: inline-block }
+.${NUMBER_BIT} > input[type] { appearance: textfield; padding-right: 1.1em }
+.${NUMBER_BIT} > input::-webkit-inner-spin-button, .${NUMBER_BIT} > input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0 }
+.${NUMBER_BIT} > span { position: absolute; top: 0; bottom: 0; right: .3em; display: flex; flex-direction: column; justify-content: center }
+.${NUMBER_BIT} button { all: unset; flex: 0 1 .6em; width: .8em; display: grid; place-items: center; cursor: pointer; color: #93582c }
+.${NUMBER_BIT} button:hover { color: #462114 }
+.${NUMBER_BIT} button::before { content: ""; width: .34em; height: .34em; border: solid currentColor; border-width: 2px 2px 0 0; border-radius: 1px; transform: translateY(20%) rotate(-45deg) }
+.${NUMBER_BIT} button + button::before { transform: translateY(-20%) rotate(135deg) }`;
+let numberStyled = false;
+
+// cleaned on change (enter, clicking off or an arrow), cleaned number goes back in the box. hands back the wrap, input is its firstChild
 export function numberBox(props, value, clean, onChange) {
+    if (!numberStyled) addStyle(NUMBER_CSS);
+    numberStyled = true;
     const box = document.createElement("input");
     box.type = "number";
     Object.assign(box, props);
@@ -62,7 +77,29 @@ export function numberBox(props, value, clean, onChange) {
         box.value = n ?? "";
         onChange(n);
     });
-    return box;
+    const wrap = document.createElement("span");
+    wrap.className = NUMBER_BIT;
+    wrap.append(box, arrows(box));
+    return wrap;
+}
+
+// an empty box starts from its placeholder (the calendar's faded guess)
+function arrows(box) {
+    const span = document.createElement("span");
+    for (const [direction, label] of [[1, "more"], [-1, "less"]]) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.tabIndex = -1;
+        b.ariaLabel = label;
+        holdRepeat(b, () => {
+            // focus in the box, the tree tags n calendar dont redraw a focused one
+            box.focus({ preventScroll: true });
+            box.value = stepped(box.value || box.placeholder, box, direction);
+            box.dispatchEvent(new Event("change"));
+        }, () => box.isConnected);
+        span.append(b);
+    }
+    return span;
 }
 
 // one observer for everything, with one each the card and tree tags redrew each other every frame

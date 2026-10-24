@@ -11,12 +11,12 @@ const WANT_CSS = `.${BIT} { position: absolute; top: 100%; left: 50%; transform:
   background: #f9e6ce; color: #462114; border: 2px solid #93582c; border-radius: .8em; box-shadow: 0 2px #46211459;
   font: 700 .7em/1.3 var(--game-font, "Pleasurize", cursive) }
 .${BIT} > div { display: flex; gap: .3em; align-items: center }
-.${BIT} button { font: inherit; color: #f4ca95; background: #733b11; border: 2px solid #462114; border-radius: .6em; padding: 0 .45em; cursor: pointer }
-.${BIT} button:hover:not(:disabled) { background: #974d16 }
-.${BIT} button.light { color: #5c3310; background: #f0b870; border-color: #93582c }
-.${BIT} button.light:hover:not(:disabled) { background: #edaa54 }
-.${BIT} button:disabled { opacity: .55; cursor: not-allowed }
-.${BIT} input { font: inherit; width: 3em; color: #5c3310; background: #fff; border: 1px solid #93582c; border-radius: 1em; padding: 0 .4em }
+.${BIT} > div > button { font: inherit; color: #f4ca95; background: #733b11; border: 2px solid #462114; border-radius: .6em; padding: 0 .45em; cursor: pointer }
+.${BIT} > div > button:hover:not(:disabled) { background: #974d16 }
+.${BIT} > div > button.light { color: #5c3310; background: #f0b870; border-color: #93582c }
+.${BIT} > div > button.light:hover:not(:disabled) { background: #edaa54 }
+.${BIT} > div > button:disabled { opacity: .55; cursor: not-allowed }
+.${BIT} input { font: inherit; width: 3.6em; color: #5c3310; background: #fff; border: 1px solid #93582c; border-radius: 1em; padding: 0 .4em }
 .${BIT} .quiet { opacity: .65; font-weight: 400 }`;
 
 // one node's tag, null on limit-1 stuff i already own (terra's badge covers it)
@@ -169,9 +169,9 @@ function line(parts) {
 // 1 = want most, empty = no number
 function prioBox(row, device) {
     const props = { min: "1", step: "any", placeholder: "#", title: "priority, 1 is what you want most" };
-    const box = numberBox(props, row.prio, cleanPrio, (n) => onPrio?.(device, row.key, n));
-    keepFromGame(box, KEYS);
-    return box;
+    const wrap = numberBox(props, row.prio, cleanPrio, (n) => onPrio?.(device, row.key, n));
+    keepFromGame(wrap, KEYS);
+    return wrap;
 }
 
 function cleanPrio(text) {

@@ -8,6 +8,7 @@ import {
     waitsOn, prioFrom, sameSelection, byId,
 } from "./tree.js";
 import { clean, toHash, canAdd, formatHours, BONUS_KEYS } from "./state.js";
+import { stepped, holdRepeat } from "./stepper.js";
 import { wobblyLine, seedOf } from "./sketch.js";
 import { SVG, SKETCH_BRANCHES, drawOutline, sketchAll, sketch, redrawOutlines } from "./outline.js";
 import { mountDivider } from "./columns.js";
@@ -656,26 +657,14 @@ function addDateButton(input) {
 function addNumberButtons(input) {
     const label = input.closest("label")?.textContent.trim() || input.id; // e.g. "Coins", for screen readers
     const nudge = (direction) => {
-        const step = parseFloat(input.step) || 1; // "any" -> 1
-        const decimals = (String(step).split(".")[1] ?? "").length;
-        let value = (parseFloat(input.value) || 0) + direction * step;
-        if (input.min !== "") value = Math.max(value, parseFloat(input.min));
-        if (input.max !== "") value = Math.min(value, parseFloat(input.max));
-        input.value = value.toFixed(decimals);
+        input.value = stepped(input.value, input, direction);
         input.dispatchEvent(new Event("input", { bubbles: true }));
     };
     const arrow = (direction, iconName, text) => {
         const b = button(icon(iconName), () => {}, `${text} ${label}`);
         b.tabIndex = -1;
-        let timer;
-        const stop = () => clearTimeout(timer);
-        b.addEventListener("pointerdown", (event) => {
-            event.preventDefault(); // leave focus where it is (it's put back without scrolling, see update())
-            nudge(direction);
-            const again = (delay) => { timer = setTimeout(() => { nudge(direction); again(70); }, delay); };
-            again(400);
-        });
-        for (const type of ["pointerup", "pointerleave", "pointercancel"]) b.addEventListener(type, stop);
+        // focus left where it is, it's put back without scrolling in update()
+        holdRepeat(b, () => nudge(direction));
         return b;
     };
     const buttons = el("span", arrow(1, "select-arrow-up", "More"), arrow(-1, "select-arrow", "Less"));

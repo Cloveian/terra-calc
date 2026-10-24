@@ -29,7 +29,6 @@ export function defaults(today) {
 export function clamp(n, min, max) {
     return Math.min(max, Math.max(min, n));
 }
-
 // A number from raw[key], or the fallback. Anything that had to be fixed goes in `problems`.
 function number(raw, key, fallback, problems, fix) {
     if (!(key in raw)) return fallback;
