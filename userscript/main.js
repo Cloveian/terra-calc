@@ -500,10 +500,11 @@ function plan() {
     };
     const today = easternDay(new Date());
     // how my weeks go, off hackatime with a key or my hours log. today's not done yet
-    const coded = hackatime?.days
+    const history = hackatime?.days
         ? Object.entries(hackatime.days).map(([day, h]) => ({ day, h, lumped: false }))
         : dayHours(hoursLog);
-    const shape = weekShape(typicalDays(coded.filter((d) => d.day < today)));
+    const past = history.filter((d) => d.day < today);
+    const shape = weekShape(typicalDays(past));
     const given = daysGiven(savedDays, today, codedBefore(hoursLog, today, game.hours?.weekKey), shape);
     const target = start && weekTarget(start, t, coinsGoal, m, thisWeek, given);
     let rows = [];
@@ -569,6 +570,11 @@ function plan() {
     const enough = !missing.some((key) => !OPTIONAL.has(key));
     const ended = weekEnds !== null && Date.now() > weekEnds;
     const keep = ticked.saved && { weekKey: game.hours.weekKey, w, saved: ticked.saved, ended };
-    const days = { days: savedDays, perDay: target?.cap ? shape.map((share) => share * target.cap) : null };
+    const days = {
+        days: savedDays,
+        perDay: target?.cap ? shape.map((share) => share * target.cap) : null,
+        // lumped ones have gone days in them too, under 0 = terra took credit back. blank beats wrong
+        codedOn: Object.fromEntries(past.filter((d) => !d.lumped && d.h >= 0).map((d) => [d.day, d.h])),
+    };
     return { parts: enough ? parts : null, tags, badges, days, problems: cleaned?.problems ?? [], keep };
 }

@@ -49,7 +49,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 - [ ] Hours you can give each week, set per week (ex. finals week can be 10 h)
 - [x] ...and per day, the week's just the days added up
 - [x] Set them in Terra's own calendar (the userscript puts a little hours box on each day). Today and later only, faded = what an open day's planned at, split the way my weeks usually go
-- [ ] Your hours history on the calendar, read from your devlogs and ships (Terra's number, AI time already only counts a third)
+- [x] Your hours history on the calendar, read from your devlogs and ships (Terra's number, AI time already only counts a third). Gone days say "3h 12m", off Hackatime with a key (AI counted full there, so a bit over Terra's) or the hours log, where a day it missed stays blank
 - [ ] Suggested hours for each day and week from that history, as the default till you change it. Half there: the calendar's open days follow the shape of my weeks, the amount's still the plan's
 - [ ] A projection: at the hours you usually do, what you end up with by Week 12
 - [x] "What can I get": when your goal doesn't fit your hours, plan at your hours and say which picks you get, in your priority order
