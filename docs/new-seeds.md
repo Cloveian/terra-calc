@@ -13,7 +13,7 @@ From the 22 Oct Chrome HAR, `shop.stock` (`dateKey: "2026-10-22"`):
 | Eggplant | `eggplant_seed` | 15 | 75 | 2 | 60 | 30 | 60 |
 
 - the shop entries have `waterNeeded` and `cropValue` on them now, so nothing has to be hardcoded in the userscript
-- bonus seeds are **today only** ("new crops will be in tomorrow"), the stock has a `dateKey` now. Apples are always there
+- bonus seeds are **today only** ("new crops will be in tomorrow"), the stock has a `dateKey` now. Apples are ~~always~~ usually there, some days they're not (the shop log has them from 24 Oct)
 - seeds bought this week die after Monday 11:59 PM EDT if they're not planted and watered, same as apples
 - water's buyable too, 50 then 55, prices reset Monday. Not planned with (yet)
 

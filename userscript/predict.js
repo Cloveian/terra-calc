@@ -43,7 +43,7 @@ function median(xs) {
     return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
-// share of logged shop days each bonus seed was in, { eggplant: 0.4 }
+// share of logged shop days each seed was in, { eggplant: 0.4, apple: 0.9 }
 export function seedOdds(shopLog) {
     const days = Object.values(shopLog);
     const counts = {};
@@ -53,9 +53,10 @@ export function seedOdds(shopLog) {
     return Object.fromEntries(Object.entries(counts).map(([id, n]) => [id, n / days.length]));
 }
 
-// what a water's worth with n shop days still to come, [V_0 ... V_days], V_0 = apple (always there on the last day)
+// what a water's worth with n shop days still to come, [V_0 ... V_days], V_0 = apple
 // V_n = E[max(best seed in that day's shop, V_(n-1))], each seed in on its own with its odds. house-selling problem, worked back from sunday
 // values = perHour (shop.js) per seed. buy today's seed for water i'm sure of if its value >= V_(days left after today)
+// todo: apples arent always there either, sunday without them is worth less
 export function waitTable(values, odds, apple, days = 6) {
     const ids = Object.keys(values).filter((id) => odds[id] > 0);
     const table = [apple];
@@ -84,7 +85,8 @@ export function waitFor(shopLog, today, crops, m, daysLeft) {
     if (bonus.length === 0 || daysLeft < 1 || Object.keys(shopLog).length < MIN_SHOP_DAYS) return null;
     const value = (id) => perHour(crops[id], m);
     const odds = seedOdds(shopLog);
-    const values = Object.fromEntries(Object.keys(odds).filter((id) => crops[id]).map((id) => [id, value(id)]));
+    // apple is the floor already (V_0)
+    const values = Object.fromEntries(Object.keys(odds).filter((id) => crops[id] && id !== "apple").map((id) => [id, value(id)]));
     const best = bonus.reduce((a, b) => (value(b) > value(a) ? b : a));
     const wait = waitTable(values, odds, value("apple"), daysLeft)[daysLeft];
     if (Math.max(value(best), value("apple")) >= wait) return null;

@@ -11,7 +11,7 @@ function trim(log) {
     return Object.fromEntries(days.slice(-KEEP_DAYS).map((day) => [day, log[day]]));
 }
 
-// { "2026-10-22": ["bokchoy", "eggplant"] }, seeds from seedsFrom. an empty list is a day heidi had none
+// { "2026-10-22": ["apple", "bokchoy", "eggplant"] }, seeds from seedsFrom + apple. an empty list is a day heidi had none
 export function logShop(log, dateKey, seeds) {
     if (!dateKey) return log;
     return trim({ ...log, [dateKey]: seeds.map((seed) => seed.id).sort() });

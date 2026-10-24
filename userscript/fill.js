@@ -230,7 +230,7 @@ export function shopProblems(shop, plots) {
     return problems;
 }
 
-// todays bonus seeds from shop.stock, [] when closed. apples left out (always there), and entries without cropValue and waterNeeded
+// todays bonus seeds from shop.stock, [] when closed. apples left out (applePrice has them), and entries without cropValue and waterNeeded
 export function seedsFrom(shopStock) {
     if (shopStock?.status !== "available" || !Array.isArray(shopStock.entries)) return [];
     return shopStock.entries

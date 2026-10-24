@@ -134,7 +134,9 @@ onGameMessage(IN.shopStock, (body) => {
         game.shop = { ...shop, seeds: seedsFrom(body), dateKey: body.dateKey ?? null, seenAt: Date.now() };
         // saved like the farm, for reloads
         saveMine(SHOP_KEY, game.shop);
-        shopLog = saveChanged(SHOP_LOG_KEY, shopLog, logShop(shopLog, game.shop.dateKey, game.shop.seeds));
+        // apples too, they're not always there either
+        const stocked = game.shop.applePrice === null ? game.shop.seeds : [...game.shop.seeds, { id: "apple" }];
+        shopLog = saveChanged(SHOP_LOG_KEY, shopLog, logShop(shopLog, game.shop.dateKey, stocked));
     }
     checkShopPrices();
     draw();
@@ -526,7 +528,7 @@ function plan() {
         trees, owned, milestones: rows,
         goal: cleaned && { device: picked.device, want: picked.want, own: cleaned.own, prio: picked.prio },
     };
-    // apples aren't in shop.seeds, they're always there
+    // apples aren't in shop.seeds, no apple row in the shop = no badge
     const badges = { m, seeds: [{ id: "apple", name: "Apple", ...CROPS.apple }, ...shop.seeds] };
     const weekEnds = Date.parse(game.currentWeek?.endDate ?? "") || null;
     const w = target?.w ?? null;
