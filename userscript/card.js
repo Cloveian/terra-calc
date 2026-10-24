@@ -49,6 +49,7 @@ const OURS_COLUMN = "terra-calc-column";
 const CARD_CSS = `[data-terra-calc] > :not(.${BLOCK}):not([class*="_objectiveCountdown_"]) { display: none }
 .${BLOCK} .terra-calc-link { text-decoration: underline; cursor: pointer }
 .${BLOCK} .terra-calc-notice { color: #c0392b }
+.${BLOCK} .terra-calc-pick { padding-left: 1em }
 /* terra's own progress bar colors, thinner */
 .${BLOCK} .terra-calc-bar { display: flex; height: 0.5em; margin-block: 0.25em; background: #efb367; border: 2px solid #93582c; border-radius: 0.7em; overflow: hidden }
 .${BLOCK} .terra-calc-bar > * { background: #c7793c }
@@ -56,6 +57,8 @@ const CARD_CSS = `[data-terra-calc] > :not(.${BLOCK}):not([class*="_objectiveCou
 
 const cardBit = ourBit(fill);
 let notices = [];
+const folded = savedFlag("terra-calc-folded"); // ours folded away
+const showPicks = savedFlag("terra-calc-show-picks"); // every pick listed under the goal
 
 // watched cuz the body only exists while the card's open, rebuilt every expand
 export function mountCard() {
@@ -98,7 +101,7 @@ function fill(plan) {
         ours = null;
     }
     if (body && card) {
-        if (folded) body.removeAttribute("data-terra-calc");
+        if (folded.on) body.removeAttribute("data-terra-calc");
         else body.setAttribute("data-terra-calc", "");
         const block = body.querySelector(`:scope > .${BLOCK}`) ?? body.appendChild(makeBlock());
         drawBlock(block, card);
@@ -168,8 +171,8 @@ function drawBlock(block, { tasks, details }) {
         return line;
     };
     // folded = just the show link, fill takes our attribute off so terra's checklist shows
-    if (folded) {
-        block.replaceChildren(link("show Terra Calc", () => setFolded(false)));
+    if (folded.on) {
+        block.replaceChildren(link("show Terra Calc", () => folded.set(false)));
         return;
     }
     const current = tasks.find((task) => !task.done);
@@ -186,11 +189,17 @@ function drawBlock(block, { tasks, details }) {
         row.append(box, label);
         return row;
     });
+    const drawDetail = (item) => {
+        if (typeof item === "string") return [detail(item)];
+        if (item.bar) return [drawBar(detail(""), item.bar)];
+        if (!showPicks.on) return [link("show more", () => showPicks.set(true))];
+        return [...item.picks.map((text) => detail(text, "terra-calc-pick")), link("show less", () => showPicks.set(false))];
+    };
     block.replaceChildren(
         ...rows,
         ...notices.map((text) => detail(text, "terra-calc-notice")),
-        ...details.map((item) => (typeof item === "string" ? detail(item) : drawBar(detail(""), item.bar))),
-        link("hide Terra Calc", () => setFolded(true)),
+        ...details.flatMap(drawDetail),
+        link("hide Terra Calc", () => folded.set(true)),
     );
 }
 
@@ -207,17 +216,22 @@ function drawBar(line, { coins, selling, goal }) {
     return line;
 }
 
-// ours folded away, kept per broswer
-const FOLD_KEY = "terra-calc-folded";
-let folded = loadJSON(FOLD_KEY) === 1;
-
-function setFolded(on) {
-    folded = on;
-    saveJSON(FOLD_KEY, on ? 1 : 0);
-    cardBit.redraw();
+// on / off kept per broswer
+function savedFlag(key) {
+    let on = loadJSON(key) === 1;
+    return {
+        get on() {
+            return on;
+        },
+        set(value) {
+            on = value;
+            saveJSON(key, value ? 1 : 0);
+            cardBit.redraw();
+        },
+    };
 }
 
-// coins, plots and m left out, the steps already use them (terraCalc.plan().parts has em all). one detail can be the goal bar
+// coins, plots and m left out, the steps already use them (terraCalc.plan().parts has em all). one detail can be the goal bar, one the picks behind show more
 export function cardFor(plan, now = Date.now()) {
     const { loans, farm, stuck, target, steps, goal, inventory } = plan;
     // ticked ones still count for the indent, list doesnt jump around
@@ -288,6 +302,9 @@ function goalLines(goal, target, coins, selling = 0) {
     if (next && next !== picks.at(-1)) lines.push(`all of it ${when(picks.at(-1))}`);
     // all of it now is the same at any h/week
     if (goal.usual && next) lines.push(usualLine(goal.usual));
+    // every pick behind a show more, drawBlock does the link
+    // 2 = next pick n all of it already
+    if (picks.length > 2) lines.push({ picks: picks.map((pick) => `${pickName(pick)} ${pick.now ? "now" : when(pick)}`) });
     return lines;
 }
 

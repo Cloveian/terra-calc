@@ -83,6 +83,7 @@ test("a goal shows before the farm's been seen, with the next pick and when it's
         { bar: { coins: 42.6, selling: 0, goal: 2800 } },
         "next pick: Core 3 304 in Week 3",
         "all of it in Week 9",
+        { picks: ["Core 3 304 in Week 3", "RAM 16 GB in Week 6", "Framework 13 in Week 9"] }, // behind show more
     ]);
 });
 
@@ -93,7 +94,8 @@ test("my usual week's line: all of it, some of it, or rent running out", () => {
         target: { w: 18, cap: 18, reachable: true, out: false, route: [] }, steps: [], selling: { crops: 0, coins: 0 },
         goal: { device: "Framework 12", coins: 2800, custom: false, milestones: picks, usual },
     });
-    const last = (usual, picks) => cardFor(plan(usual, picks), NOW).details.at(-1);
+    // last line of words, the show more list comes after
+    const last = (usual, picks) => cardFor(plan(usual, picks), NOW).details.filter((item) => typeof item === "string").at(-1);
     assert.equal(last({ h: 24, fit: 2, of: 2, week: 7, outFrom: null }), "at my usual 24 h/week: all of it in Week 5");
     assert.equal(last({ h: 12, fit: 1, of: 2, week: 9, outFrom: null }), "at my usual 12 h/week: 1 of 2 picks by Week 12");
     assert.equal(last({ h: 6, fit: 0, of: 2, week: null, outFrom: 7 }), "at my usual 6 h/week: rent runs out in Week 5");
