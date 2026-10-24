@@ -80,8 +80,10 @@ test("short or broken input throws", () => {
 test("encoding strings and small objects", () => {
     assert.deepEqual(encodeMsgpack("hi"), [0xa2, ...text("hi")]);
     assert.deepEqual(encodeMsgpack({ a: "b" }), [0x81, 0xa1, ...text("a"), 0xa1, ...text("b")]);
-    const redirect = { levelId: "town-square", spawnTag: "Island return" };
-    assert.deepEqual(decode(encodeMsgpack(redirect)), redirect);
+    // what the hub button hands the game
+    assert.equal(decode(encodeMsgpack("friend.joinRoom")), "friend.joinRoom");
+    const hub = { levelId: "town-square" };
+    assert.deepEqual(decode(encodeMsgpack(hub)), hub);
     assert.equal(decode(encodeMsgpack("bok choy ✿")), "bok choy ✿");
     assert.throws(() => encodeMsgpack(3), /can't encode/);
     assert.throws(() => encodeMsgpack("x".repeat(32)), /can't encode/);
