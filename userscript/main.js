@@ -16,7 +16,8 @@ import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { mountShopBadges, drawShopBadges } from "./shop.js";
 import { mountHud, drawHud } from "./hud.js";
 import { logShop, logHours, codedBefore } from "./daylog.js";
-import { milestones } from "../src/route.js";
+import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
+import { milestones, perOpenDay } from "../src/route.js";
 import { easternDay, weekIndex, LAST_WEEK } from "../src/week.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
@@ -64,7 +65,7 @@ let savedSteps = loadMine(STEPS_KEY); // week checklist as it first came out, fo
 let weekNote = loadMine(WEEK_KEY); // from noteWeek, next week says how this one went
 let shopLog = loadMine(SHOP_LOG_KEY) ?? {};
 let hoursLog = loadMine(HOURS_LOG_KEY) ?? {};
-let savedDays = loadMine(DAYS_KEY) ?? {}; // { "2026-10-26": 4 }, hours i said i'd give, the calendar boxes later
+let savedDays = loadMine(DAYS_KEY) ?? {}; // { "2026-10-26": 4 }, hours i said i'd give, typed in the calendar boxes
 
 function noteThisWeek(weekKey, change) {
     weekNote = saveChanged(WEEK_KEY, weekNote, noteWeek(weekNote, weekKey, change));
@@ -172,6 +173,7 @@ async function start() {
     if (!settings.fill) return drawCard(null);
     mountWantBits(pickWant, pickPrio);
     if (settings.seedBadges) mountShopBadges();
+    if (settings.days) mountDayBoxes(window.terraCalc.day);
     // typed numbers need a redraw, nothing else does one if the game sends nothing
     setTimeout(draw, TYPED_AFTER);
     await readRest();
@@ -193,13 +195,14 @@ async function readRest() {
 }
 
 function draw() {
-    const { parts, tags, badges, problems, keep } = plan();
+    const { parts, tags, badges, days, problems, keep } = plan();
     if (keep) keepWeek(keep);
     for (const problem of problems) showNotice(`Your goal changed: ${problem}`);
     drawCard(parts);
     drawHud(onOwnFarm());
     drawWantBits(tags);
     drawShopBadges({ ...badges, toBuy: seedsToBuy(parts) });
+    drawDayBoxes(days);
 }
 
 // the card's own buy steps, { eggplant: 12 }, so the shop says the same. null with no farm or target
@@ -520,5 +523,6 @@ function plan() {
     const enough = !missing.some((key) => !OPTIONAL.has(key));
     const ended = weekEnds !== null && Date.now() > weekEnds;
     const keep = ticked.saved && { weekKey: game.hours.weekKey, w, saved: ticked.saved, ended };
-    return { parts: enough ? parts : null, tags, badges, problems: cleaned?.problems ?? [], keep };
+    const days = { days: savedDays, perDay: target?.cap ? perOpenDay(target.cap) : null };
+    return { parts: enough ? parts : null, tags, badges, days, problems: cleaned?.problems ?? [], keep };
 }

@@ -101,6 +101,7 @@ userscript/       Terra Calc inside Terra, uses the src/ files that don't touch 
   want.js         want buttons and priorities on Terra's device tree
   shop.js         the badges in Heidi's shop
   hud.js          the Island / Hub and Goal buttons
+  calendar.js     the hours boxes on Terra's calendar
   settings.js     the Terra Calc section in Terra's settings
   page.js         Terra's class names, and redrawing our bits when the page changes
   store.js        saving to Terra's localStorage

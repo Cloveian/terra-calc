@@ -13,6 +13,7 @@ export const FEATURES = {
     panel: { name: "Steps in the This Week card", on: true },
     hud: { name: "Island and goal buttons", on: true },
     seedBadges: { name: "Badges in Heidi's shop", on: false },
+    days: { name: "Hour boxes on the calendar", on: true },
     buttons: { name: "Buy and sell buttons", on: false },
     debug: { name: "Log everything to the console", on: false },
 };
@@ -52,9 +53,9 @@ export function saveSettings(settings) {
 const OUR_SECTION = "terra-calc-settings";
 
 // the ones that do something yet, rest of FEATURES are still ideas
-const SHOWN = ["fill", "panel", "hud", "seedBadges", "debug"];
+const SHOWN = ["fill", "panel", "hud", "seedBadges", "days", "debug"];
 // hooked up at page load
-const NEEDS_RELOAD = ["fill", "panel", "hud", "seedBadges"];
+const NEEDS_RELOAD = ["fill", "panel", "hud", "seedBadges", "days"];
 
 let onSettings = null;
 let current = null;

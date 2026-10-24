@@ -48,7 +48,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 
 - [ ] Hours you can give each week, set per week (ex. finals week can be 10 h)
 - [ ] ...and per day, the week's just the days added up
-- [ ] Set them in Terra's own calendar (the userscript puts a little hours box on each day)
+- [x] Set them in Terra's own calendar (the userscript puts a little hours box on each day). Today and later only, faded = what an open day's planned at. Not tried in the real game yet, the week page's never been in a capture
 - [ ] Your hours history on the calendar, read from your devlogs and ships (Terra's number, AI time already only counts a third)
 - [ ] Suggested hours for each day and week from that history, as the default till you change it
 - [ ] A projection: at the hours you usually do, what you end up with by Week 12

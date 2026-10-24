@@ -69,10 +69,15 @@ export function milestones(route, items) {
     });
 }
 
-// open days at cap / 7, a week missing from given is all 7 open. rounded cuz the route plants whole crops
+// h an open day gets
+export function perOpenDay(cap) {
+    return cap / 7;
+}
+
+// a week missing from given is all 7 open. rounded cuz the route plants whole crops
 export function weekHours(days, cap) {
     if (!days) return cap;
-    return Math.round(days.fixed + (days.open * cap) / 7);
+    return Math.round(days.fixed + days.open * perOpenDay(cap));
 }
 
 // every day from t to Week 12 set
