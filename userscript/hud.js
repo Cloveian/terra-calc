@@ -1,4 +1,4 @@
-// island / hub and goal buttons, bottom of terra's button column
+// island / hub and goal buttons, bottom of terra's button column or next to the water meter
 
 import { IN, HUB_LEVEL } from "./endpoints.js";
 import { tellGame } from "./socket.js";
@@ -13,7 +13,9 @@ const HUD_CSS = `#${HUD} { position: fixed; z-index: 50; display: flex; flex-dir
   color: #462114; background: #f4ca95; border: 3px solid #93582c; border-radius: 50%;
   filter: drop-shadow(2px 3px #00000040); transition: transform .2s }
 #${HUD} button:hover { transform: scale(1.1) }
-#${HUD} button:active { transform: scale(.95) }`;
+#${HUD} button:active { transform: scale(.95) }
+#${HUD}.beside { flex-direction: row; transform: none }
+#${HUD}.beside button { margin: 0 }`;
 
 // px, map button on a phone. any smaller n the words dont fit
 const MIN_SIZE = 44;
@@ -49,10 +51,18 @@ function fillHud(onFarm) {
     // offsetTop cuz getBoundingClientRect grows with terras button on hover and ours jumped with it
     const slot = lowest.offsetWidth;
     const size = Math.max(MIN_SIZE, 0.75 * slot);
-    const top = lowest.offsetTop + lowest.offsetHeight;
-    const middle = lowest.offsetLeft + slot / 2;
     const pad = Math.max(0, (slot - size) / 2);
-    const place = `top: calc(${top}px + 0.5rem); left: ${middle}px; --size: ${size}px; --pad: ${pad}px;`;
+    const box = size + 2 * pad;
+    const gap = parseFloat(getComputedStyle(document.documentElement).fontSize) / 2; // .5rem
+    const top = lowest.offsetTop + lowest.offsetHeight + gap;
+    // short screens: a row right of terra's water meter (bottom left), bottoms lined up
+    const meter = document.querySelector('[data-hud="water-meter"]');
+    const beside = meter !== null && top + 2 * box + gap > meter.offsetTop - gap;
+    hud.classList.toggle("beside", beside);
+    // no slots to match in the row, so no pad either
+    const y = beside ? meter.offsetTop + meter.offsetHeight - size : top;
+    const x = beside ? meter.offsetLeft + meter.offsetWidth + gap : lowest.offsetLeft + slot / 2;
+    const place = `top: ${y}px; left: ${x}px; --size: ${size}px; --pad: ${pad}px;`;
     if (hud.style.cssText !== place) hud.style.cssText = place;
     const travel = hud.firstChild;
     const [text, title, go] = onFarm ? ["Hub", "Go to the hub", goToHub] : ["Island", "Go to your island", goToIsland];

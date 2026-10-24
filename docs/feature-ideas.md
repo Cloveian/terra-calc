@@ -115,7 +115,7 @@ What the game sends to buy, water and plant is captured now: `shop.purchase { st
 - [ ] On your island the same button goes to the hub instead. The game only goes there when you walk onto the dock, and nothing outside it can reach that, so the button hands the game a fake `friend.joinRoom` for `town-square` on its own socket, like a friend's there, and the game does the trip itself. In the real game the join goes through and then the server sends you straight back home, asked the dev what it checks. A fake `redirectToLevel` (the server's "go here" message) was worse, loading screen forever, and setting `lastLevelId` and reloading didn't work either, you wake up on your island again
 - [x] "Pick your goal", the round button under that one (it was a link on the card)
 - [ ] Art for the three round buttons, they've got a word in them for now
-- [ ] When the buttons don't fit under Terra's column (Goal falls off a 768 px tall screen), they move to the bottom right of Terra's water meter (decided 23 Oct)
+- [x] When the buttons don't fit under Terra's column (Goal falls off a 768 px tall screen), they move to the bottom right of Terra's water meter (decided 23 Oct), in a row, bottoms lined up with it. Not tried in the real game yet, and Terra's help note sits at the meter's right edge + 12 px till you dismiss it, so they might cover it
 
 ## Inside Terra's pages
 
