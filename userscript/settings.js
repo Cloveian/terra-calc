@@ -87,10 +87,10 @@ function el(tag, cls, text = null) {
     return node;
 }
 
-// terra's input is width 100%, an inline wrap shrank it
+// terra's column stretches its input, in a plain wrap it went chrome's default width n ran into the next one
 function inputBox(c, props, value, clean, onChange) {
     const wrap = numberBox({ className: c.input ?? "", ...props }, value, clean, onChange);
-    wrap.style.display = "block";
+    Object.assign(wrap.style, { display: "flex", flexDirection: "column" });
     return wrap;
 }
 
