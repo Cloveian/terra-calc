@@ -11,7 +11,7 @@ export const FEATURES = {
     fill: { name: "Fill in from the game", on: true },
     // key in everyones saved settings, renaming it resets their pick
     panel: { name: "Steps in the This Week card", on: true },
-    hud: { name: "Buttons under the map", on: true },
+    hud: { name: "Island and goal buttons", on: true },
     seedBadges: { name: "Badges in Heidi's shop", on: false },
     buttons: { name: "Buy and sell buttons", on: false },
     debug: { name: "Log everything to the console", on: false },

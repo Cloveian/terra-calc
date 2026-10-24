@@ -93,7 +93,7 @@ export function decodeMsgpack(bytes, offset = 0) {
     return { value, end: pos };
 }
 
-// for frames we hand the game ourselves. fixstr n fixmap only (under 32 bytes, under 16 keys), all redirectToLevel needs. plain byte values
+// for frames we hand the game ourselves. fixstr n fixmap only (under 32 bytes, under 16 keys), all friend.joinRoom needs. plain byte values
 export function encodeMsgpack(value) {
     if (typeof value === "string") {
         const s = utf8out.encode(value);

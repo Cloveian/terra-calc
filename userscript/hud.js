@@ -1,17 +1,19 @@
-// island / hub and goal buttons under terra's map
+// island / hub and goal buttons, bottom of terra's button column
 
-import { IN, HUB_LEVEL, HUB_SPAWN } from "./endpoints.js";
+import { IN, HUB_LEVEL } from "./endpoints.js";
 import { tellGame } from "./socket.js";
 import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
 
 const HUD = "terra-calc-hud";
-// looks like the touch controls round key. terras map n bag are pixel art, ours get a word till theres art
-const HUD_CSS = `#${HUD} { position: fixed; z-index: 50; display: flex; flex-direction: column; align-items: center; gap: 0.5em; transform: translateX(-50%) }
-#${HUD} button { width: var(--size); height: var(--size); padding: 0; cursor: pointer;
+// looks like the touch controls round key. terras buttons are drawn, ours get a word till theres art
+// one slot each like terras: --pad fills the circle out to their button size, gap is their .5rem. shadow n hover scale off their .mapButton
+const HUD_CSS = `#${HUD} { position: fixed; z-index: 50; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; transform: translateX(-50%) }
+#${HUD} button { width: var(--size); height: var(--size); margin: var(--pad); padding: 0; cursor: pointer;
   font: inherit; font-size: calc(var(--size) * 0.24); font-weight: bold;
-  color: #462114; background: #f4ca95; border: 3px solid #93582c; border-radius: 50%; box-shadow: 0 3px #46211459 }
-#${HUD} button:hover { background: #f9e6ce }
-#${HUD} button:active { transform: translateY(2px); box-shadow: 0 1px #46211459 }`;
+  color: #462114; background: #f4ca95; border: 3px solid #93582c; border-radius: 50%;
+  filter: drop-shadow(2px 3px #00000040); transition: transform .2s }
+#${HUD} button:hover { transform: scale(1.1) }
+#${HUD} button:active { transform: scale(.95) }`;
 
 // px, map button on a phone. any smaller n the words dont fit
 const MIN_SIZE = 44;
@@ -34,15 +36,23 @@ export function drawHud(onOwnFarm) {
 
 function fillHud(onFarm) {
     const c = cssModule("mapButton", "mapIcon");
-    const map = c && document.querySelector(`.${c.mapButton}`);
     const ours = document.getElementById(HUD);
+    // calendar, map, quests, help... each fixed in its own .stacked* slot, so ours go under the lowest one
+    let lowest = null;
+    for (const b of c ? document.querySelectorAll(`.${c.mapButton}`) : []) {
+        if (!lowest || b.offsetTop > lowest.offsetTop) lowest = b;
+    }
     // still loading, or the game hid its hud
-    if (!map) return ours?.remove();
+    if (!lowest) return ours?.remove();
     const hud = ours ?? makeHud();
-    // centred under the map, same .5rem gap terra leaves between bag n map. sized every draw, its smaller on phones
-    // offsetTop cuz getBoundingClientRect grows with the map on hover and ours jumped with it
-    const size = Math.max(MIN_SIZE, 0.75 * map.offsetWidth);
-    const place = `top: calc(${map.offsetTop + map.offsetHeight}px + 0.5rem); left: ${map.offsetLeft + map.offsetWidth / 2}px; --size: ${size}px;`;
+    // sized every draw, its smaller on phones
+    // offsetTop cuz getBoundingClientRect grows with terras button on hover and ours jumped with it
+    const slot = lowest.offsetWidth;
+    const size = Math.max(MIN_SIZE, 0.75 * slot);
+    const top = lowest.offsetTop + lowest.offsetHeight;
+    const middle = lowest.offsetLeft + slot / 2;
+    const pad = Math.max(0, (slot - size) / 2);
+    const place = `top: calc(${top}px + 0.5rem); left: ${middle}px; --size: ${size}px; --pad: ${pad}px;`;
     if (hud.style.cssText !== place) hud.style.cssText = place;
     const travel = hud.firstChild;
     const [text, title, go] = onFarm ? ["Hub", "Go to the hub", goToHub] : ["Island", "Go to your island", goToIsland];
@@ -79,7 +89,8 @@ function goToIsland() {
     window.dispatchEvent(new CustomEvent("visit_farm"));
 }
 
-// game only goes to the hub off the dock, but it travels wherever a server redirect says. so it gets a fake one, same trip as the dock
+// game only goes to the hub off the dock, so it gets a fake "your friend is there"
+// todo: server lets the join in then redirects you home, asked the dev what it checks. fake redirectToLevel was worse, loading screen forever
 function goToHub() {
-    tellGame(IN.redirect, { levelId: HUB_LEVEL, spawnTag: HUB_SPAWN });
+    tellGame(IN.friendRoom, { levelId: HUB_LEVEL });
 }

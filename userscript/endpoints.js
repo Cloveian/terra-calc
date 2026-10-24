@@ -5,7 +5,6 @@ export const VERSION_URL = "https://terra.hackclub.com/version.json";
 export const GAME_HOST = "game.terra.hackclub.com";
 export const TOKEN_KEY = "terra_auth_token"; // in localStorage
 export const HUB_LEVEL = "town-square"; // its room is "world"
-export const HUB_SPAWN = "Island return"; // where the dock drops you off
 
 export const REST = {
     deviceUpgrades: "/device-upgrades",
@@ -25,7 +24,7 @@ export const IN = {
     saleResult: "market.saleResult",
     hours: "hours.update",
     joinComplete: "joinComplete", // { farmOwnerId, tutorialStep }, farmOwnerId null off farms
-    redirect: "redirectToLevel", // { levelId, spawnTag }, the game travels there itself
+    friendRoom: "friend.joinRoom", // { roomId, levelId }, game travels there like a friend visit. no roomId = any room of that level
 };
 
 // sent on game socket
