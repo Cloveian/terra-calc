@@ -1,33 +1,52 @@
 // next steps: farm chores now + this weeks crops and hours from site route
 import { hoursNeeded, simulateRoute } from "../src/route.js";
 import { RENT, MAX_PLOTS, BASE_SEEDS, BASE_KINDS, CROPS } from "../src/data.js";
-import { isWeekAfter } from "../src/week.js";
+import { isWeekAfter, weekIndex, weekDay } from "../src/week.js";
 
 // this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent). route for milestones, mix = first weeks seeds with thisWeek
-export function weekTarget(state, t, goal, m, thisWeek = null) {
+// given = my days (daysGiven), cap comes back null when every day set n the goal fits
+// flat = h/week a plan without my days would need when my days dont make it, null otherwise (or not even 45 does)
+export function weekTarget(state, t, goal, m, thisWeek = null, given = {}) {
     let cap = RENT;
     let route;
     let reachable = null;
+    let flat = null;
     if (goal > 0) {
-        const result = hoursNeeded(state, t, goal, m, RENT, thisWeek);
+        const result = hoursNeeded(state, t, goal, m, RENT, thisWeek, given);
         reachable = result !== null;
-        cap = result?.cap ?? MAX_PLOTS;
-        route = result?.route ?? simulateRoute(state, t, cap, m, thisWeek);
+        cap = result ? result.cap : MAX_PLOTS;
+        route = result?.route ?? simulateRoute(state, t, cap, m, thisWeek, given);
+        if (!reachable && Object.keys(given).length > 0) flat = hoursNeeded(state, t, goal, m, RENT, thisWeek)?.cap ?? null;
     } else {
-        route = simulateRoute(state, t, cap, m, thisWeek);
+        route = simulateRoute(state, t, cap, m, thisWeek, given);
     }
     const row = route[0];
-    return { w: row?.hours ?? 0, cap, reachable, out: row?.out ?? false, route, mix: row?.mix ?? null };
+    return { w: row?.hours ?? 0, cap, reachable, flat, out: row?.out ?? false, route, mix: row?.mix ?? null };
 }
 
 // h/week from now to have each milestone row (n everything above it) by Week 12, null past 45 h. totals only go up so each search starts at the last cap, ~36 route runs for the whole list
-export function rowHours(state, t, rows, m, thisWeek = null) {
+export function rowHours(state, t, rows, m, thisWeek = null, given = {}) {
     let from = RENT;
     return rows.map((row) => {
-        const result = hoursNeeded(state, t, row.total, m, from, thisWeek);
+        const result = hoursNeeded(state, t, row.total, m, from, thisWeek, given);
         from = result?.cap ?? MAX_PLOTS + 1;
         return { ...row, hours: result?.cap ?? null };
     });
+}
+
+// days i typed ({ "2026-10-26": 4 }) -> route.js given, by week index. typed days before today dont count, those are done
+// this week only goes by days if i typed one in it: then the gone days are what i coded (codedBefore, h) and the untyped days left are open
+export function daysGiven(days, today, codedBefore) {
+    const t = weekIndex(today);
+    const given = {};
+    for (const [day, h] of Object.entries(days)) {
+        if (day < today) continue;
+        const week = weekIndex(day);
+        given[week] ??= week === t ? { fixed: codedBefore, open: 7 - weekDay(today) } : { fixed: 0, open: 7 };
+        given[week].fixed += h;
+        given[week].open -= 1;
+    }
+    return given;
 }
 
 // this weeks crops so far by seed, { strawberry: 10, eggplant: 3 }

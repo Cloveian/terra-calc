@@ -1,6 +1,6 @@
 # Your time
 
-*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md) (drafted with Claude, 23 Oct): the plan starts from the hours you actually have, not the hours it would like you to have. The route side's in (step 1) and the site has its boxes (step 2), nothing in the userscript yet. Per day and the calendar got decided 23 Oct, the rest of the Decision lines are open.*
+*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md) (drafted with Claude, 23 Oct): the plan starts from the hours you actually have, not the hours it would like you to have. The route side's in (step 1), the site has its boxes (step 2) and the userscript plans off my days (step 4), it just has nowhere to type them yet. Per day and the calendar got decided 23 Oct, the rest of the Decision lines are open.*
 
 ## Why
 
@@ -71,7 +71,7 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 1. `given` weeks in `simulateRoute` and the blank-weeks search in `hoursNeeded`, tests (old ones pass unchanged, that's the point of blank = flat). **Done**
 2. site: the box per week in the table, the hash key, "needs X, you've got Y". **Done**, mostly. "Needs X" only shows when every week's set ("A flat 23 h/week would get there"), with some blank and still out of reach it's the old "Not reachable" at 45 h on the blanks
 3. `given` as `{ fixed, open }` in the route (the "Days" model), the site's week boxes moved onto it. **Done** (`weekHours` in route.js)
-4. userscript: saved days, each week's `{ fixed, open }`, the goal line, the code step capped, What can I get on the tags
+4. userscript: saved days, each week's `{ fixed, open }`, the goal line, the code step capped, What can I get on the tags. **Done** minus a way to type days, that's `terraCalc.day("2026-10-26", 4)` in the console till the calendar boxes. This week only goes by days once i typed one in it, so nothing typed = the old card. The goal line says "not on my days, a flat 31 h/week would do it", the code step follows this week's days, and the tags say "doesn't fit" like before
 5. the day boxes on Terra's calendar
 6. history: the hours log (running since 23 Oct), `week-track` (needs that capture first), the optional Hackatime key, then the per-day predictions
 

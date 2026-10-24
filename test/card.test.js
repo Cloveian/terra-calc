@@ -95,6 +95,12 @@ test("a goal you can't reach says the best you'd get, one you can buy now says t
     }, NOW).details;
     assert.ok(far.includes("goal: 20000 coins, 17000 to go"));
     assert.ok(far.includes("out of reach, max 11685 coins"));
+    assert.ok(!far.some((line) => String(line).startsWith("not on my days")));
+    const short = cardFor({
+        ...base, target: { w: 20, cap: null, reachable: false, flat: 31, out: false, route },
+        goal: { device: "Framework 12", coins: 20000, custom: true, milestones: [] },
+    }, NOW).details;
+    assert.ok(short.includes("not on my days, a flat 31 h/week would do it"));
     const now = cardFor({
         ...base, target: { w: 10, cap: 10, reachable: true, out: false, route },
         goal: { device: "iPad Mini", coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, total: 750, now: true, week: null }] },

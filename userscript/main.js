@@ -10,12 +10,12 @@ import {
     treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom, forSaleFrom,
 } from "./fill.js";
-import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, readyIds, toSell, noteWeek } from "./next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, readyIds, toSell, noteWeek, daysGiven } from "./next.js";
 import { cleanGoal, goalCoins, goalItems } from "./goal.js";
 import { mountWantBits, drawWantBits, changeWant, openTree } from "./want.js";
 import { mountShopBadges, drawShopBadges } from "./shop.js";
 import { mountHud, drawHud } from "./hud.js";
-import { logShop, logHours } from "./daylog.js";
+import { logShop, logHours, codedBefore } from "./daylog.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, LAST_WEEK } from "../src/week.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
@@ -28,6 +28,7 @@ const STEPS_KEY = "terra-calc-week-steps";
 const WEEK_KEY = "terra-calc-week";
 const SHOP_LOG_KEY = "terra-calc-shop-log";
 const HOURS_LOG_KEY = "terra-calc-hours-log";
+const DAYS_KEY = "terra-calc-days";
 
 // plan parts that can stay null. the card would ask for plots (they sit in inventory), farm and
 // stuck are only there once you've been on your farm, target needs the plot count too, goal's
@@ -63,6 +64,7 @@ let savedSteps = loadMine(STEPS_KEY); // week checklist as it first came out, fo
 let weekNote = loadMine(WEEK_KEY); // from noteWeek, next week says how this one went
 let shopLog = loadMine(SHOP_LOG_KEY) ?? {};
 let hoursLog = loadMine(HOURS_LOG_KEY) ?? {};
+let savedDays = loadMine(DAYS_KEY) ?? {}; // { "2026-10-26": 4 }, hours i said i'd give, the calendar boxes later
 
 function noteThisWeek(weekKey, change) {
     weekNote = saveChanged(WEEK_KEY, weekNote, noteWeek(weekNote, weekKey, change));
@@ -79,6 +81,14 @@ window.terraCalc = {
     plan,
     // terraCalc.goal({ want: { ram_12: 2 } }) or ({ goal: 5000 }), null clears. prio like { "ram_12:2": 1 }
     goal: setGoal,
+    // terraCalc.day("2026-10-26", 4), null clears it. Eastern days
+    day(day, h) {
+        if (h == null) delete savedDays[day];
+        else savedDays[day] = h;
+        saveMine(DAYS_KEY, savedDays);
+        draw();
+        return savedDays;
+    },
     debug(on = true) {
         settings.debug = on;
         saveSettings(settings);
@@ -447,11 +457,13 @@ function plan() {
         onHand: bonusOnHand(inventory, game.farm, game.hours?.weekKey),
         crops: shop.crops,
     };
-    const target = start && weekTarget(start, t, coinsGoal, m, thisWeek);
+    const today = easternDay(new Date());
+    const given = daysGiven(savedDays, today, codedBefore(hoursLog, today, game.hours?.weekKey));
+    const target = start && weekTarget(start, t, coinsGoal, m, thisWeek, given);
     let rows = [];
     if (cleaned && target) {
         const picks = milestones(target.route, goalItems(picked, trees, cleaned.own));
-        rows = rowHours(start, t, picks, m, thisWeek);
+        rows = rowHours(start, t, picks, m, thisWeek, given);
     }
     const tags = {
         trees, owned, milestones: rows,

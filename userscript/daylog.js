@@ -22,3 +22,12 @@ export function logShop(log, dateKey, seeds) {
 export function logHours(log, day, weekKey, seconds) {
     return trim({ ...log, [day]: { weekKey, seconds } });
 }
+
+// h of weekKey coded before today, the latest day before it thats in the log. 0 if theres none (monday, or terra wasnt open)
+export function codedBefore(log, today, weekKey) {
+    let seconds = 0;
+    for (const [day, entry] of Object.entries(log)) {
+        if (day < today && entry.weekKey === weekKey) seconds = Math.max(seconds, entry.seconds);
+    }
+    return seconds / 3600;
+}

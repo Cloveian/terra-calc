@@ -1,6 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { logShop, logHours, KEEP_DAYS } from "../userscript/daylog.js";
+import { logShop, logHours, codedBefore, KEEP_DAYS } from "../userscript/daylog.js";
+
+test("codedBefore: the week's hours as of the latest day before today", () => {
+    const h = 3600;
+    const log = {
+        "2026-10-18": { weekKey: "2026-W42", seconds: 40 * h },
+        "2026-10-21": { weekKey: "2026-W43", seconds: 5 * h },
+        "2026-10-22": { weekKey: "2026-W43", seconds: 8 * h },
+        "2026-10-23": { weekKey: "2026-W43", seconds: 9 * h },
+    };
+    assert.equal(codedBefore(log, "2026-10-23", "2026-W43"), 8);
+    assert.equal(codedBefore(log, "2026-10-19", "2026-W43"), 0); // monday, nothing yet
+});
 
 test("logShop keeps the day's bonus seed ids, an empty day too", () => {
     let log = logShop({}, "2026-10-22", [{ id: "eggplant" }, { id: "bokchoy" }]);

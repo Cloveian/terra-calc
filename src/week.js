@@ -12,10 +12,19 @@ export function easternDay(date) {
 // 0-2 prep, 3-14 main, <0 not started, >14 over.
 // A Date is converted to its Eastern day; a "YYYY-MM-DD" string is taken as an Eastern day already.
 export function weekIndex(date) {
+    return Math.floor(daysIn(date) / 7);
+}
+
+// 0 monday ... 6 sunday, terra weeks start monday
+export function weekDay(date) {
+    return ((daysIn(date) % 7) + 7) % 7;
+}
+
+// days since Prep 1 started
+function daysIn(date) {
     const day = typeof date === "string" ? date : easternDay(date);
     // both parse as UTC midnight, so the difference is a whole number of days
-    const days = Math.round((Date.parse(day) - Date.parse(PREP1_START)) / DAY_MS);
-    return Math.floor(days / 7);
+    return Math.round((Date.parse(day) - Date.parse(PREP1_START)) / DAY_MS);
 }
 
 export function isPrep(t) {

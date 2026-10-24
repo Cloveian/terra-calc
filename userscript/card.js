@@ -275,6 +275,7 @@ function goalLines(goal, target, coins, selling = 0) {
     if (goal.coins > 0) lines.push({ bar: { coins, selling, goal: goal.coins } });
     if (target?.reachable === false) {
         lines.push(`out of reach, max ${Math.floor(target.route.at(-1).endCoins)} coins`);
+        if (target.flat) lines.push(`not on my days, a flat ${target.flat} h/week would do it`);
     }
     const picks = goal.milestones;
     const next = picks.find((pick) => !pick.now);

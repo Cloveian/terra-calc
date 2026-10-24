@@ -1,8 +1,30 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps, toSell, noteWeek } from "../userscript/next.js";
+import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps, toSell, noteWeek, daysGiven } from "../userscript/next.js";
 import { stuckFrom } from "../userscript/fill.js";
 import { hoursNeeded } from "../src/route.js";
+
+test("daysGiven: typed days per week, this week starts from what i coded", () => {
+    // friday of Week 1 (t 3), 20 h coded mon-thu
+    const days = { "2026-10-22": 5, "2026-10-24": 4, "2026-10-27": 3, "2026-10-28": 2 };
+    assert.deepEqual(daysGiven(days, "2026-10-23", 20), {
+        3: { fixed: 24, open: 2 }, // thursday's done, saturday typed, fri + sun open
+        4: { fixed: 5, open: 5 },
+    });
+    // nothing typed this week = this week isnt in it, plans like before
+    assert.deepEqual(daysGiven({ "2026-10-27": 3 }, "2026-10-23", 20), { 4: { fixed: 3, open: 6 } });
+    assert.deepEqual(daysGiven({}, "2026-10-23", 20), {});
+});
+
+test("weekTarget and rowHours with every day set: no cap", () => {
+    const start = { coins: 4, plots: 13, seeds: 3 };
+    const given = Object.fromEntries(Array.from({ length: 14 }, (_, i) => [i + 1, { fixed: 45, open: 0 }]));
+    const target = weekTarget(start, 1, 3050, 1, null, given);
+    assert.equal(target.cap, null);
+    assert.equal(target.reachable, true);
+    const [cheap] = rowHours(start, 1, [{ total: 3050 }], 1, null, given);
+    assert.equal(cheap.hours, null);
+});
 
 const crops = (stage, n, { review = null, week = "2026-W42" } = {}) =>
     Array.from({ length: n }, () => ({ id: "apple", seed: "apple_seed", name: "Apple", stage, review, week, water: stage === "dry" ? 1 : 0 }));
@@ -17,18 +39,18 @@ const target = (...args) => {
 
 test("weekTarget: no goal plans the rent week, like the site with nothing picked", () => {
     // 42 coins = 18 crops, capped at 10
-    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1), { w: 10, cap: 10, reachable: null, out: false, mix: null });
+    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1), { w: 10, cap: 10, reachable: null, flat: null, out: false, mix: null });
 });
 
 test("weekTarget: with a goal it's the first week of hoursNeeded's route", () => {
     const state = { coins: 42, plots: 36, seeds: 0 };
     const result = hoursNeeded(state, 3, 2000, 1.1);
-    assert.deepEqual(target(state, 3, 2000, 1.1), { w: result.route[0].hours, cap: result.cap, reachable: true, out: false, mix: null });
+    assert.deepEqual(target(state, 3, 2000, 1.1), { w: result.route[0].hours, cap: result.cap, reachable: true, flat: null, out: false, mix: null });
     assert.deepEqual(weekTarget(state, 3, 2000, 1.1).route, result.route);
 });
 
 test("weekTarget: a goal you can't reach still goes as hard as it can", () => {
-    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, 1e6, 1.1), { w: 18, cap: 45, reachable: false, out: false, mix: null });
+    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, 1e6, 1.1), { w: 18, cap: 45, reachable: false, flat: null, out: false, mix: null });
 });
 
 test("weekTarget: eggplants in the bag and the shop go in the first week's mix", () => {
