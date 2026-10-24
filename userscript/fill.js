@@ -2,6 +2,7 @@
 import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX, CROPS } from "../src/data.js";
 import { withoutZeros } from "../src/tree.js";
 import { plotCost } from "../src/farm.js";
+import { easternDay } from "../src/week.js";
 
 export const APPLE_SEED = "apple_seed"; // terra's item ids
 const DIRT_PLOT = "dirt_plot";
@@ -65,6 +66,13 @@ export function weekFrom(currentWeek) {
     if (!match) return null;
     const n = Number(match[2]);
     return match[1] ? n - 1 : PREP_WEEKS + n - 1;
+}
+
+// GET /ysws/week-track -> "2026-10-19", eastern day the first week i shipped in starts. null till ive shipped
+export function firstShipped(weekTrack) {
+    const shipped = (weekTrack?.rows ?? []).filter((row) => row.shipped);
+    const first = soonest(shipped.map((row) => Date.parse(row.startsAt)).filter(Number.isFinite));
+    return first === null ? null : easternDay(new Date(first));
 }
 
 // coins, water and still plantable seeds from player.currency + inventory.sync. seeds = apple seeds (what model plans with, always bought), baseSeeds = free ones from ratticus, baseKinds = same by seed

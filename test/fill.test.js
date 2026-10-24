@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { TREES } from "../src/data.js";
 import {
-    treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
+    treesFrom, ownedFrom, weekFrom, firstShipped, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom, forSaleFrom,
 } from "../userscript/fill.js";
 
@@ -60,6 +60,17 @@ test("ownedFrom", () => {
     assert.deepEqual(ownedFrom(fixture("device-upgrades")), { device: "framework_12", own: { framework_12_diy: 1 } });
     assert.deepEqual(ownedFrom({ mainDevice: "ipad_mini", owned: { apple_pencil: 0 } }), { device: "ipad_mini", own: {} });
     assert.equal(ownedFrom({ owned: {} }), null);
+});
+
+test("firstShipped: eastern day the first shipped week starts, null till one is", () => {
+    const rows = [
+        { startsAt: "2026-10-12T04:00:00.000Z", shipped: false },
+        { startsAt: "2026-10-26T04:00:00.000Z", shipped: true },
+        { startsAt: "2026-10-19T04:00:00.000Z", shipped: true },
+    ];
+    assert.equal(firstShipped({ rows }), "2026-10-19");
+    assert.equal(firstShipped({ rows: rows.slice(0, 1) }), null);
+    assert.equal(firstShipped(null), null);
 });
 
 test("weekFrom: Week 1 is t = 3", () => {

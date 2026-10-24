@@ -11,6 +11,7 @@ export const REST = {
     deviceUpgrades: "/device-upgrades",
     buyUpgrade: "/device-upgrades/purchase", // POST { nodeId }
     currentWeek: "/ysws/current-week",
+    weekTrack: "/ysws/week-track", // the calendar's, a row per week
     projects: "/ysws/projects",
     rewardEstimate: (id) => `/ysws/projects/${id}/reward-estimate`,
 };
@@ -63,6 +64,8 @@ const SHAPES = {
         owned: "object",
     },
     [REST.currentWeek]: { number: "number", label: "string", rentRequired: "boolean", endDate: "string?" },
+    // off the game js reading it, never seen a real one
+    [REST.weekTrack]: { rows: [{ startsAt: "string", shipped: "boolean?" }] },
     [IN.currency]: { coins: "number" },
     [IN.inventory]: {
         usableWeeks: ["number"],

@@ -35,10 +35,12 @@ test("dayHours: differences day to day, a gap gets lumped", () => {
     ]);
 });
 
-test("sinceStart: from terra's first week n my first day with hours", () => {
+test("sinceStart: from my first day with hours, in the week i first shipped once i have", () => {
     const day = (d, h) => ({ day: d, h, lumped: false });
-    const days = [day("2026-09-30", 2), day("2026-09-21", 5), day("2026-09-28", 0), day("2026-09-29", 0), day("2026-10-01", 0)];
-    assert.deepEqual(sinceStart(days).map((d) => d.day), ["2026-09-30", "2026-10-01"]); // the 21st is before prep 1
+    const days = [day("2026-10-21", 3), day("2026-09-21", 5), day("2026-10-19", 0), day("2026-10-20", 0), day("2026-10-22", 0)];
+    assert.equal(sinceStart(days)[0].day, "2026-09-21"); // no ship yet, first coded day at all
+    // first shipped week started the 19th, nothing coded till the 21st
+    assert.deepEqual(sinceStart(days, "2026-10-19").map((d) => d.day), ["2026-10-21", "2026-10-22"]);
     assert.deepEqual(sinceStart([day("2026-10-01", 0)]), []);
 });
 

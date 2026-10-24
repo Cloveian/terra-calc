@@ -8,7 +8,7 @@ import { loadJSON, saveJSON } from "./store.js";
 import { setDebug, debug } from "./debug.js";
 import { mountCard, drawCard, showNotice } from "./card.js";
 import {
-    treesFrom, ownedFrom, weekFrom, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
+    treesFrom, ownedFrom, weekFrom, firstShipped, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom, forSaleFrom,
 } from "./fill.js";
 import { weekTarget, stepsFrom, routeState, rowHours, tickSteps, bonusOnHand, readyIds, toSell, noteWeek, daysGiven, projection } from "./next.js";
@@ -52,6 +52,7 @@ const TYPED_AFTER = 30000;
 const game = {
     deviceUpgrades: null,
     currentWeek: null,
+    weekTrack: null,
     currency: null,
     inventory: null,
     marketItems: null,
@@ -202,6 +203,12 @@ async function readRest() {
     } catch (err) {
         console.warn("[terra-calc]", err);
         showNotice(`Can't read Terra, goal's off (${err.message})`);
+    }
+    // only for when my usual week starts, the card's fine without it
+    try {
+        changed("weekTrack", await apiGet(REST.weekTrack));
+    } catch (err) {
+        debug("no week-track", err);
     }
 }
 
@@ -509,7 +516,7 @@ function plan() {
         ? Object.entries(hackatime.days).map(([day, h]) => ({ day, h, lumped: false }))
         : dayHours(hoursLog);
     const past = history.filter((d) => d.day < today);
-    const typical = typicalDays(sinceStart(past));
+    const typical = typicalDays(sinceStart(past, firstShipped(game.weekTrack)));
     const shape = weekShape(typical);
     // hackatime counts AI time full, so off a key its a bit over terra's
     const usualWeek = typical.includes(null) ? null : typical.reduce((sum, h) => sum + h, 0);
