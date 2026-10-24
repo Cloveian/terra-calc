@@ -21,7 +21,7 @@ What i'd build for "projected but overrideable" (my default, not decided yet):
 
 - a day i type is fixed, the days i didn't touch are open, and each open day gets 1/7 of the flat cap, so a week = fixed hours + open days \* cap / 7
 - none set = 7 open = exactly the cap, same as now. All 7 set = a fully fixed week, the cap doesn't touch it
-- this week: days already gone count what i actually coded (the hours log), the open ones are the days left at cap / 7 each. That's *not* the card's "h a day": the card splits what's still needed for this week's target over the days left, so falling behind pushes its h a day up, while the route's open days just run at the pace it's searching for. Different questions, both fine
+- this week: days already gone count what i actually coded (the hours log), the open ones are the days left at cap / 7 each. That's *not* the card's "h a day": the card splits what's still needed for this week's target over the days left, so falling behind pushes its h a day up, while the route's open days just run at the pace it's searching for. Different questions, both fine. With today typed in the calendar the card just says that
 - the site's week boxes are the same thing with all 7 fixed at once, so the route only knows one shape: `given = { week: { fixed, open } }`, hours = round(fixed + open \* cap / 7)
 - the projection shown faded on an open day is cap / 7 now, and later the per-day prediction from my history (the hours log, or Hackatime with a key), at which point the open days stop being an even split and follow how my weeks actually go (no school on saturday, whatever)
 

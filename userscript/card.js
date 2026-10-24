@@ -36,7 +36,7 @@ const STEP_LINES = {
     plantBase: (n, plan, now, step) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}${deadline(plan.inventory.seedsDie, now, step)}`,
     plant: (n, plan, now, step) => `plant ${some(n, seedName(step.seed, plan))}${deadline(plan.inventory.seedsDie, now, step)}`,
     claim: (n, plan, now, step) => `devlog ${n}h${deadline(plan.weekEnds, now, step)}`,
-    code: (n, plan, now, step) => `code ${n}h${step.done ? "" : pace(n, plan.weekEnds, now)}`,
+    code: (n, plan, now, step) => `code ${n}h${step.done ? "" : pace(n, plan, now)}`,
     ship: (n, plan, now, step) => `ship this week's project${deadline(plan.weekEnds, now, step)}`,
 };
 
@@ -319,11 +319,12 @@ function deadline(until, now, step) {
     return ` (${hoursLeft(left)} left)`;
 }
 
-// h a day till weekEnds (current-week endDate, sunday night US eastern). under a day just whats left
-function pace(n, weekEnds, now) {
+// h a day till weekEnds (current-week endDate, sunday night US eastern). under a day just whats left. what i typed for today wins
+function pace(n, { weekEnds, todayHours }, now) {
     if (!weekEnds || weekEnds <= now) return "";
     const left = weekEnds - now;
     if (left < DAY_MS) return ` (${hoursLeft(left)} left in week)`;
+    if (todayHours != null) return ` (${Math.min(todayHours, n)}h today)`;
     return ` (${Math.round((n / (left / DAY_MS)) * 10) / 10}h/d)`;
 }
 

@@ -34,8 +34,8 @@ const DAYS_KEY = "terra-calc-days";
 // plan parts that can stay null. the card would ask for plots (they sit in inventory), farm and
 // stuck are only there once you've been on your farm, target needs the plot count too, goal's
 // null till you pick one, weekEnds is just extra words on a few steps and the last week line, trees
-// and owned only matter for a goal, and lastWeek needs you to have been here last week
-const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "trees", "owned", "lastWeek"]);
+// and owned only matter for a goal, and lastWeek needs you to have been here last week. todayHours only if i typed today
+const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "todayHours", "trees", "owned", "lastWeek"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
 const M_GUESS = 1.1;
@@ -500,7 +500,8 @@ function plan() {
         m,
         mGuessed: mRead === null,
         // ms, for the h a day on the code step and when last week ended
-        weekEnds: Date.parse(game.currentWeek?.endDate ?? "") || null,
+        weekEnds,
+        todayHours: savedDays[today] ?? null, // typed in the calendar, the code step says it over the even h a day
         // the week before, null if it wasnt seen
         lastWeek: weekNote && weekNote.weekKey === game.hours?.weekKey ? weekNote.last : null,
         loans,

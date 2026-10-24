@@ -187,6 +187,10 @@ test("the code step says the h a day, under a day just the hours left", () => {
     assert.equal(code(NOW + 20 * 60000), "code 28h (<1h left in week)");
     assert.equal(code(null), "code 28h");
     assert.equal(code(NOW - 1), "code 28h");
+    // typed today on the calendar
+    assert.equal(cardFor({ ...plan(NOW + 3.5 * 86400000), todayHours: 4 }, NOW).tasks[0].text, "code 28h (4h today)");
+    assert.equal(cardFor({ ...plan(NOW + 3.5 * 86400000), todayHours: 40 }, NOW).tasks[0].text, "code 28h (28h today)");
+    assert.equal(cardFor({ ...plan(NOW + 5 * 3600000), todayHours: 4 }, NOW).tasks[0].text, "code 28h (5h left in week)");
     const ticked = { ...plan(NOW + 3.5 * 86400000), steps: [{ do: "code", n: 28, done: true }] };
     assert.equal(cardFor(ticked, NOW).tasks[0].text, "code 28h");
 });
