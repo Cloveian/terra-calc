@@ -2,6 +2,7 @@
 import { REST, IN, TOKEN_KEY } from "./endpoints.js";
 import { apiGet, liveBuild } from "./api.js";
 import { hookWebSocket, onGameMessage, ROOM } from "./socket.js";
+import { hookMatchmake } from "./travel.js";
 import { loadSettings, saveSettings, mountSettings } from "./settings.js";
 import { loadJSON, saveJSON } from "./store.js";
 import { setDebug, debug } from "./debug.js";
@@ -107,6 +108,7 @@ window.terraCalc = {
 
 // hooked at document-start
 hookWebSocket();
+hookMatchmake();
 onGameMessage(IN.currency, (body) => changed("currency", body));
 onGameMessage(IN.inventory, (body) => changed("inventory", body));
 onGameMessage(IN.marketItems, (body) => {

@@ -5,6 +5,7 @@ export const VERSION_URL = "https://terra.hackclub.com/version.json";
 export const GAME_HOST = "game.terra.hackclub.com";
 export const TOKEN_KEY = "terra_auth_token"; // in localStorage
 export const HUB_LEVEL = "town-square"; // its room is "world"
+export const HUB_SPAWN = "Island return"; // targetSpawnTag of the island's dock exit zone
 
 export const REST = {
     deviceUpgrades: "/device-upgrades",

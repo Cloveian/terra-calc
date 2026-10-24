@@ -1,6 +1,7 @@
 // island / hub and goal buttons, bottom of terra's button column or next to the water meter
 
-import { IN, HUB_LEVEL } from "./endpoints.js";
+import { IN, HUB_LEVEL, HUB_SPAWN } from "./endpoints.js";
+import { armSpawnTag } from "./travel.js";
 import { tellGame } from "./socket.js";
 import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
 
@@ -99,8 +100,8 @@ function goToIsland() {
     window.dispatchEvent(new CustomEvent("visit_farm"));
 }
 
-// game only goes to the hub off the dock, so it gets a fake "your friend is there"
-// todo: server lets the join in then redirects you home, asked the dev what it checks. fake redirectToLevel was worse, loading screen forever
+// game only goes to the hub off the dock, so it gets a fake "your friend is there" n its matchmake gets the dock's spawn tag
 function goToHub() {
+    armSpawnTag(HUB_LEVEL, HUB_SPAWN);
     tellGame(IN.friendRoom, { levelId: HUB_LEVEL });
 }
