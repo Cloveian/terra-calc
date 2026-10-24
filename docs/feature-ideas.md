@@ -46,7 +46,7 @@ What makes it feel finished, before anything new. In order:
 
 Nobody's coding 80 h a week, so the plan should start from how much time you actually have. Worked out in [your-time.md](your-time.md).
 
-- [ ] Hours you can give each week, set per week (ex. finals week can be 10 h)
+- [x] Hours you can give each week, set per week (ex. finals week can be 10 h)
 - [x] ...and per day, the week's just the days added up
 - [x] Set them in Terra's own calendar (the userscript puts a little hours box on each day). Today and later only, faded = what an open day's planned at, split the way my weeks usually go
 - [x] Your hours history on the calendar, read from your devlogs and ships (Terra's number, AI time already only counts a third). Gone days say "3h 12m", off Hackatime with a key (AI counted full there, so a bit over Terra's) or the hours log, where a day it missed stays blank
@@ -105,7 +105,7 @@ Unknowns that would change all this: whether a crop really grows the same plante
 
 What the game sends to buy, water and plant is captured now: `shop.purchase { stockEntryId, requestId, expectedPriceCoins }` buys, `farm.interact { farmItemId }` waters a crop all the way in one go (an eggplant takes both its water at once), and `farm.place { inventoryItemId }` plants where your player's standing, so planting stays by hand. The game encodes what it sends as msgpackr records, so sending has to match that. Terra only ever sends `farm.interact` for the crop you're standing next to tho, so whether the server takes one from across the farm is a test-it-and-see thing.
 
-- [ ] Open Heidi's shop from anywhere, not just at her stall. Her window can't be opened by a script (it only opens from her dialogue), so this would be our own shop window, with stock from `shop.requestStock` and buying through `shop.purchase`, if the server takes those away from her
+- [ ] Open Heidi's shop from anywhere, not just at her stall. Her window can't be opened by a script (it only opens from her dialogue), so this would be our own shop window, with stock from `shop.requestStock` and buying through `shop.purchase`, if the server takes those away from her. Heidi's in `town-square` (about x -2.9, z -7.2, off `state.npcs`), my island has no NPCs at all, the SHOP sign there is just scenery. Her dialogue only opens off the engine's own "nearest NPC in range", worked out every frame from where i'm standing, so the honest version walks me there (fake held keys, F to talk). Needs the hub first from the island
 - [ ] "Buy this week's plots" through `shop.purchase`
 - [ ] "Buy this week's seeds", the mix the plan picked
 - [ ] "Water everything planted" through `farm.interact`
