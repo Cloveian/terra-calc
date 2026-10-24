@@ -1,7 +1,7 @@
 // The page: keeps the state, draws it, turns clicks into state changes. Box outlines, tree dragging and the column divider are in outline.js, treeview.js and columns.js.
 import { TREES, PRESETS, PICK_WARNINGS, MAX_PLOTS, PRICES_AS_OF, CROPS, RENT, BONUS_SEEDS } from "./data.js";
 import { easternDay, weekIndex, weekName, LAST_WEEK } from "./week.js";
-import { simulateRoute, hoursNeeded, milestones, allGiven } from "./route.js";
+import { simulateRoute, hoursNeeded, milestones, allGiven, weekHours } from "./route.js";
 import { mixWords } from "./farm.js";
 import {
     goalCost, nextPrice, nodeHours, unpick, dependentsOf, normalize, buyOrder, displayOrder, treeLayout,
@@ -517,7 +517,8 @@ function render() {
     let route;
     let cap = state.cap;
     // weeks i set in the table, only the ones still to come count
-    const given = Object.fromEntries(Object.entries(state.hours).filter(([week]) => week >= t));
+    const coming = Object.entries(state.hours).filter(([week]) => week >= t);
+    const given = Object.fromEntries(coming.map(([week, h]) => [week, { fixed: h, open: 0 }])); // a week box = all 7 days set
     const givenCount = Object.keys(given).length;
     const onBlanks = givenCount > 0 ? " on the weeks you left blank" : "";
     if (goal > 0) {
@@ -577,7 +578,7 @@ function render() {
     } else if (route.at(-1).out) {
         // only a week i set can go under 10
         warning.replaceChildren(`${weekName(route.at(-1).week)} is under 10 h, that's no rent for Ratticus, so the plan stops there. `, face("warning"));
-    } else if ((given[route[0].week] ?? cap) > route[0].wMax) {
+    } else if (weekHours(given[route[0].week], cap) > route[0].wMax) {
         warning.replaceChildren(
             `This week you can only use ${route[0].wMax} h: you can't afford seeds and plots for more, so extra hours would be wasted water. `, face("warning"),
         );

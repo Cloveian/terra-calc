@@ -3,7 +3,7 @@
 //   goal: null = use the tree picks, a number = custom goal typed by hand
 //   own / want: { id: qty }, first: ids (or id:n for one tier) to buy first (milestone order)
 //   bok / egg: bonus seeds on hand, named by their CROPS key, shop: bonus seed ids in heidis shop today
-//   hours: { week index: h } for weeks i set myself, route.js `given`
+//   hours: { week index: h } for weeks i set myself, the fixed hours in route.js `given`
 import { TREES, CROPS, BONUS_SEEDS, FREE_PLOTS, MAX_PLOTS, RENT, MULTIPLIER, STARTING_COINS } from "./data.js";
 import { normalize, limitOf, byId } from "./tree.js";
 import { LAST_WEEK } from "./week.js";

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { simulateRoute, hoursNeeded, milestones } from "../src/route.js";
+import { simulateRoute, hoursNeeded, milestones, weekHours, allGiven } from "../src/route.js";
 import { LAST_WEEK } from "../src/week.js";
 
 const PREP2 = { coins: 4, plots: 13, seeds: 3 }; // at t = 1
@@ -61,34 +61,51 @@ test("hoursNeeded totalHours adds up the route", () => {
     assert.equal(result.totalHours, result.route.reduce((sum, row) => sum + row.hours, 0));
 });
 
-// weeks i set myself, the rest get the flat cap
-const allWeeks = (t, h) => Object.fromEntries(Array.from({ length: LAST_WEEK + 1 - t }, (_, i) => [t + i, h]));
+// days i set myself: a whole week of them, or some with the rest open for the flat cap
+const week = (h) => ({ fixed: h, open: 0 });
+const allWeeks = (t, h) => Object.fromEntries(Array.from({ length: LAST_WEEK + 1 - t }, (_, i) => [t + i, week(h)]));
+
+test("weekHours: open days get cap / 7 each, rounded", () => {
+    assert.equal(weekHours(undefined, 35), 35);
+    assert.equal(weekHours({ fixed: 0, open: 7 }, 35), 35);
+    assert.equal(weekHours({ fixed: 6, open: 5 }, 35), 31); // 2 days at 3 h, 5 at 5 h
+    assert.equal(weekHours({ fixed: 4, open: 6 }, 20), 21); // 4 + 17.14
+    assert.equal(weekHours(week(12), 45), 12);
+});
 
 test("simulateRoute with weeks given at the cap is the old route", () => {
-    assert.deepEqual(simulateRoute(PREP2, 1, 30, 1, null, { 3: 30, 9: 30 }), simulateRoute(PREP2, 1, 30, 1));
+    assert.deepEqual(simulateRoute(PREP2, 1, 30, 1, null, { 3: week(30), 9: { fixed: 0, open: 7 } }), simulateRoute(PREP2, 1, 30, 1));
 });
 
 test("simulateRoute plans given weeks at their own hours", () => {
-    const route = simulateRoute(PREP2, 1, 30, 1, null, { 5: 12 });
+    const route = simulateRoute(PREP2, 1, 35, 1, null, { 5: week(12), 6: { fixed: 6, open: 5 } });
     assert.equal(route.find((row) => row.week === 5).hours, 12);
-    assert.equal(route.find((row) => row.week === 6).hours, 30);
+    assert.equal(route.find((row) => row.week === 6).hours, 31);
+    assert.equal(route.find((row) => row.week === 7).hours, 35);
 });
 
 test("simulateRoute stops at a given main week under 10 h", () => {
-    const route = simulateRoute(PREP2, 1, 30, 1, null, { 5: 6 });
+    const route = simulateRoute(PREP2, 1, 30, 1, null, { 5: week(6) });
     assert.equal(route.at(-1).week, 5);
     assert.equal(route.at(-1).out, true);
 });
 
 test("hoursNeeded makes up a short week on the blank ones", () => {
     const flat = hoursNeeded(PREP2, 1, 3050, 1);
-    const finals = hoursNeeded(PREP2, 1, 3050, 1, 10, null, { 6: 10 });
+    const finals = hoursNeeded(PREP2, 1, 3050, 1, 10, null, { 6: week(10) });
     assert.ok(finals.cap > flat.cap);
     assert.equal(finals.route.find((row) => row.week === 6).hours, 10);
 });
 
+test("hoursNeeded still searches when a week has open days left", () => {
+    const given = { ...allWeeks(1, 45), 8: { fixed: 10, open: 3 } };
+    assert.equal(allGiven(1, given), false);
+    assert.notEqual(hoursNeeded(PREP2, 1, 3050, 1, 10, null, given).cap, null);
+});
+
 test("hoursNeeded with every week given is one run, no cap", () => {
     const given = allWeeks(1, 45);
+    assert.equal(allGiven(1, given), true);
     const best = simulateRoute(PREP2, 1, 45, 1).at(-1).endCoins; // 11685
     assert.equal(hoursNeeded(PREP2, 1, best, 1, 10, null, given).cap, null);
     assert.equal(hoursNeeded(PREP2, 1, best + 1, 1, 10, null, given), null);

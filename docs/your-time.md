@@ -37,7 +37,7 @@ What i'd build for "projected but overrideable" (my default, not decided yet):
 
 ## What the plan does with it
 
-- ~~`simulateRoute(state, t, cap, m, thisWeek)` takes `cap` as a number or `{ week: hours }`~~ `simulateRoute(state, t, cap, m, thisWeek, given)` takes `given = { week: hours }` (week index `t`) for the weeks you set, falling back to the flat `cap` for the rest. A separate argument, so `cap` stays one thing. One loop, the per-week lookup is the only change. **Done 23 Oct**
+- ~~`simulateRoute(state, t, cap, m, thisWeek)` takes `cap` as a number or `{ week: hours }`~~ `simulateRoute(state, t, cap, m, thisWeek, given)` takes `given = ~~{ week: hours }~~ { week: { fixed, open } }` (week index `t`) for the weeks you set, falling back to the flat `cap` for the rest. A separate argument, so `cap` stays one thing. One loop, the per-week lookup is the only change. **Done 23 Oct**
 - `hoursNeeded` searches the flat cap over the blank weeks only. With every week set it's one route run and `cap` comes back `null` (the site can't print "null h/week", so it says something else). **Done 23 Oct**
 - **What can I get:** when your hours don't reach the goal, plan at your hours and walk `milestones` down your priority list, everything that's covered by Week 12 is in, the bottom falls off. Same "bottom falls off" rule as [this-week.md](this-week.md), it just finally has a reason to happen
 - **Both numbers when it doesn't fit:** "needs 31 h a week, you've got 20", on the card's goal line and the site's result
@@ -70,7 +70,7 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 
 1. `given` weeks in `simulateRoute` and the blank-weeks search in `hoursNeeded`, tests (old ones pass unchanged, that's the point of blank = flat). **Done**
 2. site: the box per week in the table, the hash key, "needs X, you've got Y". **Done**, mostly. "Needs X" only shows when every week's set ("A flat 23 h/week would get there"), with some blank and still out of reach it's the old "Not reachable" at 45 h on the blanks
-3. `given` as `{ fixed, open }` in the route (the "Days" model), the site's week boxes moved onto it
+3. `given` as `{ fixed, open }` in the route (the "Days" model), the site's week boxes moved onto it. **Done** (`weekHours` in route.js)
 4. userscript: saved days, each week's `{ fixed, open }`, the goal line, the code step capped, What can I get on the tags
 5. the day boxes on Terra's calendar
 6. history: the hours log (running since 23 Oct), `week-track` (needs that capture first), the optional Hackatime key, then the per-day predictions

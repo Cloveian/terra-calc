@@ -9,13 +9,13 @@ const EPS = 1e-9;
 // Play every week from t to Week 12 with w = min(cap, wMax). Before Terra (t < 0) plans from Prep 1.
 // A row with `out: true` means a main week came out under 10 h, and the route stops there.
 // thisWeek (bonus seeds in the shop, onHand, the game's crops table) plans the first week with bestMix, apples only after
-// given = { week: hours } for weeks i set myself, the rest get cap
+// given = { week: { fixed, open } }, hours of the days i set + how many are still open
 export function simulateRoute(state, t, cap, m, thisWeek = null, given = {}) {
     const rows = [];
     for (let week = Math.max(t, 0); week <= LAST_WEEK; week++) {
         const prep = isPrep(week);
         const max = wMax(state.coins, state.plots, state.seeds);
-        const want = given[week] ?? cap;
+        const want = weekHours(given[week], cap);
         // hours = water, crops = what takes plots, only dihfrent with a mix
         let hours, crops, spent, sold, mix;
         let canUse = max;
@@ -69,17 +69,23 @@ export function milestones(route, items) {
     });
 }
 
-// every week from t to Week 12 set in given
+// open days at cap / 7, a week missing from given is all 7 open. rounded cuz the route plants whole crops
+export function weekHours(days, cap) {
+    if (!days) return cap;
+    return Math.round(days.fixed + (days.open * cap) / 7);
+}
+
+// every day from t to Week 12 set
 export function allGiven(t, given) {
     for (let week = Math.max(t, 0); week <= LAST_WEEK; week++) {
-        if (given[week] == null) return false;
+        if (!given[week] || given[week].open > 0) return false;
     }
     return true;
 }
 
 // Lowest flat h/week cap that ends with at least goalCoins, or null if 45 h isn't enough.
 // `from` skips caps already known too low (a smaller goal needed that much)
-// the cap only goes on weeks missing from given. none missing = one run, and cap comes back null
+// the cap only goes on open days. none open = one run, and cap comes back null
 export function hoursNeeded(state, t, goalCoins, m, from = RENT, thisWeek = null, given = {}) {
     const blank = !allGiven(t, given);
     for (let cap = from; cap <= (blank ? MAX_PLOTS : from); cap++) {
