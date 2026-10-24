@@ -44,7 +44,7 @@ What makes it feel finished, before anything new. In order:
 
 ## Your time
 
-Nobody's coding 80 h a week, so the plan should start from how much time you actually have.
+Nobody's coding 80 h a week, so the plan should start from how much time you actually have. Worked out in [your-time.md](your-time.md).
 
 - [ ] Hours you can give each week, set per week (ex. finals week can be 10 h)
 - [ ] ...and per day, the week's just the days added up
