@@ -1,8 +1,21 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayHours, typicalDays, seedOdds, waitTable } from "../userscript/predict.js";
+import { dayHours, typicalDays, seedOdds, waitTable, waitLine, MIN_SHOP_DAYS } from "../userscript/predict.js";
 import { perHour } from "../userscript/shop.js";
 import { CROPS } from "../src/data.js";
+
+// n days of shop log, eggplant on the first `egg` of them
+const shopLog = (n, egg) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`day${String(i).padStart(2, "0")}`, i < egg ? ["eggplant"] : []]));
+
+test("waitLine: only with enough log, a bonus seed today, n waiting ahead", () => {
+    // eggplant half the days, bok choy (27) today, one shop day left: waiting's worth 27.5
+    assert.equal(waitLine(shopLog(14, 7), ["bokchoy"], CROPS, 1, 1), "waiting beats today's bok choy, eggplant's in 50% of days");
+    assert.equal(waitLine(shopLog(MIN_SHOP_DAYS - 1, 7), ["bokchoy"], CROPS, 1, 1), null); // not enough log yet
+    assert.equal(waitLine(shopLog(14, 7), ["eggplant"], CROPS, 1, 1), null); // nothing beats it
+    assert.equal(waitLine(shopLog(14, 7), [], CROPS, 1, 3), null); // apples only today, nothing to decide
+    assert.equal(waitLine(shopLog(14, 7), ["bokchoy"], CROPS, 1, 0), null); // sunday, last shop of the week
+    assert.equal(waitLine(shopLog(14, 2), ["bokchoy"], CROPS, 1, 1), null); // eggplant's rare, 25 + 5/7 < 27
+});
 
 const h = 3600;
 
