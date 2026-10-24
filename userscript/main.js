@@ -19,7 +19,7 @@ import { logShop, logHours, codedBefore } from "./daylog.js";
 import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
 import { milestones, perOpenDay } from "../src/route.js";
 import { easternDay, weekIndex, weekDay, LAST_WEEK } from "../src/week.js";
-import { waitLine } from "./predict.js";
+import { waitFor } from "./predict.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
 
@@ -35,8 +35,8 @@ const DAYS_KEY = "terra-calc-days";
 // plan parts that can stay null. the card would ask for plots (they sit in inventory), farm and
 // stuck are only there once you've been on your farm, target needs the plot count too, goal's
 // null till you pick one, weekEnds is just extra words on a few steps and the last week line, trees
-// and owned only matter for a goal, and lastWeek needs you to have been here last week. todayHours only if i typed today
-const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "todayHours", "waitLine", "trees", "owned", "lastWeek"]);
+// and owned only matter for a goal, and lastWeek needs you to have been here last week. todayHours only if i typed today, wait only when waiting beats todays bonus seed
+const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "todayHours", "wait", "trees", "owned", "lastWeek"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
 const M_GUESS = 1.1;
@@ -512,7 +512,7 @@ function plan() {
         // today's bonus seeds, for their names
         crops: shop.crops,
         // buy today's bonus seed or wait for a better one, shop days left after today, sunday's the last
-        waitLine: waitLine(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, 6 - weekDay(today)),
+        wait: waitFor(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, 6 - weekDay(today)),
         // for card goal lines, null = rent week
         goal: coinsGoal === null ? null : {
             device: trees[picked.device].device,

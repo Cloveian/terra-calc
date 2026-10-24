@@ -1,5 +1,5 @@
 // day hours off the hours log, a typical day per weekday, n the wait-for-a-better-seed odds
-// only waitLine is on the card so far, the day ones need a couple weeks of daylog.js first
+// only waitFor is on the card so far, the day ones need a couple weeks of daylog.js first
 import { weekDay, DAY_MS } from "../src/week.js";
 import { perHour } from "./shop.js";
 
@@ -70,9 +70,9 @@ export function waitTable(values, odds, apple, days = 6) {
     return table;
 }
 
-// "waiting beats today's bok choy, eggplant's in 60% of days", or null
+// { best: today's bonus seed, top: the one worth waiting for, odds: its share of days }, or null
 // only on days heidi has a bonus seed, with MIN_SHOP_DAYS of log, n when waiting actually wins. daysLeft = shop days after today this week
-export function waitLine(shopLog, today, crops, m, daysLeft) {
+export function waitFor(shopLog, today, crops, m, daysLeft) {
     const bonus = today.filter((id) => crops[id]);
     if (bonus.length === 0 || daysLeft < 1 || Object.keys(shopLog).length < MIN_SHOP_DAYS) return null;
     const value = (id) => perHour(crops[id], m);
@@ -82,6 +82,5 @@ export function waitLine(shopLog, today, crops, m, daysLeft) {
     const wait = waitTable(values, odds, value("apple"), daysLeft)[daysLeft];
     if (Math.max(value(best), value("apple")) >= wait) return null;
     const top = Object.keys(values).reduce((a, b) => (values[b] > values[a] ? b : a));
-    const name = (id) => crops[id].name.toLowerCase();
-    return `waiting beats today's ${name(best)}, ${name(top)}'s in ${Math.round(odds[top] * 100)}% of days`;
+    return { best, top, odds: odds[top] };
 }

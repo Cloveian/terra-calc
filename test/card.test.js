@@ -176,6 +176,14 @@ test("a crop with no name goes by its seed id", () => {
     assert.deepEqual(cardFor(plan, NOW).details, ["1 in review (mystery_seed)"]);
 });
 
+test("the wait line names the seeds, off CROPS when they're not in today's shop", () => {
+    const plan = {
+        t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, crops: {},
+        farm: { plots: 10, empty: 0, crops: [], seenAt: NOW }, stuck: null, steps: [], wait: { best: "bokchoy", top: "eggplant", odds: 0.5 },
+    };
+    assert.ok(cardFor(plan, NOW).details.includes("waiting beats today's bok choy, eggplant's in 50% of days"));
+});
+
 test("the code step says the h a day, under a day just the hours left", () => {
     const plan = (weekEnds) => ({
         t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1.1,

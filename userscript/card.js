@@ -236,7 +236,10 @@ export function cardFor(plan, now = Date.now()) {
     // nothing for apples only, the steps already say that
     const mix = mixWords(target?.mix, (id) => cropName(id, plan.crops));
     if (mix) details.push(`today's best: ${mix}`);
-    if (plan.waitLine) details.push(plan.waitLine);
+    if (plan.wait) {
+        const { best, top, odds } = plan.wait;
+        details.push(`waiting beats today's ${cropName(best, plan.crops)}, ${cropName(top, plan.crops)}'s in ${Math.round(odds * 100)}% of days`);
+    }
     // stuck ones are from before this week (or all of them if the week's unknown)
     const stuckCrops = stuck?.crops ?? [];
     for (const why of Object.keys(stuck?.why ?? {})) {
