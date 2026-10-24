@@ -69,15 +69,13 @@ export function milestones(route, items) {
     });
 }
 
-// h an open day gets
-export function perOpenDay(cap) {
-    return cap / 7;
-}
+// share per weekday, [mon ... sun]. open in given = 7 * the open days' shares, on this one thats just the day count
+export const EVEN_WEEK = Array(7).fill(1 / 7);
 
 // a week missing from given is all 7 open. rounded cuz the route plants whole crops
 export function weekHours(days, cap) {
     if (!days) return cap;
-    return Math.round(days.fixed + days.open * perOpenDay(cap));
+    return Math.round(days.fixed + (days.open * cap) / 7);
 }
 
 // every day from t to Week 12 set

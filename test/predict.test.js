@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayHours, typicalDays, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
+import { dayHours, typicalDays, weekShape, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
+import { EVEN_WEEK } from "../src/route.js";
 import { perHour } from "../userscript/shop.js";
 import { CROPS } from "../src/data.js";
 
@@ -39,6 +40,12 @@ test("typicalDays: median of clean days per weekday, null till there's enough", 
     const typical = typicalDays([...mondays, { day: "2026-10-26", h: 40, lumped: true }, { day: "2026-10-20", h: 4, lumped: false }]);
     assert.equal(typical[0], 3);
     assert.equal(typical[1], null); // one tuesday < MIN_SAMPLES
+});
+
+test("weekShape: shares of my week, even till every weekday has a number", () => {
+    assert.deepEqual(weekShape([1, 1, 1, 1, 2, 3, 1]), [0.1, 0.1, 0.1, 0.1, 0.2, 0.3, 0.1]);
+    assert.deepEqual(weekShape([1, 1, 1, 1, 2, null, 1]), EVEN_WEEK);
+    assert.deepEqual(weekShape([0, 0, 0, 0, 0, 0, 0]), EVEN_WEEK);
 });
 
 test("the values waitTable gets, perHour off CROPS: eggplant 30, bok choy 27, apple 25 at m 1", () => {

@@ -17,9 +17,10 @@ import { mountShopBadges, drawShopBadges } from "./shop.js";
 import { mountHud, drawHud } from "./hud.js";
 import { logShop, logHours, codedBefore } from "./daylog.js";
 import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
-import { milestones, perOpenDay } from "../src/route.js";
-import { easternDay, weekIndex, weekDay, LAST_WEEK } from "../src/week.js";
-import { waitFor } from "./predict.js";
+import { milestones } from "../src/route.js";
+import { easternDay, weekIndex, weekDay, LAST_WEEK, DAY_MS } from "../src/week.js";
+import { waitFor, dayHours, typicalDays, weekShape } from "./predict.js";
+import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
 
@@ -31,6 +32,9 @@ const WEEK_KEY = "terra-calc-week";
 const SHOP_LOG_KEY = "terra-calc-shop-log";
 const HOURS_LOG_KEY = "terra-calc-hours-log";
 const DAYS_KEY = "terra-calc-days";
+// own entries, settings get dumped to the debug log n the key cant be in there
+const HACKATIME_KEY = "terra-calc-hackatime-key";
+const HACKATIME_DAYS_KEY = "terra-calc-hackatime-days";
 
 // plan parts that can stay null. the card would ask for plots (they sit in inventory), farm and
 // stuck are only there once you've been on your farm, target needs the plot count too, goal's
@@ -67,6 +71,8 @@ let weekNote = loadMine(WEEK_KEY); // from noteWeek, next week says how this one
 let shopLog = loadMine(SHOP_LOG_KEY) ?? {};
 let hoursLog = loadMine(HOURS_LOG_KEY) ?? {};
 let savedDays = loadMine(DAYS_KEY) ?? {}; // { "2026-10-26": 4 }, hours i said i'd give, typed in the calendar boxes
+let hackatimeKey = loadMine(HACKATIME_KEY); // not on window.terraCalc either
+let hackatime = loadMine(HACKATIME_DAYS_KEY); // { fetchedAt, days: { "2026-10-20": 3.2 } } or { fetchedAt, error }
 
 function noteThisWeek(weekKey, change) {
     weekNote = saveChanged(WEEK_KEY, weekNote, noteWeek(weekNote, weekKey, change));
@@ -168,7 +174,7 @@ async function start() {
         saveSettings(settings);
         setDebug(settings.debug);
         draw();
-    }, goalHooks);
+    }, goalHooks, hackatimeHooks);
     if (settings.panel) mountCard();
     if (settings.hud) mountHud(openTree);
     if (!settings.fill) return drawCard(null);
@@ -177,6 +183,8 @@ async function start() {
     if (settings.days) mountDayBoxes(window.terraCalc.day);
     // typed numbers need a redraw, nothing else does one if the game sends nothing
     setTimeout(draw, TYPED_AFTER);
+    syncHackatime();
+    setInterval(syncHackatime, FETCH_EVERY_MS);
     await readRest();
     if (settings.debug) {
         liveBuild().then((build) => debug("live build", build), (err) => debug("no live build", err));
@@ -291,6 +299,35 @@ const goalHooks = {
         if (current) setGoal({ ...current.goal, goal: n });
     },
 };
+
+// the key box in settings
+const hackatimeHooks = {
+    key: () => hackatimeKey,
+    status: () => statusWords(hackatime),
+    async set(key) {
+        hackatimeKey = key || null;
+        hackatime = null;
+        saveMine(HACKATIME_KEY, hackatimeKey);
+        saveMine(HACKATIME_DAYS_KEY, null);
+        if (hackatimeKey) await syncHackatime();
+        else draw();
+    },
+};
+
+// at most once an hour, reloads included. errors are kept that long too, a new key clears them
+async function syncHackatime() {
+    if (!hackatimeKey || (hackatime && Date.now() - hackatime.fetchedAt < FETCH_EVERY_MS)) return;
+    const end = easternDay(new Date());
+    const start = easternDay(new Date(Date.now() - BACK_DAYS * DAY_MS));
+    try {
+        hackatime = { fetchedAt: Date.now(), days: await fetchDays(hackatimeKey, start, end) };
+    } catch (err) {
+        hackatime = { fetchedAt: Date.now(), error: err.message };
+    }
+    saveMine(HACKATIME_DAYS_KEY, hackatime);
+    debug("hackatime", hackatime.error ?? `${Object.keys(hackatime.days).length} days`);
+    draw();
+}
 
 // most patches = players walking, true only on farm item changes
 function farmTouched(state, touched) {
@@ -462,7 +499,12 @@ function plan() {
         crops: shop.crops,
     };
     const today = easternDay(new Date());
-    const given = daysGiven(savedDays, today, codedBefore(hoursLog, today, game.hours?.weekKey));
+    // how my weeks go, off hackatime with a key or my hours log. today's not done yet
+    const coded = hackatime?.days
+        ? Object.entries(hackatime.days).map(([day, h]) => ({ day, h, lumped: false }))
+        : dayHours(hoursLog);
+    const shape = weekShape(typicalDays(coded.filter((d) => d.day < today)));
+    const given = daysGiven(savedDays, today, codedBefore(hoursLog, today, game.hours?.weekKey), shape);
     const target = start && weekTarget(start, t, coinsGoal, m, thisWeek, given);
     let rows = [];
     if (cleaned && target) {
@@ -527,6 +569,6 @@ function plan() {
     const enough = !missing.some((key) => !OPTIONAL.has(key));
     const ended = weekEnds !== null && Date.now() > weekEnds;
     const keep = ticked.saved && { weekKey: game.hours.weekKey, w, saved: ticked.saved, ended };
-    const days = { days: savedDays, perDay: target?.cap ? perOpenDay(target.cap) : null };
+    const days = { days: savedDays, perDay: target?.cap ? shape.map((share) => share * target.cap) : null };
     return { parts: enough ? parts : null, tags, badges, days, problems: cleaned?.problems ?? [], keep };
 }

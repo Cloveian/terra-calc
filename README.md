@@ -30,9 +30,9 @@ There's also a userscript that runs inside Terra itself, so there's nothing to t
 - puts this week's steps in Terra's own "This Week" card ("buy 12 eggplant seeds", "code 21.9h"), and ticks them off as you do them
 - a want button on each upgrade in Terra's device tree, and a priority number and the week you can afford it on the ones you want
 - coins-an-hour badges on Heidi's seeds, with how many the plan buys (off until you turn them on)
-- an hour box on each day left on Terra's calendar: type what you can give that day, and the plan works around it. Days you leave blank show what the plan has them at
+- an hour box on each day left on Terra's calendar: type what you can give that day, and the plan works around the rest the way your weeks usually go
 - Island / Hub and Goal buttons at the bottom of Terra's button column, or next to the water meter on short screens (Hub doesn't really work yet, the server sends you back home)
-- a Terra Calc section in Terra's settings, to turn each part on or off, set your own multiplier, or type your numbers in yourself if reading the game ever breaks
+- a Terra Calc section in Terra's settings, to turn each part on or off, set your own multiplier, type your numbers in yourself if reading the game ever breaks, or add a Hackatime key (it only ever goes to Hackatime)
 
 It's a work in progress and Terra changes a lot, so expect a broken bit now and then.
 
@@ -82,6 +82,7 @@ src/
   route.js        every week to Week 12, hours needed, when you can afford each pick
   tree.js         picking upgrades: prerequisites, goal cost
   state.js        reading and writing the link
+  stepper.js      the up / down arrows on number boxes
   view.js         zoom and pan maths for the tree
   treeview.js     dragging and zooming the tree
   sketch.js       the maths for the wobbly hand-drawn outlines
@@ -107,7 +108,8 @@ userscript/       Terra Calc inside Terra, uses the src/ files that don't touch 
   page.js         Terra's class names, and redrawing our bits when the page changes
   store.js        saving to Terra's localStorage
   daylog.js       a small log per day: Heidi's bonus seeds, and your hours so far that week
-  predict.js      a typical day from that log, and the odds behind waiting for a better seed
+  predict.js      how your week usually goes, and the odds behind waiting for a better seed
+  hackatime.js    your hours per day from Hackatime, if you give it a key
   debug.js        console logging
   meta.js         the userscript header
 scripts/

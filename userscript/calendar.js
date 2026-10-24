@@ -20,7 +20,7 @@ export function mountDayBoxes(setDay) {
     dayBit.mount(DAY_CSS);
 }
 
-// days = { "2026-10-26": 4 }, perDay = h an open day's planned at (cap / 7), null = no plan
+// days = { "2026-10-26": 4 }, perDay = planned h per weekday [mon ... sun], null = no plan
 export function drawDayBoxes(state) {
     dayBit.draw(state);
 }
@@ -66,7 +66,7 @@ function fillDays(state) {
         const box = wrap.firstChild;
         wrap.dataset.day = day;
         box.title = `Hours you'll code on ${day}, blank = whatever the plan needs`;
-        box.placeholder = state.perDay === null ? "" : String(Math.round(state.perDay * 10) / 10);
+        box.placeholder = state.perDay === null ? "" : String(Math.round(state.perDay[i] * 10) / 10);
         if (document.activeElement !== box) box.value = state.days[day] ?? "";
     });
 }

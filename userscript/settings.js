@@ -60,13 +60,15 @@ const NEEDS_RELOAD = ["fill", "panel", "hud", "seedBadges", "days"];
 let onSettings = null;
 let current = null;
 let onGoal = null;
+let onHackatime = null;
 
-// settings changed in place, onChange after every change. goal = goalHooks from main.js
-export function mountSettings(settings, onChange, goal) {
+// settings changed in place, onChange after every change. goal n hackatime = goalHooks n hackatimeHooks from main.js
+export function mountSettings(settings, onChange, goal, hackatime) {
     if (onSettings) return;
     current = settings;
     onSettings = onChange;
     onGoal = goal;
+    onHackatime = hackatime;
     watchPage(fillSettings)();
 }
 
@@ -74,7 +76,6 @@ function fillSettings() {
     const c = cssModule("settingsSection", "logoutBtn");
     const section = c && document.querySelector(`.${c.settingsSection}`);
     // built once per tab, goal row shows the goal as of when it opened
-    // built once per tab, nothing in it comes from the plan
     if (!section || section.querySelector(`:scope > .${OUR_SECTION}`)) return;
     const bottom = c.helpLogoutRow ? section.querySelector(`:scope > .${c.helpLogoutRow}`) : null;
     section.insertBefore(makeSection(c), bottom);
@@ -125,8 +126,29 @@ function makeSection(c) {
     ours.append(el("div", c.sectionTitle, "Terra Calc"), row);
     const goal = onGoal.now();
     if (goal) ours.append(goalRow(c, goal));
-    ours.append(typedRow(c));
+    ours.append(hackatimeRow(c), typedRow(c));
     return ours;
+}
+
+// emptying the box forgets the key. status catches up once hackatime answers
+function hackatimeRow(c) {
+    const col = el("div", c.settingsCol);
+    const box = el("input", c.input);
+    box.type = "password";
+    box.autocomplete = "off";
+    box.placeholder = "from hackatime.hackclub.com/api-key";
+    box.value = onHackatime.key() ?? "";
+    const status = el("div", c.formLabel, onHackatime.status());
+    box.addEventListener("change", async () => {
+        status.textContent = box.value.trim() ? "Asking Hackatime..." : "";
+        await onHackatime.set(box.value.trim());
+        status.textContent = onHackatime.status();
+    });
+    col.append(el("div", c.formLabel, "Hackatime API key (optional, guesses how your days go)"), box, status);
+    const row = el("div", c.settingsRow);
+    row.style.marginTop = "1em";
+    row.append(col);
+    return row;
 }
 
 // typed coins, plots n seeds, for when a terra update breaks a reader. plots count before ive been on my farm or seen shop too

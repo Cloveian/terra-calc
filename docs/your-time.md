@@ -19,11 +19,11 @@ Right now the route finds the lowest *flat* h/week that reaches the goal, `hours
 
 What i'd build for "projected but overrideable" (my default, not decided yet):
 
-- a day i type is fixed, the days i didn't touch are open, and each open day gets 1/7 of the flat cap, so a week = fixed hours + open days \* cap / 7
+- a day i type is fixed, the days i didn't touch are open, and each open day gets its share of the flat cap (1/7 till it knows my weeks), so a week = fixed hours + open days \* cap / 7
 - none set = 7 open = exactly the cap, same as now. All 7 set = a fully fixed week, the cap doesn't touch it
-- this week: days already gone count what i actually coded (the hours log), the open ones are the days left at cap / 7 each. That's *not* the card's "h a day": the card splits what's still needed for this week's target over the days left, so falling behind pushes its h a day up, while the route's open days just run at the pace it's searching for. Different questions, both fine. With today typed in the calendar the card just says that
+- this week: days already gone count what i actually coded (the hours log), the open ones are the days left at their share of the cap. That's *not* the card's "h a day": the card splits what's still needed for this week's target over the days left, so falling behind pushes its h a day up, while the route's open days just run at the pace it's searching for. Different questions, both fine. With today typed in the calendar the card just says that
 - the site's week boxes are the same thing with all 7 fixed at once, so the route only knows one shape: `given = { week: { fixed, open } }`, hours = round(fixed + open \* cap / 7)
-- the projection shown faded on an open day is cap / 7 now, and later the per-day prediction from my history (the hours log, or Hackatime with a key), at which point the open days stop being an even split and follow how my weeks actually go (no school on saturday, whatever)
+- open days follow how my weeks actually go (no school on saturday, whatever): each weekday gets its share of the week, its typical hours over the whole week's (`weekShape`), off Hackatime with a key or the hours log without one. Even split till every weekday has 3 clean days. `open` counts days in those shares, 7 \* share each, so even is the plain day count and the math in `weekHours` didn't have to change at all. The faded number on a day is cap \* its share. A weekday i never code on gets 0 and stays 0 till i type something (my default too, not decided)
 
 ## Where you set it
 
@@ -55,10 +55,12 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 - `state` is one of `done`, `missed`, `excused`, `skipped`, `review`, `prejoin`, `active` (the month grid's `state_*` classes), `onTrack` / `debtOut` are the "off track for the laptop" notice
 - `hoursSeconds` is the week page's "39h 33m logged", so that's the history. No real numbers yet tho, none of my captures have the calendar open (todo, open it with the HAR running). The 22 Oct GameCanvas still loads `week-track` and reads `rows`, `onTrack` and `debtOut` the same way (that dump's base64, decode it before grepping)
 - this week's credited time is already in `hours.update` (`week.creditedSeconds`, and `goalSeconds` is Terra's own 10 h)
+- Hackatime, with my API key (from hackatime.hackclub.com/api-key): `GET https://hackatime.hackclub.com/api/hackatime/v1/users/current/summaries?start=&end=&timezone=America/New_York` with `Authorization: Bearer <key>`, one row per day (`range.date`, `grand_total.total_seconds`), empty days in too. CORS lets the Authorization header through, a fake key from another site gets a clean 401. AI time isn't split per day there (Terra counts it a third), `/api/v1/users/my/stats?...&filter_by_category=ai coding` gives it per range, so per day would be a call a day. Doesn't matter for the week's shape, that's only ratios (all from the hackatime repo, read 23 Oct)
 
 | Decision | What it does |
 | --- | --- |
 | Suggested hours | **Decision:** what goes in a blank box as the suggestion, the last 4 weeks' median, the average, or nothing till you've done 3 weeks? Default: median of the last 4 (one dead week doesn't drag it), shown faded so it's clearly a guess and doesn't count as set |
+| Hackatime key | **Decided (24 Oct):** in Terra's localStorage like the rest of ours, its own per-account entry, never in the settings object (that goes to the debug log). Nobody loses money if it gets stolen and most people have it in plaintext in their wakatime config anyway. `GM_setValue` would've needed a `@grant`, a sandbox and `unsafeWindow` for the socket hook |
 | AI time | Terra's number already counts AI time at a third, so history's in Terra hours, same as water. Nothing to convert, as long as `hoursSeconds` is the credited number (the capture'll say) |
 
 ## Data
@@ -73,6 +75,6 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 3. `given` as `{ fixed, open }` in the route (the "Days" model), the site's week boxes moved onto it. **Done** (`weekHours` in route.js)
 4. userscript: saved days, each week's `{ fixed, open }`, the goal line, the code step capped, What can I get on the tags. **Done** minus a way to type days, that was `terraCalc.day("2026-10-26", 4)` in the console till the calendar boxes. This week only goes by days once i typed one in it, so nothing typed = the old card. The goal line says "not on my days, a flat 31 h/week would do it", the code step follows this week's days, and the tags say "doesn't fit" like before
 5. the day boxes on Terra's calendar. **Done**, untested in the real game: `calendar.js` finds the week page by its css module, gets monday off the range text ("Oct 12 - Oct 18"), and puts a box in each `._dayBox_` from today on
-6. history: the hours log (running since 23 Oct), `week-track` (needs that capture first), the optional Hackatime key, then the per-day predictions. Started: `dayHours` (a day = its snapshot minus the day before, gaps flagged `lumped`) and `typicalDays` (median of the clean ones per weekday, needs 3 of a weekday) in predict.js, nothing shows them yet, the log's a day old
+6. history: the hours log (running since 23 Oct), `week-track` (needs that capture first), the optional Hackatime key, then the per-day predictions. **Mostly done:** `dayHours` (a day = its snapshot minus the day before, gaps flagged `lumped`), `typicalDays` (median of the clean ones per weekday, needs 3 of a weekday) and `weekShape` in predict.js, the Hackatime key in our settings (`hackatime.js`, 8 weeks of days, fetched at most once an hour), and the open days + faded calendar numbers following the shape. Not tried with a real key yet, a fake one gets a clean 401 so CORS is fine. `week-track` still waits on the capture
 
 The risk stuff in "Buying with risk" and "Waiting for a better seed" comes after all that, it wants real hours to stand on.

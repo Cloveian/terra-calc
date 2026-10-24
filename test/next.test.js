@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps, toSell, noteWeek, daysGiven } from "../userscript/next.js";
 import { stuckFrom } from "../userscript/fill.js";
+import { weekShape } from "../userscript/predict.js";
 import { hoursNeeded } from "../src/route.js";
 
 test("daysGiven: typed days per week, this week starts from what i coded", () => {
@@ -14,6 +15,15 @@ test("daysGiven: typed days per week, this week starts from what i coded", () =>
     // nothing typed this week = this week isnt in it, plans like before
     assert.deepEqual(daysGiven({ "2026-10-27": 3 }, "2026-10-23", 20), { 4: { fixed: 3, open: 6 } });
     assert.deepEqual(daysGiven({}, "2026-10-23", 20), {});
+});
+
+test("daysGiven with my week's shape: open days count by their share, all typed is exactly 0", () => {
+    const shape = weekShape([2, 2, 2, 2, 2, 4, 4]); // weekends twice as long
+    const given = daysGiven({ "2026-10-24": 4 }, "2026-10-23", 20, shape);
+    assert.equal(given[3].fixed, 24);
+    assert.ok(Math.abs(given[3].open - (7 * 6) / 18) < 1e-9); // fri + sun
+    const week4 = ["2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01"];
+    assert.deepEqual(daysGiven(Object.fromEntries(week4.map((day) => [day, 3])), "2026-10-23", 20, shape), { 4: { fixed: 21, open: 0 } });
 });
 
 test("weekTarget and rowHours with every day set: no cap", () => {

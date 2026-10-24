@@ -47,10 +47,10 @@ What makes it feel finished, before anything new. In order:
 Nobody's coding 80 h a week, so the plan should start from how much time you actually have. Worked out in [your-time.md](your-time.md).
 
 - [ ] Hours you can give each week, set per week (ex. finals week can be 10 h)
-- [ ] ...and per day, the week's just the days added up
-- [x] Set them in Terra's own calendar (the userscript puts a little hours box on each day). Today and later only, faded = what an open day's planned at. Not tried in the real game yet, the week page's never been in a capture
+- [x] ...and per day, the week's just the days added up
+- [x] Set them in Terra's own calendar (the userscript puts a little hours box on each day). Today and later only, faded = what an open day's planned at, split the way my weeks usually go
 - [ ] Your hours history on the calendar, read from your devlogs and ships (Terra's number, AI time already only counts a third)
-- [ ] Suggested hours for each day and week from that history, as the default till you change it
+- [ ] Suggested hours for each day and week from that history, as the default till you change it. Half there: the calendar's open days follow the shape of my weeks, the amount's still the plan's
 - [ ] A projection: at the hours you usually do, what you end up with by Week 12
 - [x] "What can I get": when your goal doesn't fit your hours, plan at your hours and say which picks you get, in your priority order
 - [x] Picks that don't fit your hours get marked on the tree tags ("doesn't fit") and in the site's milestone list ("not with your hours")
@@ -58,7 +58,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 - [x] This week's "code N h" never asks for more than you said you'd give, and the h a day follows your days, not an even split. "code 28h (4h today)" when today's typed in the calendar
 - [x] The same hours on the site, a box per week in the week table
 - [x] A log per day of the week's credited hours so far (`daylog.js`), raw stuff for the day predictions
-- [ ] Optional Hackatime API key in our settings, for "better accuracy" day predictions and risk odds: real per-day hours instead of the log's gaps. Only ever sent to Hackatime. Where it's kept is a question tho: Terra's localStorage (like everything else of ours) is readable by Terra's own scripts, `GM_setValue` isn't, but that needs a `@grant`, which turns off `@grant none` and puts the script in a sandbox, and the socket hook needs the page's real `WebSocket` (`unsafeWindow`). Hack Club's code reading my Hackatime key isn't exactly a threat model, but it's my key so i'd rather ask. `GET https://hackatime.hackclub.com/api/hackatime/v1/users/current/summaries?start=&end=&timezone=America/New_York` with `Authorization: Bearer <key>`, one row per day (`range.date`, `grand_total.total_seconds`), empty days in too. CORS is `*` on `/api/*`, so a plain fetch from the Terra page works. AI time isn't split per day there (Terra counts it a third), `/api/v1/users/my/stats?...&filter_by_category=ai coding` gives it per range, so per day = a call a day. Key's at hackatime.hackclub.com/api-key (all from the hackatime repo, read 23 Oct)
+- [x] An optional Hackatime API key in our settings, real per-day hours right away instead of waiting on the log. Only ever sent to Hackatime (API n where it's kept in Your time's History)
 
 ## Buying with risk
 

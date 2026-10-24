@@ -1,5 +1,5 @@
 // next steps: farm chores now + this weeks crops and hours from site route
-import { hoursNeeded, simulateRoute } from "../src/route.js";
+import { hoursNeeded, simulateRoute, EVEN_WEEK } from "../src/route.js";
 import { RENT, MAX_PLOTS, BASE_SEEDS, BASE_KINDS, CROPS } from "../src/data.js";
 import { isWeekAfter, weekIndex, weekDay } from "../src/week.js";
 
@@ -36,15 +36,25 @@ export function rowHours(state, t, rows, m, thisWeek = null, given = {}) {
 
 // days i typed ({ "2026-10-26": 4 }) -> route.js given, by week index. typed days before today dont count, those are done
 // this week only goes by days if i typed one in it: then the gone days are what i coded (codedBefore, h) and the untyped days left are open
-export function daysGiven(days, today, codedBefore) {
+// shape = share of the week per weekday (weekShape), open = 7 * the shares left
+export function daysGiven(days, today, codedBefore, shape = EVEN_WEEK) {
     const t = weekIndex(today);
-    const given = {};
+    const weeks = {};
     for (const [day, h] of Object.entries(days)) {
         if (day < today) continue;
         const week = weekIndex(day);
-        given[week] ??= week === t ? { fixed: codedBefore, open: 7 - weekDay(today) } : { fixed: 0, open: 7 };
-        given[week].fixed += h;
-        given[week].open -= 1;
+        weeks[week] ??= { fixed: week === t ? codedBefore : 0, typed: new Set() };
+        weeks[week].fixed += h;
+        weeks[week].typed.add(weekDay(day));
+    }
+    const given = {};
+    for (const [week, { fixed, typed }] of Object.entries(weeks)) {
+        // summed up, 7 minus the typed shares leaves float crumbs n allGiven wants exactly 0
+        let open = 0;
+        for (let d = Number(week) === t ? weekDay(today) : 0; d < 7; d++) {
+            if (!typed.has(d)) open += 7 * shape[d];
+        }
+        given[week] = { fixed, open };
     }
     return given;
 }

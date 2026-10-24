@@ -1,7 +1,7 @@
-// day hours off the hours log, a typical day per weekday, n the wait-for-a-better-seed odds
-// only waitFor is on the card so far, the day ones need a couple weeks of daylog.js first
+// day hours off the hours log, a typical day per weekday n the week shape, n the wait-for-a-better-seed odds
 import { weekDay, DAY_MS } from "../src/week.js";
 import { perHour } from "./shop.js";
+import { EVEN_WEEK } from "../src/route.js";
 
 // a weekday needs this many clean days before it gets a typical number
 export const MIN_SAMPLES = 3;
@@ -28,6 +28,13 @@ export function typicalDays(days) {
         if (!lumped) byDay[weekDay(day)].push(h);
     }
     return byDay.map((hs) => (hs.length < MIN_SAMPLES ? null : median(hs)));
+}
+
+// typicalDays -> share of my week per weekday, adds to 1. even till every weekday has a number, or if they're all 0
+export function weekShape(typical) {
+    const total = typical.reduce((sum, h) => sum + (h ?? 0), 0);
+    if (typical.includes(null) || total <= 0) return EVEN_WEEK;
+    return typical.map((h) => h / total);
 }
 
 function median(xs) {
