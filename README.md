@@ -151,12 +151,12 @@ assets/           logos and hand-drawn icons
 - [Pico CSS](https://picocss.com) for the base styles, [Patrick Hand](https://fonts.google.com/specimen/Patrick+Hand) for the font.
 - Thanks to Miggy for answering questions about the rules.
 
-## AI use (Prep week 1)
+## AI use (Prep week 2 (the site))
 
 - **Me:** the research into how Terra works, the design docs and spec, the stupid amount of ~~meth~~ math (@_@), all the art (logos and icons), reviewing the code and testing it.
 - **Claude (Claude Code):** wrote most of the code from those docs, and helped with some of the research and a little with the docs. [research/real-prices.md](research/real-prices.md) was researched by Claude.
 
-## AI use (Week 1)
+## AI use (Week 1 (the userscript))
 I used AI to dig through Terra's client JS and some HAR captures for facts.
 Some code refactoring (just spliting a file into multiple cuz it was too long for my taste)
 Some of the site updates when the first new plants were releaced (not really relavent anymore)
