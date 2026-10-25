@@ -120,14 +120,24 @@ function asBytes(data) {
     return null;
 }
 
-// TODO: send(type, payload) through gameSocket for shortcut buttons (shop.purchase etc). games own sends are msgpackr records, has to match those
 export function gameConnected() {
     return gameSocket !== null && gameSocket.readyState === 1;
+}
+
+function frame(type, payload) {
+    return new Uint8Array([ROOM_DATA, ...encodeMsgpack(type), ...encodeMsgpack(payload)]);
 }
 
 // message on the games own socket like the server sent it. never reaches the server, only good for ones the game acts on itself
 export function tellGame(type, payload) {
     if (!gameConnected()) return;
-    const frame = new Uint8Array([ROOM_DATA, ...encodeMsgpack(type), ...encodeMsgpack(payload)]);
-    gameSocket.dispatchEvent(new MessageEvent("message", { data: frame.buffer }));
+    gameSocket.dispatchEvent(new MessageEvent("message", { data: frame(type, payload).buffer }));
+}
+
+// message to the server like the game sends one, false with no socket. plain msgpack, the games own are msgpackr records
+// todo: dont know yet if the server minds
+export function sendGame(type, payload) {
+    if (!gameConnected()) return false;
+    gameSocket.send(frame(type, payload));
+    return true;
 }

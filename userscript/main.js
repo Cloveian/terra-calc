@@ -1,7 +1,7 @@
 // userscript entry point
-import { REST, IN, TOKEN_KEY } from "./endpoints.js";
+import { REST, IN, OUT, TOKEN_KEY } from "./endpoints.js";
 import { apiGet, liveBuild } from "./api.js";
-import { hookWebSocket, onGameMessage, ROOM } from "./socket.js";
+import { hookWebSocket, onGameMessage, sendGame, ROOM } from "./socket.js";
 import { hookMatchmake } from "./travel.js";
 import { loadSettings, saveSettings, mountSettings } from "./settings.js";
 import { loadJSON, saveJSON } from "./store.js";
@@ -105,6 +105,10 @@ window.terraCalc = {
         setDebug(on);
         return on ? "debug logging on, reload to see the socket from the start" : "debug logging off";
     },
+    // terraCalc.send("shop.requestStock", {}), straight to the server. answers show up with debug on
+    send: sendGame,
+    // terraCalc.buy("apple", 5), one of a shop.stock entry at its price. spends coins, shop.purchaseResult says how it went
+    buy: (stockEntryId, price) => sendGame(OUT.buy, { stockEntryId, requestId: crypto.randomUUID(), expectedPriceCoins: price }),
 };
 
 // hooked at document-start
