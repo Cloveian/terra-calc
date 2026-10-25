@@ -36,7 +36,7 @@ test("wantBit: a box per RAM tier, with the plan's week and hours, a plain RAM n
         ["cpu_12", { now: true, week: null, hours: 10 }],
     ]);
     assert.deepEqual(wantBit(fw, own, want, "ram_12", plan, { "ram_12:2": 1 }).rows, [
-        { key: "ram_12:1", label: "RAM 16 GB", prio: null, when: "Week 4, 14 h/wk" },
+        { key: "ram_12:1", label: "RAM 16 GB", prio: null, when: "after Week 4, 14 h/wk" },
         { key: "ram_12:2", label: "RAM 32 GB", prio: 1, when: "doesn't fit" },
     ]);
     assert.deepEqual(wantBit(fw, own, want, "ram_12", plan, { ram_12: 3 }).rows.map((row) => row.prio), [3, 3]);

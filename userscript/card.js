@@ -312,7 +312,7 @@ function goalLines(goal, target, coins, selling = 0) {
 function usualLine({ h, fit, of, week, outFrom }) {
     const start = `at my usual ${h} h/week:`;
     if (outFrom !== null) return `${start} rent runs out in ${weekName(outFrom)}`;
-    if (fit === of) return `${start} all of it in ${weekName(week)}`;
+    if (fit === of) return `${start} all of it after ${weekName(week)}`;
     return `${start} ${fit} of ${of} picks by ${weekName(LAST_WEEK)}`;
 }
 
@@ -329,7 +329,7 @@ function pickName({ name, qty }) {
 }
 
 function when({ week }) {
-    return week === null ? "doesn't fit" : `in ${weekName(week)}`;
+    return week === null ? "doesn't fit" : `after ${weekName(week)}`;
 }
 
 // crop kinds with counts, bare name if only one kind. game name, seed id without one

@@ -81,9 +81,9 @@ test("a goal shows before the farm's been seen, with the next pick and when it's
     assert.deepEqual(cardFor(plan, NOW).details, [
         "goal: 2800 coins (Framework 12), 2758 to go",
         { bar: { coins: 42.6, selling: 0, goal: 2800 } },
-        "next pick: Core 3 304 in Week 3",
-        "all of it in Week 9",
-        { picks: ["Core 3 304 in Week 3", "RAM 16 GB in Week 6", "Framework 13 in Week 9"] }, // behind show more
+        "next pick: Core 3 304 after Week 3",
+        "all of it after Week 9",
+        { picks: ["Core 3 304 after Week 3", "RAM 16 GB after Week 6", "Framework 13 after Week 9"] }, // behind show more
     ]);
 });
 
@@ -96,10 +96,10 @@ test("my usual week's line: all of it, some of it, or rent running out", () => {
     });
     // last line of words, the show more list comes after
     const last = (usual, picks) => cardFor(plan(usual, picks), NOW).details.filter((item) => typeof item === "string").at(-1);
-    assert.equal(last({ h: 24, fit: 2, of: 2, week: 7, outFrom: null }), "at my usual 24 h/week: all of it in Week 5");
+    assert.equal(last({ h: 24, fit: 2, of: 2, week: 7, outFrom: null }), "at my usual 24 h/week: all of it after Week 5");
     assert.equal(last({ h: 12, fit: 1, of: 2, week: 9, outFrom: null }), "at my usual 12 h/week: 1 of 2 picks by Week 12");
     assert.equal(last({ h: 6, fit: 0, of: 2, week: null, outFrom: 7 }), "at my usual 6 h/week: rent runs out in Week 5");
-    assert.equal(last(null), "all of it in Week 6"); // no usual week yet, no line
+    assert.equal(last(null), "all of it after Week 6"); // no usual week yet, no line
     const now = milestones.map((pick) => ({ ...pick, now: true, week: null }));
     assert.equal(last({ h: 24, fit: 2, of: 2, week: null, outFrom: null }, now), "all affordable after selling");
 });

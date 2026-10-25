@@ -52,8 +52,8 @@ function whenFor(milestone) {
     if (!milestone) return null;
     if (milestone.now) return "can buy now";
     if (milestone.week === null) return "doesn't fit";
-    if (milestone.hours === null) return weekName(milestone.week);
-    return `${weekName(milestone.week)}, ${milestone.hours} h/wk`;
+    if (milestone.hours === null) return `after ${weekName(milestone.week)}`;
+    return `after ${weekName(milestone.week)}, ${milestone.hours} h/wk`;
 }
 
 // + or - on one node like site tree, prereqs tag along n dependents go with it
