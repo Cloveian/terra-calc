@@ -266,7 +266,8 @@ export function cardFor(plan, now = Date.now()) {
         details.push(`${these.length} ${WHY_LINES[why] ?? `stuck (${why})`}${cropKinds(these)}`);
     }
     if (loans > 0) details.push(`${some(loans, "loan plot")} from Ratticus`);
-    if (goal) details.push(...goalLines(goal, target, inventory.coins, plan.selling.coins));
+    // refund is in route start coins too, like selling
+    if (goal) details.push(...goalLines(goal, target, inventory.coins + goal.refund, plan.selling.coins));
     // only once its old enough to throw the steps off
     if (farm?.seenAt && now - farm.seenAt >= FARM_OLD) details.push(`(farm as of ${ago(now - farm.seenAt)})`);
     return { tasks, details };
@@ -309,6 +310,7 @@ function goalLines(goal, target, coins, selling = 0) {
     const toGo = Math.max(0, Math.ceil(goal.coins - coins - selling));
     const later = selling > 0 && coins < goal.coins ? " after selling" : "";
     const lines = [`goal: ${some(goal.coins, "coin")}${device}, ${toGo} to go${later}`];
+    if (goal.refund > 0) lines.push(`counting ${some(goal.refund, "coin")} back from switching off the ${goal.from}`);
     if (goal.coins > 0) lines.push({ bar: { coins, selling, goal: goal.coins } });
     if (target?.reachable === false) {
         lines.push(`out of reach, max ${Math.floor(target.route.at(-1).endCoins)} coins`);

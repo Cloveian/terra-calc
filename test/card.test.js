@@ -68,7 +68,7 @@ test("a mix with bonus seeds gets a line, biggest first, apples only doesn't", (
 
 test("a goal shows before the farm's been seen, with the next pick and when it's all done", () => {
     const goal = {
-        device: "Framework 12", coins: 2800, custom: false,
+        device: "Framework 12", refund: 0, coins: 2800, custom: false,
         milestones: [
             { name: "Core 3 304", qty: 1, now: false, week: 5 },
             { name: "RAM 16 GB", qty: 1, now: false, week: 8 },
@@ -93,7 +93,7 @@ test("my usual week's line: all of it, some of it, or rent running out", () => {
     const plan = (usual, picks = milestones) => ({
         t: 3, inventory: { coins: 42.6, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, farm: null, stuck: null,
         target: { w: 18, cap: 18, reachable: true, out: false, route: [] }, steps: [], selling: { crops: 0, coins: 0 },
-        goal: { device: "Framework 12", coins: 2800, custom: false, milestones: picks, usual },
+        goal: { device: "Framework 12", refund: 0, coins: 2800, custom: false, milestones: picks, usual },
     });
     // last line of words, the show more list comes after
     const last = (usual, picks) => cardFor(plan(usual, picks), NOW).details.filter((item) => typeof item === "string").at(-1);
@@ -110,22 +110,29 @@ test("a goal you can't reach says the best you'd get, one you can buy now says t
     const base = { t: 3, inventory: { coins: 3000, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, farm: null, stuck: null, steps: [], selling: { crops: 0, coins: 0 } };
     const far = cardFor({
         ...base, target: { w: 45, cap: 45, reachable: false, out: false, route },
-        goal: { device: "Framework 12", coins: 20000, custom: true, milestones: [] },
+        goal: { device: "Framework 12", refund: 0, coins: 20000, custom: true, milestones: [] },
     }, NOW).details;
     assert.ok(far.includes("goal: 20000 coins, 17000 to go"));
     assert.ok(far.includes("out of reach, max 11685 coins"));
     assert.ok(!far.some((line) => String(line).startsWith("not on my days")));
     const short = cardFor({
         ...base, target: { w: 20, cap: null, reachable: false, flat: 31, out: false, route },
-        goal: { device: "Framework 12", coins: 20000, custom: true, milestones: [] },
+        goal: { device: "Framework 12", refund: 0, coins: 20000, custom: true, milestones: [] },
     }, NOW).details;
     assert.ok(short.includes("not on my days, a flat 31 h/week would do it"));
     const now = cardFor({
         ...base, target: { w: 10, cap: 10, reachable: true, out: false, route },
-        goal: { device: "iPad Mini", coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, total: 750, now: true, week: null }] },
+        goal: { device: "iPad Mini", refund: 0, coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, total: 750, now: true, week: null }] },
     }, NOW).details;
     assert.ok(now.includes("goal: 750 coins (iPad Mini), 0 to go"));
     assert.ok(now.includes("all affordable now"));
+    // goal off my main device, switching gives back what's on it
+    const switching = cardFor({
+        ...base, inventory: { ...base.inventory, coins: 100 }, target: { w: 10, cap: 10, reachable: true, out: false, route },
+        goal: { device: "iPad Mini", refund: 500, from: "Framework 12", coins: 750, custom: false, milestones: [] },
+    }, NOW).details;
+    assert.ok(switching.includes("goal: 750 coins (iPad Mini), 150 to go"));
+    assert.ok(switching.includes("counting 500 coins back from switching off the Framework 12"));
 });
 
 test("the first 2 days of a week say how last week went, at least, it's only as of when it was last seen", () => {
@@ -145,7 +152,7 @@ test("crops waiting to sell come off what's to go, and get a sell step", () => {
         t: 3, inventory: { coins: 500, plots: 20, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: null, stuck: null,
         target: { w: 10, cap: 10, reachable: true, out: false, route: [{ endCoins: 900 }] },
         selling: { crops: 10, coins: 300 },
-        goal: { device: "iPad Mini", coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, total: 750, now: true, week: null }] },
+        goal: { device: "iPad Mini", refund: 0, coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, total: 750, now: true, week: null }] },
         steps: [{ do: "harvest", n: 4 }, { do: "sell", n: 10, coins: 300 }, { do: "buyPlots", n: 2 }],
     };
     const { tasks, details } = cardFor(plan, NOW);

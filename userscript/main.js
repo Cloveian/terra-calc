@@ -24,7 +24,7 @@ import { waitFor, waitWorth, dayHours, typicalDays, weekShape, sinceStart, typic
 import { buyRisk } from "./risk.js";
 import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
-import { byId, sameSelection } from "../src/tree.js";
+import { byId, sameSelection, goalCost } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
 const SHOP_KEY = "terra-calc-shop";
@@ -517,8 +517,11 @@ function plan() {
     const coinsGoal = cleaned && goalCoins(picked, trees, cleaned.own);
     const shop = shopNow();
     const selling = inventory && sellingNow(inventory, m, shop.table);
+    // goal on another device = switching gives back what i paid on mine. shipped ones dont come back, cant tell those apart yet
+    const mine = picked && trees[owned.device];
+    const refund = coinsGoal !== null && mine && picked.device !== owned.device ? goalCost(mine, owned.own) : 0;
     const start = t !== null && plots !== null
-        ? routeState(inventory, plots, game.farm, game.hours?.weekKey, selling.coins)
+        ? routeState(inventory, plots, game.farm, game.hours?.weekKey, selling.coins + refund)
         : null;
     // seeds for this weeks mix, the shops + mine (bag or planted)
     const thisWeek = inventory && {
@@ -610,6 +613,8 @@ function plan() {
             custom: picked.goal !== null,
             milestones: rows,
             usual, // null till every weekday has a typical
+            refund, // 0 on my own device
+            from: mine?.device ?? null,
         },
         steps: ticked.steps,
     };

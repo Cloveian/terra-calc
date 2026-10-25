@@ -14,7 +14,6 @@ export function cleanGoal(saved, trees, owned) {
     }
     if (!(device in trees)) return null;
     // other device = nothing owned there, switching refunds it all
-    // todo: refund coins in plan (select-device sends them back)
     const own = device === owned.device ? owned.own : {};
     const raw = {
         device,
