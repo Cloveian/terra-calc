@@ -134,8 +134,7 @@ export function tellGame(type, payload) {
     gameSocket.dispatchEvent(new MessageEvent("message", { data: frame(type, payload).buffer }));
 }
 
-// message to the server like the game sends one, false with no socket. plain msgpack, the games own are msgpackr records
-// todo: dont know yet if the server minds
+// message to the server like the game sends one, false with no socket. plain msgpack, the games own are msgpackr records, server reads both
 export function sendGame(type, payload) {
     if (!gameConnected()) return false;
     gameSocket.send(frame(type, payload));

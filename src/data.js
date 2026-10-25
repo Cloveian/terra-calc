@@ -1,5 +1,4 @@
 // Game data only, no logic. Prices as of 9 Oct 2026 (Prep 2), from /device-upgrades.
-// TODO: Make userscrpipt grab device prices from ingame
 // Sources: research/how-terra-works.md, research/device-trees.md
 
 export const PRICES_AS_OF = "2026-10-09";
