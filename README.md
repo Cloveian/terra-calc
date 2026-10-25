@@ -28,6 +28,7 @@ There's also a userscript that runs inside Terra itself, so there's nothing to t
 
 - reads your coins, seeds, plots, farm, upgrades and the week straight from the game
 - puts this week's steps in Terra's own "This Week" card ("buy 12 eggplant seeds", "code 21.9h"), and ticks them off as you do them
+- on that card too: whether the seeds you'd buy actually get watered in enough of your past weeks to be worth their price (once it's seen three of your weeks), and when waiting for a better seed in Heidi's shop beats today's (once it's seen her shop on 14 days)
 - a want button on each upgrade in Terra's device tree, and a priority number and the week you can afford it on the ones you want
 - coins-an-hour badges on Heidi's seeds, with how many the plan buys (off until you turn them on)
 - an hour box on each day left on Terra's calendar: type what you can give that day, and the plan works around the rest the way your weeks usually go. Days already gone show what you coded
