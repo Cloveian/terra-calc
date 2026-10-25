@@ -93,14 +93,40 @@ export function decodeMsgpack(bytes, offset = 0) {
     return { value, end: pos };
 }
 
-// for frames we hand the game ourselves. fixstr n fixmap only (under 32 bytes, under 16 keys), all friend.joinRoom needs. plain byte values
+// for frames of ours, to the game or the server. json-ish stuff only (no bin, ext or 64 bit ints), under 64K of anything. plain byte values
 export function encodeMsgpack(value) {
+    if (value === null) return [0xc0];
+    if (typeof value === "boolean") return [value ? 0xc3 : 0xc2];
+    if (typeof value === "number") return encodeNumber(value);
     if (typeof value === "string") {
         const s = utf8out.encode(value);
         if (s.length < 32) return [0xa0 | s.length, ...s];
-    } else if (value !== null && typeof value === "object") {
+        if (s.length < 0x100) return [0xd9, s.length, ...s];
+        if (s.length < 0x10000) return [0xda, ...bigEndian(s.length, 2, "setUint16"), ...s];
+    } else if (Array.isArray(value)) {
+        const items = value.flatMap(encodeMsgpack);
+        if (value.length < 16) return [0x90 | value.length, ...items];
+        if (value.length < 0x10000) return [0xdc, ...bigEndian(value.length, 2, "setUint16"), ...items];
+    } else if (typeof value === "object") {
         const entries = Object.entries(value);
-        if (entries.length < 16) return [0x80 | entries.length, ...entries.flatMap(([k, v]) => [...encodeMsgpack(k), ...encodeMsgpack(v)])];
+        const pairs = entries.flatMap(([k, v]) => [...encodeMsgpack(k), ...encodeMsgpack(v)]);
+        if (entries.length < 16) return [0x80 | entries.length, ...pairs];
+        if (entries.length < 0x10000) return [0xde, ...bigEndian(entries.length, 2, "setUint16"), ...pairs];
     }
     throw new Error(`msgpack: can't encode ${JSON.stringify(value)}`);
+}
+
+// fixint, 32 bit int or float64, any of them reads back the same
+function encodeNumber(n) {
+    const int = Number.isInteger(n);
+    if (int && n >= -32 && n < 0x80) return [n & 0xff];
+    if (int && n >= 0 && n <= 0xffffffff) return [0xce, ...bigEndian(n, 4, "setUint32")];
+    if (int && n < 0 && n >= -0x80000000) return [0xd2, ...bigEndian(n, 4, "setInt32")];
+    return [0xcb, ...bigEndian(n, 8, "setFloat64")];
+}
+
+function bigEndian(n, size, set) {
+    const view = new DataView(new ArrayBuffer(size));
+    view[set](0, n);
+    return [...new Uint8Array(view.buffer)];
 }

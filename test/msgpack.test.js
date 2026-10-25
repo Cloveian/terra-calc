@@ -85,6 +85,19 @@ test("encoding strings and small objects", () => {
     const hub = { levelId: "town-square" };
     assert.deepEqual(decode(encodeMsgpack(hub)), hub);
     assert.equal(decode(encodeMsgpack("bok choy ✿")), "bok choy ✿");
-    assert.throws(() => encodeMsgpack(3), /can't encode/);
-    assert.throws(() => encodeMsgpack("x".repeat(32)), /can't encode/);
+    assert.throws(() => encodeMsgpack(undefined), /can't encode/);
+});
+
+test("encoding what we send the server", () => {
+    assert.deepEqual(encodeMsgpack(5), [0x05]);
+    assert.deepEqual(encodeMsgpack(-1), [0xff]);
+    assert.deepEqual(encodeMsgpack(575), [0xce, 0, 0, 0x02, 0x3f]);
+    assert.deepEqual(encodeMsgpack("x".repeat(36)), [0xd9, 36, ...text("x".repeat(36))]);
+    // terraCalc.buy on a bonus seed
+    const buy = { stockEntryId: "admin-341c3621-b2e5-4d90-8a2b-ae9dd9f1486d", requestId: "247da50e-e255-4751-a2a8-7cecf8d21daa", expectedPriceCoins: 15 };
+    assert.deepEqual(decode(encodeMsgpack(buy)), buy);
+    const sell = { npcId: "x", selections: [{ itemId: "a", quantity: 300 }], all: true, note: null, m: -40, f: 1.5 };
+    assert.deepEqual(decode(encodeMsgpack(sell)), sell);
+    const keys = Object.fromEntries([...Array(20)].map((_, i) => [`k${i}`, i]));
+    assert.deepEqual(decode(encodeMsgpack(keys)), keys);
 });

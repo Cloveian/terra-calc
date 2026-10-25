@@ -247,6 +247,6 @@ Plot and farm item shapes (what `farmItemId` points at, growth state) come throu
 
 ## Still to capture
 
-- A HAR from Chrome or Edge with **Network -> WS -> messages** (Firefox doesn't save them), while opening the shop, buying a seed and a plot, selling crops and planting. That would show the real `shop.stock` entries, the seed and plot item `type`/`subtype`, and what `hours.update` and `farm.notice` send.
+- A HAR from Chrome or Edge with **Network -> WS -> messages** (Firefox doesn't save them), while opening the shop, buying a seed and a plot, selling crops and planting. That would show ~~the real `shop.stock` entries,~~ the seed and plot item `type`/`subtype`, and what `hours.update` and `farm.notice` send.
 - Whether `shop.purchase` works without Heidi's dialogue being open.
 - Fresh JS, since the files here are from 9 Oct.

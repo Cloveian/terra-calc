@@ -1,4 +1,4 @@
-// game websocket reader, plus fake server frames for the game
+// game websocket reader, plus fake server frames for the game n sends of our own
 import { GAME_HOST, CHECKS } from "./endpoints.js";
 import { decodeMsgpack, encodeMsgpack } from "./msgpack.js";
 import { decoderFromJoin } from "./schema.js";

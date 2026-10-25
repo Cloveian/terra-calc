@@ -47,7 +47,7 @@ export function wantBit(tree, own, want, id, milestones = new Map(), prio = {}) 
     };
 }
 
-// "Week 4, 22 h/wk", or null with no plan yet
+// "after Week 4, 22 h/wk", or null with no plan yet
 function whenFor(milestone) {
     if (!milestone) return null;
     if (milestone.now) return "can buy now";
