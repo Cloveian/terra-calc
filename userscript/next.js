@@ -20,7 +20,8 @@ export function weekTarget(state, t, goal, m, thisWeek = null, given = {}) {
     } else {
         // typed days can leave this weeks open ones under rent at 10 h/week, the lowest cap that pays this week. later weeks short is their own week's problem
         route = simulateRoute(state, t, cap, m, thisWeek, given);
-        for (let more = RENT + 1; route[0]?.out && more <= MAX_PLOTS; more++) {
+        // every day typed = no open ones for a cap to go on
+        for (let more = RENT + 1; route[0]?.out && given[t]?.open !== 0 && more <= MAX_PLOTS; more++) {
             const tried = simulateRoute(state, t, more, m, thisWeek, given);
             if (!tried[0]?.out) [cap, route] = [more, tried];
         }
