@@ -23,10 +23,10 @@ Eggplant wins per hour *and* per plot, by a lot per plot. Bok choy only beats ap
 
 | Decision | What it does |
 | --- | --- |
-| Weeks after this one | **Decision:** apples only, or guess some bonus seeds? Default: apples only. Tomorrow's crops aren't known, so the route stays the one seed that's always there and the h/week it asks for is an upper bound |
+| Weeks after this one | **Decision:** apples only, or guess some bonus seeds? ~~Default: apples only. Tomorrow's crops aren't known, so the route stays the one seed that's always there and the h/week it asks for is an upper bound~~ The userscript plans them with a typical shop day now ([shop-seeds.md](shop-seeds.md)), the site still does apples only |
 | This week | The best mix of what you have plus what's in the shop *today* (the site asks which, the userscript reads `shop.stock`) |
 | Hours vs crops | The hours are water. The first 10 are the free base crops like before, the rest get split over seeds by their water, a 2-water eggplant takes 2 of them. Plots and plot cost go by crops, not hours |
-| Picking the mix | Tries every combination (eggplants \* bok choys, apples fill the rest), keeps the one that ends the week with the most coins. 3 seeds and up to 35 extra hours is a few hundred tries (342 at 35 h), exact, and it doesn't care about water or budget being weird. Seeds you already have cost nothing |
+| Picking the mix | Tries every combination of all but one seed (apples \* bok choys on an eggplant day), the best per hour in today's stock fills the rest, keeps the one that ends the week with the most coins. 3 seeds and up to 35 extra hours is a few hundred tries (666 at 35 h with eggplant filling, 342 with apples), exact, and it doesn't care about water or budget being weird. Seeds you already have cost nothing |
 | What "best" means | This week's coins only. Plots you buy are yours for later too, so this undervalues the mixes that use fewer plots a bit. Same short-sightedness the apples-only model already had |
 | The cap | Still 45 h a week and 45 plots. Eggplants could let you code past 45 h on 45 plots. **Decision:** allow that? Default: no, the hours box stays 10-45 |
 | Rent | Still the 10 free crops, nothing says a bonus crop can pay rent |

@@ -53,7 +53,7 @@ Each week: 1 hour of coding = 1 water, and 1 water + 1 seed + 1 dirt plot = 1 cr
 
 The full rules, where each one comes from (the game's code, the FAQ, or a Terra dev), and the formulas are in [research/how-terra-works.md](research/how-terra-works.md). What upgrades are worth in real money is in [research/real-prices.md](research/real-prices.md).
 
-Prices are a snapshot. Bonus seeds (bok choy and eggplant so far) are only in Heidi's shop on some days, so the plan uses them in the first week and apples after that.
+Prices are a snapshot. Bonus seeds (bok choy and eggplant so far) are only in Heidi's shop on some days, so the plan uses them in the first week and apples after that. The userscript plans the weeks after this one with a typical day in her shop instead.
 
 ## Running it locally
 

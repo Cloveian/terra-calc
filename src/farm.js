@@ -54,7 +54,7 @@ export function bestMix(k, coins, plots, onHand, seedIds, m, table = CROPS) {
     // seedIds = buyable today, seeds already in the bag get planted either way
     const buyable = new Set(seedIds);
     const held = Object.keys(onHand).filter((id) => onHand[id] > 0 && table[id]);
-    // best a water out of whats buyable fills whatever's left at the end (apple most days, cabbage on a bad one). none buyable = no filler
+    // best a water out of whats buyable fills whatever's left at the end (apple most days, eggplant on an eggplant day, cabbage on a bad one). none buyable = no filler
     let filler = null;
     for (const id of seedIds) {
         if (table[id] && (filler === null || perHour(table[id], m) > perHour(table[filler], m))) filler = id;
