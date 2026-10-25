@@ -128,14 +128,28 @@ test("stepsFrom: 19 Oct, stuck with nothing lent yet, so the plots would have to
         farm, inventory: bag({ baseSeeds: 10 }), stuck: stuckFrom(farm, "2026-W43"), loans: 0,
         weekKey: "2026-W43", w: 10,
     });
+    // 36 + 9 = 45, the 10th only comes as a loan
     assert.deepEqual(steps, [
-        { do: "buyPlots", n: 10 },
-        { do: "waitForLoans", n: 10 },
-        { do: "place", n: 10 },
+        { do: "buyPlots", n: 9 },
+        { do: "waitForLoans", n: 10, or: true },
+        { do: "place", n: 9 },
         { do: "plantBase", n: 10 },
         { do: "code", n: 10 },
         { do: "ship", n: 10 },
     ]);
+});
+
+test("stepsFrom: at 45 plots with last week's still on 10 of them, no plots to buy", () => {
+    const strawberries = crops("watered", 10, { week: "2026-W43" }).map((crop) => ({ ...crop, id: "strawberry", seed: "strawberry_seed", name: "Strawberry" }));
+    const plotSteps = (farm, loans) => stepsFrom({
+        farm, inventory: bag({ seeds: 35, baseKinds: { strawberry: 10 } }), stuck: stuckFrom(farm, "2026-W43"), loans, weekKey: "2026-W43", w: 45,
+    }).filter((step) => ["buyPlots", "waitForLoans", "full", "place"].includes(step.do));
+    // 35 apples to go on 25 empty
+    const farm = { plots: 45, empty: 25, crops: [...strawberries, ...crops("review", 10, { review: "review" })] };
+    assert.deepEqual(plotSteps(farm, 0), [{ do: "waitForLoans", n: 10, or: false }]);
+    // ratticus already lent 5 (placed, 50 on the farm), the rest just wont fit
+    const lent = { plots: 50, empty: 25, crops: [...strawberries, ...crops("review", 15, { review: "review" })] };
+    assert.deepEqual(plotSteps(lent, 5), [{ do: "full", n: 10 }]);
 });
 
 test("stepsFrom: a busy week, harvesting last week's pays the loans back", () => {
@@ -180,6 +194,11 @@ test("tickSteps: steps that are gone are done, with the count they started with"
         { do: "place", n: 3, done: false },
         { do: "code", n: 27, done: false },
     ]);
+});
+
+test("tickSteps: bought the plots, the ticked loan step keeps its or", () => {
+    const first = tickSteps(null, [{ do: "buyPlots", n: 9 }, { do: "waitForLoans", n: 10, or: true }], "2026-W43", 45);
+    assert.deepEqual(tickSteps(first.saved, [], "2026-W43", 45).steps[1], { do: "waitForLoans", n: 10, or: true, done: true });
 });
 
 test("tickSteps: a new step goes after the one before it, a new target or week starts over", () => {

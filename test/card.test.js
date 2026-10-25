@@ -157,6 +157,21 @@ test("crops waiting to sell come off what's to go, and get a sell step", () => {
     ]);
 });
 
+test("at 45 plots: the loan step without the 'or', n what won't fit", () => {
+    const plan = {
+        t: 3, inventory: { coins: 0, plots: 45, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: null, stuck: null,
+        steps: [{ do: "buyPlots", n: 2 }, { do: "waitForLoans", n: 10, or: true }, { do: "waitForLoans", n: 10, or: false }, { do: "full", n: 3 }],
+    };
+    assert.deepEqual(cardFor(plan, NOW).tasks.slice(0, 4).map(({ text }) => text), [
+        "buy 2 plots",
+        "(or wait for up to 10 loan plots on Wednesday, if still in review)",
+        "wait for up to 10 loan plots on Wednesday, if still in review",
+        "3 crops won't fit, 45 plots is the most",
+    ]);
+    const stuck = { ...plan, stuck: { count: 10, why: {} } };
+    assert.equal(cardFor(stuck, NOW).tasks[3].text, "3 crops won't fit till last week's clear, 45 plots is the most");
+});
+
 test("short on hours just says so, the devlog step says what to do", () => {
     const farm = { plots: 1, empty: 0, crops: crops("review", 1, { review: "short" }), seenAt: NOW };
     const plan = {

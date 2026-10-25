@@ -168,14 +168,21 @@ export function stepsFrom({
         ? inventory.baseSeeds
         : Math.min(inventory.baseSeeds, Math.max(0, Math.min(BASE_SEEDS, w) - plantedBase));
     const going = base + Object.values(toPlant).reduce((total, n) => total + n, 0);
-    const buyPlots = Math.max(0, going - free - inventory.unplaced);
+    const needPlots = Math.max(0, going - free - inventory.unplaced);
+    // MAX_PLOTS goes by owned ones, ratticus's loans dont count
+    const owned = farm.plots + inventory.unplaced - loans;
+    const buyPlots = Math.min(needPlots, Math.max(0, MAX_PLOTS - owned));
+    // stuck crops with nothing lent yet, ratticus might cover some plots for free
+    const lent = loans === 0 ? Math.min(needPlots, stuck.count) : 0;
+    const full = Math.max(0, needPlots - buyPlots - lent);
     // mix only knows todays bonus seeds once the shop has been open today. not with no target or only free ones left to plant
     if (!shopToday && w !== null && going > base) add({ do: "checkShop", n: 1 });
     // seeds first, place n the "or wait" go right under buyPlots in nestSteps
     for (const [id, n] of Object.entries(toPlant)) add({ do: "buySeeds", seed: id, n: Math.max(0, n - (bag[id] ?? 0)) });
     add({ do: "buyPlots", n: buyPlots });
-    // stuck crops with nothing lent yet, ratticus might cover some plots for free
-    if (loans === 0) add({ do: "waitForLoans", n: Math.min(buyPlots, stuck.count) });
+    // or = theres a buy step its the other way to. at 45 loans are the only room left
+    add({ do: "waitForLoans", n: lent, or: buyPlots > 0 });
+    add({ do: "full", n: full });
     add({ do: "place", n: Math.min(inventory.unplaced + buyPlots, Math.max(0, going - free)) });
     add({ do: "plantBase", n: base });
     for (const [id, n] of Object.entries(toPlant)) add({ do: "plant", seed: id, n });
@@ -205,7 +212,10 @@ export function tickSteps(saved, steps, weekKey, w) {
         if (list.some(same(step))) return;
         // new ones go after the one before, always in the list by now
         const at = i === 0 ? 0 : list.findIndex(same(steps[i - 1])) + 1;
-        list.splice(at, 0, step.seed ? { do: step.do, seed: step.seed, n: step.n } : { do: step.do, n: step.n });
+        const kept = step.seed ? { do: step.do, seed: step.seed, n: step.n } : { do: step.do, n: step.n };
+        // a ticked "(or wait ...)" still says or
+        if ("or" in step) kept.or = step.or;
+        list.splice(at, 0, kept);
     });
     return {
         saved: { weekKey, w, steps: list },

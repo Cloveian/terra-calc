@@ -1,6 +1,6 @@
 // what to do next, inside terra's own This Week card
 import { weekName, isPrep, DAY_MS, LAST_WEEK } from "../src/week.js";
-import { CROPS, BASE_KINDS } from "../src/data.js";
+import { CROPS, BASE_KINDS, MAX_PLOTS } from "../src/data.js";
 import { mixWords } from "../src/farm.js";
 import { nestSteps } from "./next.js";
 import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
@@ -31,7 +31,11 @@ const STEP_LINES = {
     buyPlots: (n) => `buy ${some(n, "plot")}`,
     checkShop: () => "check Heidi's shop",
     buySeeds: (n, plan, now, step) => `buy ${some(n, seedName(step.seed, plan))}`,
-    waitForLoans: (n) => `(or wait for up to ${some(n, "loan plot")} on Wednesday, if still in review)`,
+    waitForLoans: (n, plan, now, step) => {
+        const wait = `wait for up to ${some(n, "loan plot")} on Wednesday, if still in review`;
+        return step.or ? `(or ${wait})` : wait;
+    },
+    full: (n, plan) => `${some(n, "crop")} won't fit${plan.stuck?.count ? " till last week's clear" : ""}, ${MAX_PLOTS} plots is the most`,
     place: (n) => `place ${some(n, "plot")}`,
     plantBase: (n, plan, now, step) => `plant ${some(n, baseSeedName(plan.inventory, plan.t))}${deadline(plan.inventory.seedsDie, now, step)}`,
     plant: (n, plan, now, step) => `plant ${some(n, seedName(step.seed, plan))}${deadline(plan.inventory.seedsDie, now, step)}`,
