@@ -167,7 +167,40 @@ test("stepsFrom: no target n a bag bigger than 45 plots", () => {
     const steps = stepsFrom({
         farm: { plots: 45, empty: 45, crops: [] }, inventory: bag({ seeds: 50 }), stuck: stuckFrom({ crops: [] }, "2026-W43"), loans: 0, weekKey: "2026-W43", w: null,
     });
-    assert.deepEqual(steps.filter((step) => step.do === "full"), [{ do: "full", n: 5 }]);
+    assert.deepEqual(steps, [
+        { do: "full", n: 5 },
+        { do: "plant", seed: "apple", n: 45 },
+        { do: "code", n: 45 },
+        { do: "ship", n: 45 },
+    ]);
+});
+
+test("stepsFrom: what wont fit comes off the apples first", () => {
+    // 20 empty at 45 plots, 35 going: 10 free, 10 eggplant (4 in the bag), 15 apples (5 in the bag)
+    const steps = stepsFrom({
+        farm: { plots: 45, empty: 20, crops: [] }, inventory: bag({ seeds: 5, baseSeeds: 10, bonus: { eggplant: 4 } }), stuck: stuckFrom({ crops: [] }, "2026-W43"),
+        loans: 0, weekKey: "2026-W43", w: 35, mix: { eggplant: 10, apple: 15 },
+    });
+    assert.deepEqual(steps, [
+        { do: "buySeeds", seed: "eggplant", n: 6 },
+        { do: "full", n: 15 },
+        { do: "plantBase", n: 10 },
+        { do: "plant", seed: "eggplant", n: 10 },
+        { do: "code", n: 30 },
+        { do: "ship", n: 20 },
+    ]);
+});
+
+test("stepsFrom: bok choy still to buy goes before apples already in the bag", () => {
+    // 12 wont fit. bok choy to buy is worth 27 a plot, an apple in the bag 30
+    const steps = stepsFrom({
+        farm: { plots: 45, empty: 23, crops: [] }, inventory: bag({ seeds: 15, baseSeeds: 10, bonus: { bokchoy: 4 } }), stuck: stuckFrom({ crops: [] }, "2026-W43"),
+        loans: 0, weekKey: "2026-W43", w: 35, mix: { bokchoy: 10, apple: 15 },
+    });
+    assert.deepEqual(steps.filter((step) => step.do === "buySeeds" || step.do === "plant"), [
+        { do: "plant", seed: "bokchoy", n: 4 },
+        { do: "plant", seed: "apple", n: 9 },
+    ]);
 });
 
 test("stepsFrom: a busy week, harvesting last week's pays the loans back", () => {

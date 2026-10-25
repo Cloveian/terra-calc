@@ -170,10 +170,10 @@ export function stepsFrom({
     const toPlant = Object.fromEntries(Object.entries(wanted)
         .map(([id, n]) => [id, w === null ? n : Math.max(0, n - (planted[id] ?? 0))]));
     // free seeds first, model counts first 10 crops as free ones (rent in main weeks)
-    const base = w === null
+    let base = w === null
         ? inventory.baseSeeds
         : Math.min(inventory.baseSeeds, Math.max(0, Math.min(BASE_SEEDS, w) - plantedBase));
-    const going = base + Object.values(toPlant).reduce((total, n) => total + n, 0);
+    let going = base + Object.values(toPlant).reduce((total, n) => total + n, 0);
     const needPlots = Math.max(0, going - free - inventory.unplaced);
     // MAX_PLOTS goes by owned ones, ratticus's loans dont count
     const owned = farm.plots + inventory.unplaced - loans;
@@ -181,6 +181,20 @@ export function stepsFrom({
     // stuck crops with nothing lent yet, ratticus might cover some plots for free
     const lent = loans === 0 ? Math.min(needPlots, stuck.count) : 0;
     const full = Math.max(0, needPlots - buyPlots - lent);
+    // ones that wont fit come off the least worth a plot first (at m 1), bag ones are paid for already, free ones last
+    let cut = full;
+    const chunks = Object.entries(toPlant).flatMap(([id, n]) => {
+        const have = Math.min(n, bag[id] ?? 0);
+        const { sell = 0, buy = 0 } = table[id] ?? {};
+        return [{ id, n: n - have, worth: sell - buy }, { id, n: have, worth: sell }];
+    }).sort((a, b) => a.worth - b.worth);
+    for (const chunk of chunks) {
+        const off = Math.min(cut, chunk.n);
+        toPlant[chunk.id] -= off;
+        cut -= off;
+    }
+    base -= cut;
+    going -= full;
     // mix only knows todays bonus seeds once the shop has been open today. not with no target or only free ones left to plant
     if (!shopToday && w !== null && going > base) add({ do: "checkShop", n: 1 });
     // seeds first, place n the "or wait" go right under buyPlots in nestSteps
