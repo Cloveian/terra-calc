@@ -129,6 +129,9 @@ What waits on what, a table in next.js next to the steps (the steps' own `requir
 | plant apples | place, buy seeds, clear, harvest |
 | ship | code |
 | "or wait for Ratticus" | buy plots (it's the other way to get them) |
+| "N crops won't fit" | nothing |
+
+Buy plots never goes past 45 owned (Ratticus's loans don't count). Past that Ratticus is the only room left, and only while he hasn't lent any yet, up to one plot per stuck crop (the wait loses its "or" when there's nothing left to buy). Whatever he can't cover is "N crops won't fit, 45 plots is the most", plus "till last week's clear" when some of last week's are still stuck.
 
 A step's indent is one more than the deepest step it waits on that's still on the list, and the order doesn't change, same as the site's milestone list (built 22 Oct, `nestSteps`). For that to read right, buy seeds now comes before buy plots, so place sits right under the plots. Ticked steps stay on the list and keep their spot in the indent (step 6), so the list doesn't jump around as you go.
 
