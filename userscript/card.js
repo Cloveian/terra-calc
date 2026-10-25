@@ -278,7 +278,7 @@ function seedName(id, plan) {
     return `${cropName(id, plan.crops)} seed`;
 }
 
-// todays shop name if its selling it, then CROPS, then the id (apples have no name)
+// name off the known seeds (shop log, data.js), then the id (data.js apples have no name)
 function cropName(id, crops) {
     return (crops[id]?.name ?? CROPS[id]?.name ?? id).toLowerCase();
 }

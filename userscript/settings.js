@@ -1,5 +1,5 @@
 // which userscript parts are on, plus our own section in terra's settings tab
-import { MULTIPLIER, CROPS, BONUS_SEEDS } from "../src/data.js";
+import { MULTIPLIER } from "../src/data.js";
 import { clamp } from "../src/state.js";
 import { cssModule, watchPage, keepFromGame, KEYS, numberBox } from "./page.js";
 import { loadJSON, saveJSON } from "./store.js";
@@ -19,15 +19,21 @@ export const FEATURES = {
 };
 
 // m = my own multiplier, null = the games.
-// typed: numbers i typed in, each only used whn the games cant be read. seeds is apples, bonus ones by seed id (bokchoy)
+// typed: numbers i typed in, each only used whn the games cant be read. seeds is apples, bonus = the rest by seed id, { cabbage: 3 }
 export function loadSettings() {
     const defaults = {
         ...Object.fromEntries(Object.entries(FEATURES).map(([id, f]) => [id, f.on])),
         m: null,
-        typed: { coins: null, plots: null, seeds: null, ...Object.fromEntries(BONUS_SEEDS.map((id) => [id, null])) },
+        typed: { coins: null, plots: null, seeds: null, bonus: {} },
     };
     const saved = { ...defaults, ...loadJSON(KEY) };
-    const typed = Object.fromEntries(Object.keys(defaults.typed).map((key) => [key, cleanCount(saved.typed[key])]));
+    const bonus = Object.entries(saved.typed.bonus ?? {}).map(([id, n]) => [id, cleanCount(n)]).filter(([, n]) => n !== null);
+    const typed = {
+        coins: cleanCount(saved.typed.coins),
+        plots: cleanCount(saved.typed.plots),
+        seeds: cleanCount(saved.typed.seeds),
+        bonus: Object.fromEntries(bonus),
+    };
     return { ...saved, m: cleanM(saved.m), typed };
 }
 
@@ -59,16 +65,14 @@ const NEEDS_RELOAD = ["fill", "panel", "hud", "seedBadges", "days"];
 
 let onSettings = null;
 let current = null;
-let onGoal = null;
-let onHackatime = null;
+let hooks = null;
 
-// settings changed in place, onChange after every change. goal n hackatime = goalHooks n hackatimeHooks from main.js
-export function mountSettings(settings, onChange, goal, hackatime) {
+// settings changed in place, onChange after every change. hooks from main.js: goal, hackatime, seeds() = [{ id, name }] for the typed boxes
+export function mountSettings(settings, onChange, mainHooks) {
     if (onSettings) return;
     current = settings;
     onSettings = onChange;
-    onGoal = goal;
-    onHackatime = hackatime;
+    hooks = mainHooks;
     watchPage(fillSettings)();
 }
 
@@ -124,7 +128,7 @@ function makeSection(c) {
     const row = el("div", c.settingsRow);
     row.append(mCol, togglesCol);
     ours.append(el("div", c.sectionTitle, "Terra Calc"), row);
-    const goal = onGoal.now();
+    const goal = hooks.goal.now();
     if (goal) ours.append(goalRow(c, goal));
     ours.append(hackatimeRow(c), typedRow(c));
     return ours;
@@ -137,12 +141,12 @@ function hackatimeRow(c) {
     box.type = "password";
     box.autocomplete = "off";
     box.placeholder = "from hackatime.hackclub.com/api-key";
-    box.value = onHackatime.key() ?? "";
-    const status = el("div", c.formLabel, onHackatime.status());
+    box.value = hooks.hackatime.key() ?? "";
+    const status = el("div", c.formLabel, hooks.hackatime.status());
     box.addEventListener("change", async () => {
         status.textContent = box.value.trim() ? "Asking Hackatime..." : "";
-        await onHackatime.set(box.value.trim());
-        status.textContent = onHackatime.status();
+        await hooks.hackatime.set(box.value.trim());
+        status.textContent = hooks.hackatime.status();
     });
     col.append(el("div", c.formLabel, "Hackatime API key (optional, guesses how your days go)"), box, status);
     const row = el("div", c.settingsRow);
@@ -153,25 +157,33 @@ function hackatimeRow(c) {
 
 // typed coins, plots n seeds, for when a terra update breaks a reader. plots count before ive been on my farm or seen shop too
 function typedRow(c) {
-    const box = (key, label) => {
+    const typed = current.typed;
+    const box = (label, value, set) => {
         const col = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
-        const input = inputBox(c, { min: "0", step: "1" }, current.typed[key], cleanCount, (n) => {
-            current.typed[key] = n;
+        const input = inputBox(c, { min: "0", step: "1" }, value, cleanCount, (n) => {
+            set(n);
             onSettings(current);
         });
         col.append(el("div", c.formLabel, label), input);
         return col;
     };
+    const boxes = [
+        box("Coins", typed.coins, (n) => { typed.coins = n; }),
+        box("Plots", typed.plots, (n) => { typed.plots = n; }),
+        box("Apple seeds", typed.seeds, (n) => { typed.seeds = n; }),
+        ...hooks.seeds().map(({ id, name }) => box(`${name} seeds`, typed.bonus[id] ?? null, (n) => { if (n === null) delete typed.bonus[id]; else typed.bonus[id] = n; })),
+    ];
     const wrap = el("div");
     wrap.style.marginTop = "1em";
-    // two rows, settingsRow doesnt wrap n five boxes ran off teh side
-    const row = el("div", c.settingsRow);
-    row.append(box("coins", "Coins"), box("plots", "Plots"));
+    wrap.append(el("div", c.formLabel, "For when the game can't be read"));
     // TODO: "in Heidi's shop today" ticks from site, for when shop cant be read
-    const seeds = el("div", c.settingsRow);
-    seeds.style.marginTop = "0.5em";
-    seeds.append(box("seeds", "Apple seeds"), ...BONUS_SEEDS.map((id) => box(id, `${CROPS[id].name} seeds`)));
-    wrap.append(el("div", c.formLabel, "For when the game can't be read"), row, seeds);
+    // rows of 3, settingsRow doesnt wrap n five boxes ran off teh side
+    for (let i = 0; i < boxes.length; i += 3) {
+        const row = el("div", c.settingsRow);
+        if (i > 0) row.style.marginTop = "0.5em";
+        row.append(...boxes.slice(i, i + 3));
+        wrap.append(row);
+    }
     return wrap;
 }
 
@@ -191,7 +203,7 @@ function goalRow(c, goal) {
     select.value = goal.picked ?? "";
     select.addEventListener("change", () => {
         if (!select.value) return;
-        onGoal.preset(select.value);
+        hooks.goal.preset(select.value);
         // preset ends a coin goal, and the picks are that preset now
         coins.value = "";
         select.querySelector('option[value=""]')?.remove();
@@ -201,7 +213,7 @@ function goalRow(c, goal) {
     pickCol.append(el("div", c.formLabel, "Goal"), selectRow);
 
     const coinsCol = el("div", `${c.settingsCol} ${c.settingsColQuarter ?? ""}`);
-    const coins = inputBox(c, { min: "0", step: "1" }, goal.coins, cleanCount, (n) => onGoal.coins(n));
+    const coins = inputBox(c, { min: "0", step: "1" }, goal.coins, cleanCount, (n) => hooks.goal.coins(n));
     coinsCol.append(el("div", c.formLabel, "Goal in coins (empty uses your picks)"), coins);
 
     const row = el("div", c.settingsRow);

@@ -1,5 +1,5 @@
 // game messages into terra calc shapes. null = couldnt tell
-import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX, CROPS } from "../src/data.js";
+import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX } from "../src/data.js";
 import { withoutZeros } from "../src/tree.js";
 import { plotCost } from "../src/farm.js";
 import { easternDay } from "../src/week.js";
@@ -215,27 +215,17 @@ export function shopFrom(shopStock) {
     const price = (itemId) => shopStock.entries.find((entry) => entry.itemId === itemId)?.priceCoins ?? null;
     const plotPrice = price(DIRT_PLOT);
     return {
-        applePrice: price(APPLE_SEED),
         plotPrice,
         plots: plotPrice !== null && plotPrice < PLOT_PRICE_MAX ? plotPrice + FREE_PLOTS - 1 : null,
     };
 }
 
-// shop prices that aren't what the plan thinks, a { kind, text } each, kind "apple" or "plot". if Terra
-// changes a price the plan's wrong till data.js catches up. a plot one can also just mean plots is old
-// (bought some since the farm was seen, or not placed yet), can't tell which
+// next plot price vs the formula, as words, [] when it matches
+// a mismatch can also just mean plots is old (bought some since the farm was seen, or not placed yet), can't tell which
 export function shopProblems(shop, plots) {
-    const problems = [];
-    if (shop?.applePrice != null && shop.applePrice !== CROPS.apple.buy) {
-        problems.push({ kind: "apple", text: `apple seeds cost ${shop.applePrice} now, the plan thinks ${CROPS.apple.buy}` });
-    }
-    if (shop?.plotPrice != null && plots != null) {
-        const expected = plotCost(plots + 1, plots);
-        if (shop.plotPrice !== expected) {
-            problems.push({ kind: "plot", text: `the next plot costs ${shop.plotPrice}, the plan thinks ${expected} at ${plots} plots` });
-        }
-    }
-    return problems;
+    if (shop?.plotPrice == null || plots == null) return [];
+    const expected = plotCost(plots + 1, plots);
+    return shop.plotPrice === expected ? [] : [`the next plot costs ${shop.plotPrice}, the plan thinks ${expected} at ${plots} plots`];
 }
 
 // todays seeds from shop.stock, apples too when they're in, [] when closed. entries without cropValue and waterNeeded left out

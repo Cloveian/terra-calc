@@ -141,7 +141,7 @@ What the game sends to buy, water and plant is captured now: `shop.purchase { st
 - [x] Tests against saved responses, starting with the HAR shapes and later a Chrome capture
 - [x] A fallback: if anything fails, type the numbers in by hand like the site does now (First, 4)
 - [x] Your farm, goal and checklist saved per account, another account on the same browser doesn't get them
-- [x] A notice when Terra changes something the plan uses (farm fields renamed, the apple price moved)
+- [x] A notice when Terra changes something the plan uses (farm fields renamed)
 - [x] `terraCalc` in the console, for the plan, a goal by hand and debug logging
 
 ## Later

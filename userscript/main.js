@@ -22,7 +22,7 @@ import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, weekDay, LAST_WEEK, DAY_MS } from "../src/week.js";
 import { waitFor, dayHours, typicalDays, weekShape, sinceStart, typicalCrop } from "./predict.js";
 import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
-import { RENT, CROPS, PRESETS, BASE_SEEDS, BONUS_SEEDS } from "../src/data.js";
+import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
@@ -177,7 +177,7 @@ async function start() {
         saveSettings(settings);
         setDebug(settings.debug);
         draw();
-    }, goalHooks, hackatimeHooks);
+    }, { goal: goalHooks, hackatime: hackatimeHooks, seeds: boughtSeeds });
     if (settings.panel) mountCard();
     if (settings.hud) mountHud(openTree);
     if (!settings.fill) return drawCard(null);
@@ -387,13 +387,10 @@ function readFarm() {
     draw();
 }
 
-// shop prices vs model, again on every new plot count. notice for apples only, off plot price just as likley old farm so logged only
+// plot price vs model, again on every new plot count. logged only, an off one's just as likley an old farm
 function checkShopPrices() {
     const problems = shopProblems(game.shop, game.farm?.plots ?? null);
     if (problems.length > 0) debug("shop doesn't match the plan", problems);
-    for (const { kind, text } of problems) {
-        if(kind === "apple") showNotice(`Prices changed, the plan's off: ${text}`);
-    }
 }
 
 // farm or shop, whichever seen last. shop only knows under 19
@@ -440,9 +437,16 @@ function typedInventory(typed) {
     if (typed.coins === null) return null;
     return {
         coins: typed.coins, plots: null, unplaced: 0, seeds: typed.seeds ?? 0, baseSeeds: BASE_SEEDS, baseKinds: {},
-        bonus: Object.fromEntries(BONUS_SEEDS.map((id)=>[id, typed[id] ?? 0])),
+        bonus: typed.bonus,
         water: 0, seedsDie: null,
     };
+}
+
+// seeds heidi sells n i know the numbers of, apples aside (their own box n the inventory's seeds). for the typed boxes in settings
+function boughtSeeds() {
+    return Object.entries(shopNow().table)
+        .filter(([id, crop]) => id !== "apple" && crop.buy != null)
+        .map(([id, crop]) => ({ id, name: crop.name ?? id }));
 }
 
 // game coins n bag, or what i typed when those cant be read
@@ -457,12 +461,9 @@ function inventoryNow() {
 function shopNow() {
     const today = game.shop?.dateKey === easternDay(new Date());
     const seeds = today ? game.shop.seeds : [];
-    // by id, { eggplant: { name, buy, sell, water } }
-    const crops = Object.fromEntries(seeds.map(({ id, ...crop }) => [id, crop]));
     return {
         today,
         seeds,
-        crops,
         // data.js, then every seed the log's seen. any days sell price does, a ready crop can be from an older shop
         table: { ...CROPS, ...knownSeeds(shopLog) },
     };
@@ -575,8 +576,8 @@ function plan() {
         farm: farmToday, // null = "go to your island" on the card
         stuck,
         target,
-        // today's bonus seeds, for their names
-        crops: shop.crops,
+        // every seed i know, for their names
+        crops: shop.table,
         // buy today's bonus seed or wait for a better one, shop days left after today, sunday's the last
         wait: waitFor(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, 6 - weekDay(today)),
         // for card goal lines, null = rent week

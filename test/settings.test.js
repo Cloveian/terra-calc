@@ -26,9 +26,9 @@ test("loadSettings: a saved multiplier gets the same clamp as the box, junk is t
     assert.equal(loadSettings().m, null);
 });
 
-test("loadSettings: typed numbers are whole and 0 or more, missing ones are null", () => {
+test("loadSettings: typed numbers are whole and 0 or more, missing ones are null, any seed id in bonus", () => {
     stored(null);
-    assert.deepEqual(loadSettings().typed, { coins: null, plots: null, seeds: null, bokchoy: null, eggplant: null });
-    stored('{"typed": {"coins": 120.6, "plots": -3, "eggplant": 4}}');
-    assert.deepEqual(loadSettings().typed, { coins: 121, plots: 0, seeds: null, bokchoy: null, eggplant: 4 });
+    assert.deepEqual(loadSettings().typed, { coins: null, plots: null, seeds: null, bonus: {} });
+    stored('{"typed": {"coins": 120.6, "plots": -3, "bonus": {"cabbage": 4, "eggplant": "x"}}}');
+    assert.deepEqual(loadSettings().typed, { coins: 121, plots: 0, seeds: null, bonus: { cabbage: 4 } });
 });

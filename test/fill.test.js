@@ -250,7 +250,7 @@ const stock = (plotPrice, applePrice = 5) => ({
 });
 
 test("shopFrom: prices, and plots when the price says", () => {
-    assert.deepEqual(shopFrom(stock(10)), { applePrice: 5, plotPrice: 10, plots: null }, "10 is anything from 19 up");
+    assert.deepEqual(shopFrom(stock(10)), { plotPrice: 10, plots: null }, "10 is anything from 19 up");
     assert.deepEqual(shopFrom(stock(1)).plots, 10);
     assert.deepEqual(shopFrom(stock(3)).plots, 12);
     assert.deepEqual(shopFrom(stock(9)).plots, 18);
@@ -259,7 +259,7 @@ test("shopFrom: prices, and plots when the price says", () => {
 test("shopFrom: closed or missing bits", () => {
     assert.equal(shopFrom({ status: "closed", entries: [] }), null);
     assert.equal(shopFrom(null), null);
-    assert.deepEqual(shopFrom({ status: "available", entries: [] }), { applePrice: null, plotPrice: null, plots: null });
+    assert.deepEqual(shopFrom({ status: "available", entries: [] }), { plotPrice: null, plots: null });
 });
 
 // shop.stock like the 22 Oct capture, the first one with bonus seeds
@@ -299,9 +299,6 @@ test("shopProblems: nothing when the shop matches the model", () => {
     assert.deepEqual(shopProblems(null, 12), []);
 });
 
-test("shopProblems: says what changed", () => {
-    assert.deepEqual(shopProblems(shopFrom(stock(5, 6)), 12), [
-        { kind: "apple", text: "apple seeds cost 6 now, the plan thinks 5" },
-        { kind: "plot", text: "the next plot costs 5, the plan thinks 3 at 12 plots" },
-    ]);
+test("shopProblems: says what changed, plot price only", () => {
+    assert.deepEqual(shopProblems(shopFrom(stock(5, 6)), 12), ["the next plot costs 5, the plan thinks 3 at 12 plots"]);
 });
