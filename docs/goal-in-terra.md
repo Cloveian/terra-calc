@@ -39,7 +39,7 @@ What goes on each node card is a small Want bit:
 | Decision | What it does |
 | --- | --- |
 | Rules | Same as the site: picking adds prerequisites (`withPrereqs`), unpicking takes out what needs it (`unpick`), Want can't go below Own (`normalize`), too few USB cards drops Fancy (`clampToLimits`) |
-| Own | From `/device-upgrades` `owned`, never typed in. Re-read when the tree opens, you might've just bought something |
+| Own | From `/device-upgrades` `owned`, never typed in. ~~Re-read when the tree opens~~ Re-read after every buy, refund or device pick the game makes (`fetch.js` sees them go out) |
 | Clicks | The game opens its buy popup from a click on anything inside `[data-node]`, and drags the view on pointerdown. Our bits `stopPropagation` on `pointerdown` and `click` so tapping want doesn't open Buy or start a pan |
 | Solid redrawing | Solid mostly updates attributes in place, but switching device rebuilds the nodes. The observer puts the bits back on any `[data-node]` that's missing them. **Todo:** check Solid doesn't strip an extra child when it rewrites a node's text |
 | Looks | Small and quiet, like a sticky note on the card. Terra's own badge style if we can borrow it (see "other stuff") |

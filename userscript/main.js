@@ -2,7 +2,7 @@
 import { REST, IN, OUT, TOKEN_KEY } from "./endpoints.js";
 import { apiGet, liveBuild } from "./api.js";
 import { hookWebSocket, onGameMessage, sendGame, ROOM } from "./socket.js";
-import { hookMatchmake } from "./travel.js";
+import { hookFetch } from "./fetch.js";
 import { loadSettings, saveSettings, mountSettings } from "./settings.js";
 import { loadJSON, saveJSON } from "./store.js";
 import { setDebug, debug } from "./debug.js";
@@ -114,7 +114,7 @@ window.terraCalc = {
 
 // hooked at document-start
 hookWebSocket();
-hookMatchmake();
+hookFetch(readUpgrades);
 onGameMessage(IN.currency, (body) => changed("currency", body));
 onGameMessage(IN.inventory, (body) => changed("inventory", body));
 onGameMessage(IN.marketItems, (body) => {
@@ -199,8 +199,17 @@ async function start() {
     }
 }
 
+// after the games own buys n refunds (fetch.js), the owned ones changed
+async function readUpgrades() {
+    if (!settings.fill) return;
+    try {
+        changed("deviceUpgrades", await apiGet(REST.deviceUpgrades));
+    } catch (err) {
+        console.warn("[terra-calc]", err);
+    }
+}
+
 // REST bits, at start + on new week
-// TODO: after upgrade buys too, game uses fetch we dont see. maybe when coins drop?
 async function readRest() {
     try {
         changed("deviceUpgrades", await apiGet(REST.deviceUpgrades));

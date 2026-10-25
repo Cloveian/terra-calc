@@ -104,6 +104,7 @@ userscript/       Terra Calc inside Terra, uses the src/ files that don't touch 
   shop.js         the badges in Heidi's shop
   hud.js          the Island / Hub and Goal buttons
   travel.js       the spawn tag the Hub button's trip needs
+  fetch.js        the game's own fetch calls: that spawn tag, and seeing your upgrade buys
   calendar.js     the hours boxes on Terra's calendar
   settings.js     the Terra Calc section in Terra's settings
   page.js         Terra's class names, and redrawing our bits when the page changes

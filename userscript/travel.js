@@ -10,16 +10,13 @@ export function armSpawnTag(levelId, spawnTag) {
     armed = { levelId, spawnTag, until: Date.now() + ARMED_MS };
 }
 
-// colyseus grabs window.fetch on its first matchmake n keeps it, so document-start like the socket hook
-export function hookMatchmake() {
-    const realFetch = window.fetch;
-    window.fetch = function (input, init) {
-        const body = taggedBody(String(input), init?.body, armed, Date.now());
-        if (body === null) return realFetch.call(this, input, init);
-        debug("matchmake got a spawn tag", armed.levelId, armed.spawnTag); // body has my token in it
-        armed = null;
-        return realFetch.call(this, input, { ...init, body });
-    };
+// for fetch.js, the body to send instead or null. uses the arm up
+export function spawnTagged(url, body) {
+    const tagged = taggedBody(url, body, armed, Date.now());
+    if (tagged === null) return null;
+    debug("matchmake got a spawn tag", armed.levelId, armed.spawnTag); // body has my token in it
+    armed = null;
+    return tagged;
 }
 
 // the json body with the spawn tag in, null to send it as is. only a game matchmake into the armed level without a tag of its own
