@@ -52,6 +52,16 @@ test("weekTarget: no goal plans the rent week, like the site with nothing picked
     assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1), { w: 10, cap: 10, reachable: null, flat: null, out: false, mix: null });
 });
 
+test("weekTarget: no goal, 7h coded n typed with one open day left, that day fills it to rent", () => {
+    // at 10 h/week sunday's share is 10/7, 8.4 h n out. 18 h/week is 9.6, rounds to 10
+    const given = { 3: { fixed: 7, open: 1 } };
+    assert.deepEqual(target({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1, null, given), { w: 10, cap: 18, reachable: null, flat: null, out: false, mix: null });
+    // next week typed short doesnt push this week past 10
+    assert.equal(target({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1, null, { 4: { fixed: 5, open: 2 } }).w, 10);
+    // all typed n under 10, thats really out
+    assert.equal(target({ coins: 42, plots: 36, seeds: 0 }, 3, null, 1.1, null, { 3: { fixed: 7, open: 0 } }).out, true);
+});
+
 test("weekTarget: with a goal it's the first week of hoursNeeded's route", () => {
     const state = { coins: 42, plots: 36, seeds: 0 };
     const result = hoursNeeded(state, 3, 2000, 1.1);

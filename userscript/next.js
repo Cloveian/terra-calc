@@ -3,7 +3,7 @@ import { hoursNeeded, simulateRoute, milestones, EVEN_WEEK } from "../src/route.
 import { RENT, MAX_PLOTS, BASE_SEEDS, BASE_KINDS, CROPS } from "../src/data.js";
 import { isWeekAfter, weekIndex, weekDay } from "../src/week.js";
 
-// this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week at 10 h like site with nothing picked. w counts whole week, planted or not. out = main week without coins for 10 crops (rent). route for milestones, mix = first weeks seeds with thisWeek
+// this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week, 10 h or what my typed days need to pay it. w counts whole week, planted or not. out = main week short of the 10 rent crops, no coins for them or my typed days dont get there even at 45. route for milestones, mix = first weeks seeds with thisWeek
 // given = my days (daysGiven), cap comes back null when every day set n the goal fits
 // flat = h/week a plan without my days would need when my days dont make it, null otherwise (or not even 45 does)
 export function weekTarget(state, t, goal, m, thisWeek = null, given = {}) {
@@ -18,7 +18,12 @@ export function weekTarget(state, t, goal, m, thisWeek = null, given = {}) {
         route = result?.route ?? simulateRoute(state, t, cap, m, thisWeek, given);
         if (!reachable && Object.keys(given).length > 0) flat = hoursNeeded(state, t, goal, m, RENT, thisWeek)?.cap ?? null;
     } else {
+        // typed days can leave this weeks open ones under rent at 10 h/week, the lowest cap that pays this week. later weeks short is their own week's problem
         route = simulateRoute(state, t, cap, m, thisWeek, given);
+        for (let more = RENT + 1; route[0]?.out && more <= MAX_PLOTS; more++) {
+            const tried = simulateRoute(state, t, more, m, thisWeek, given);
+            if (!tried[0]?.out) [cap, route] = [more, tried];
+        }
     }
     const row = route[0];
     return { w: row?.hours ?? 0, cap, reachable, flat, out: row?.out ?? false, route, mix: row?.mix ?? null };
