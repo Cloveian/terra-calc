@@ -158,7 +158,7 @@ Random things that came up, roughly in how much i want them:
 
 ## Known gaps (from the loan plot stuff, still open)
 
-- once loan plots are placed they count as yours, `loansFrom` only sees unplaced ones. Need a capture after placing some
+- placed loan plots still count as yours under 45. `loansFrom` only knows the ones in the bag and any placed past 45, since you can only own 45. Need a capture after placing some
 - the shop's plot count might already include plots in your bag, so `plotsNow` could double count. Need `shop.stock` while holding bag plots
 - the next plot's price only gives the plot count under 19 plots (every one after is 10), and a price that doesn't match the formula just goes to the debug log, cuz an old farm count looks the same as a wrong price
 - when on Wednesday the loans actually land (they came Tuesday for me), so the "or wait" hint doesn't know when waiting is pointless

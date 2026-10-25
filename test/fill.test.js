@@ -227,6 +227,10 @@ test("loansFrom: as many unplaced as stuck (or more) means that many are loans",
     assert.equal(loansFrom({ unplaced: 5 }, stuck(0)), 0, "nothing stuck, nothing lent");
     assert.equal(loansFrom({ unplaced: 5 }, null), 0, "farm not seen yet");
     assert.equal(loansFrom(null, stuck(3)), 0);
+    // placed ones past 45 have to be loans
+    assert.equal(loansFrom({ unplaced: 0 }, stuck(10), 50), 5);
+    assert.equal(loansFrom({ unplaced: 2 }, stuck(10), 50), 7);
+    assert.equal(loansFrom({ unplaced: 0 }, stuck(10), 40), 0, "under 45 cant tell");
 });
 
 test("userIdFromToken: the userId out of the JWT", () => {

@@ -1,5 +1,5 @@
 // game messages into terra calc shapes. null = couldnt tell
-import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX, CROPS } from "../src/data.js";
+import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX, MAX_PLOTS, CROPS } from "../src/data.js";
 import { withoutZeros } from "../src/tree.js";
 import { plotCost, perHour } from "../src/farm.js";
 import { easternDay } from "../src/week.js";
@@ -174,10 +174,13 @@ export function stuckFrom(farm, weekKey) {
     return { count: stuck.length, why, crops: stuck };
 }
 
-// ratticus's loan plots among unplaced ones. one lent per stuck crop, plain dirt plot in bag (no subtype, plotLoan.request on join gets no answer). unplaced >= stuck = that many are loans, fewer = cant tell so 0
-export function loansFrom(inventory, stuck) {
+// ratticus's loan plots. one lent per stuck crop, plain dirt plot in bag (no subtype, plotLoan.request on join gets no answer). unplaced >= stuck = that many are loans
+// placed ones look like mine, only past MAX_PLOTS they have to be loans
+export function loansFrom(inventory, stuck, placed = null) {
     const count = stuck?.count ?? 0;
-    return count > 0 && inventory?.unplaced >= count ? count : 0;
+    const inBag = count > 0 && inventory?.unplaced >= count ? count : 0;
+    const over = placed === null || !inventory ? 0 : placed + inventory.unplaced - MAX_PLOTS;
+    return Math.max(inBag, over);
 }
 
 // auth token = JWT, userId in middle part = me for farmOwnerId

@@ -501,7 +501,7 @@ function plan() {
     // steps only off a farm ive seen today (US eastern like heidi's shop), older ones guessed my plots n seeds. route still takes it
     const farmToday = game.farm && easternDay(new Date(game.farm.seenAt)) === today ? game.farm : null;
     const stuck = game.farm && stuckFrom(game.farm, game.hours?.weekKey);
-    const loans = loansFrom(inventory, stuck);
+    const loans = loansFrom(inventory, stuck, game.farm?.plots ?? null);
     // owned plots = placed + bag - ratticus's loans
     // todo: shop count might alredy include bag ones, needs a shop look with plots in my bag
     const placed = plotsNow();
