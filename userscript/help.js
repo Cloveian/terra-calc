@@ -61,7 +61,7 @@ const PAGES = [
             "Terra Calc's part of Terra's settings turns each piece on or off, sets your own multiplier for \"what if\" plans, and has boxes to type your numbers in if reading the game ever breaks.",
         ],
         faq: [
-            { q: "Where's my Hackatime key?", a: "hackatime.hackclub.com/api-key. It stays in your browser and only ever goes to Hackatime." },
+            { q: "Where's my Hackatime key?", a: "Probably on your computer already: the api_key line in .wakatime.cfg in your home folder (Hackatime only gives you one). It stays in your browser and only ever goes to Hackatime." },
         ],
     },
 ];

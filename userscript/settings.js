@@ -133,7 +133,7 @@ function hackatimeRow(c) {
     const box = el("input", c.input);
     box.type = "password";
     box.autocomplete = "off";
-    box.placeholder = "from hackatime.hackclub.com/api-key";
+    box.placeholder = "api_key in your .wakatime.cfg";
     box.value = hooks.hackatime.key() ?? "";
     const status = el("div", c.formLabel, hooks.hackatime.status());
     box.addEventListener("change", async () => {
