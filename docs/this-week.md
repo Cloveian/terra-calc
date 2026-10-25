@@ -121,6 +121,9 @@ What waits on what, a table in next.js next to the steps (the steps' own `requir
 
 | Step | Waits on |
 | --- | --- |
+| sell | harvest |
+| buy seeds | check Heidi's shop, sell |
+| buy plots | sell |
 | place | buy plots |
 | plant (free seeds) | place, clear, harvest |
 | plant apples | place, buy seeds, clear, harvest |
@@ -130,6 +133,8 @@ What waits on what, a table in next.js next to the steps (the steps' own `requir
 A step's indent is one more than the deepest step it waits on that's still on the list, and the order doesn't change, same as the site's milestone list (built 22 Oct, `nestSteps`). For that to read right, buy seeds now comes before buy plots, so place sits right under the plots. Ticked steps stay on the list and keep their spot in the indent (step 6), so the list doesn't jump around as you go.
 
 - **hiding theirs:** a `data-terra-calc` attribute on their `._questBody_`, and one `<style>` rule, `[data-terra-calc] > :not(.terra-calc-steps) { display: none }`. Solid only rewrites the classes it set itself, an attribute it never set stays put. No touching their elements' classes or inline styles
+- **countdowns:** the plant, devlog and ship steps count down the week's last 2 days, "plant 6 eggplant seeds (1d 4h left)" (seeds go Monday 11:59 PM EDT, the items' `usableUntil`)
+- **last week:** the first 2 days of a week get "last week: 31.2h+ (plan 40h)". The + is cuz it's as of the last time Terra Calc saw that week and Hackatime keeps counting with Terra closed, last week's real total from the API would fix that. What i sold's left out, a week's sales are mostly the week before's crops
 - **their countdown** is the one bit of theirs we don't have, the game knows deadlines we don't. **Decision:** hide it too, or keep it under ours? Default: keep it
 
 - **classes** come off their own elements on the page (`[class*="_taskLabel_"]` -> its real class), and the done ones out of `document.styleSheets` by local name. No hash in our code, so a rebuild doesn't break it as long as the local names stay

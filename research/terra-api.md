@@ -188,6 +188,8 @@ The shop is opened from Heidi's dialogue (`npcId` + `nodeId`), so the server mig
 
 On the client the shop window only opens one way: the dialogue's `seed_menu` choice sets a plain closure flag and sends `npc.openShop`, and the `shop.stock` that comes back opens it. No window event or hook gets to that flag, so a script can't open Heidi's window, sending `npc.openShop` itself doesn't either. A `shop.stock` that comes in while the shop's closed and no `seed_menu` is pending is ignored completely (no window, no "isn't available" toast), so a script can send `shop.requestStock {}` and read the reply quietly, if the server answers it away from Heidi (untested). `room.onMessage` stacks handlers, so ours can sit next to the game's.
 
+Heidi's in `town-square`, about x -2.9, z -7.2 (off `state.npcs`). My island has no NPCs at all, the SHOP sign there is just scenery. Her dialogue only opens off the engine's own "nearest NPC in range", worked out every frame from where i'm standing, so the honest way to her shop from anywhere is walking me there (fake held keys, see Getting to the hub) and F to talk.
+
 ### Window events the game listens for
 
 `window.dispatchEvent(new CustomEvent(name, { detail }))` from anywhere:
@@ -242,6 +244,8 @@ So the server's the one deciding, not the client. ~~It's either the missing `spa
 | `ratticus.rentResult` | the rent receipt |
 | `ratticus.notice` | `{ status }`: `already_paid`, `no_rent_due`, `awaiting_approval`, `insufficient_crops`, ... |
 | `rentDebt.check` | no payload, makes the game call `GET /ysws/rent-debt-notice` |
+
+`farm.interact` on a crop waters it all the way in one go, an eggplant takes both its water at once. `farm.place` puts the item down where i'm standing, seeds included, so planting stays by hand. The game only ever sends `farm.interact` for the crop i'm standing next to, whether the server takes one from across the farm is untested.
 
 Plot and farm item shapes (what `farmItemId` points at, growth state) come through the room's synced state, not a message. They aren't in this file.
 

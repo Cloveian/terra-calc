@@ -56,6 +56,8 @@ The HUD doesn't use rem steps or a `--u` unit (that one's only on the landing pa
 
 Borders on the HUD cards scale too (`clamp(2px, .3vmin, 4px)`). Phones are `@media (width <= 500px)`, which mostly drops to fixed px.
 
+On a 768 px tall screen our round buttons don't fit under Terra's button column (Goal falls off the bottom), so they go in a row right of the water meter. Terra's help note sits at the meter's right edge + 12 px till you dismiss it, so they might cover it.
+
 ## The box recipes
 
 ### Framed modal (confirm dialog, disconnected, takeover)

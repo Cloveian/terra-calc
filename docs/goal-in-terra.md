@@ -130,6 +130,8 @@ Upgrades are refundable until shipped, and the plan assumes you buy them all at 
 
 Coins now + crops ready to sell (at m) + refunds of what's bought, against the goal. In the panel, and maybe a thin strip on Terra's tree header next to its own coin count. Stuck crops count as "maybe", drawn lighter, cuz they don't pay till the review comes back.
 
+The crops to sell are the market's list plus the ready ones on my farm and the ones harvested since, and the goal line says "N to go after selling".
+
 ## Buttons (later, but doing them)
 
 Basicaly got the ok already. Still read-only for now, these come after the goal stuff works.
@@ -158,6 +160,7 @@ Random things that came up, roughly in how much i want them:
 
 - once loan plots are placed they count as yours, `loansFrom` only sees unplaced ones. Need a capture after placing some
 - the shop's plot count might already include plots in your bag, so `plotsNow` could double count. Need `shop.stock` while holding bag plots
+- the next plot's price only gives the plot count under 19 plots (every one after is 10), and a price that doesn't match the formula just goes to the debug log, cuz an old farm count looks the same as a wrong price
 - when on Wednesday the loans actually land (they came Tuesday for me), so the "or wait" hint doesn't know when waiting is pointless
 - the steps only show once the farm's been seen. If the plan has a goal but no farm it could still say "this week: N crops, code N h"
 

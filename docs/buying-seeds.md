@@ -1,0 +1,37 @@
+# Buying seeds
+
+The maths behind two parts of [feature-ideas.md](feature-ideas.md): buying with your hours not certain, and waiting for a better seed.
+
+## Buying with risk
+
+"Should I buy this, and how many?" A seed you don't water by Monday night is lost at its price, so it's the newsvendor problem with your hours as the demand. It needs the hours you'll actually give first ([your-time.md](your-time.md)). The plan only buys what its own hours water, so with a spread around those every seed's watered at least half the time, and the break-evens are all under that (27% at most at m 1, 34% at m 0.8), so nothing's ever a gamble. With your hours and a spread you set it works, and the full thing comes once Your time has your history.
+
+- Water order for a short week: best sale per water first (at m 1 that's eggplant 37.5, bok choy 37, apple 30), so the k-th seed gets water once you've coded W_k h, the water for everything ahead of it plus its own
+- Buy the k-th seed only if P(hours >= W_k) > buy / (m \* sell). The break-even chance at m 1 is apple 17%, eggplant 20%, bok choy 27%, so apples get bought generously and bok choy carefully, even tho it's cheaper than eggplant. That's exact for the last seed in the order, one further up also pushes everything behind it later by its own water, and that counts against it
+- P(hours >= x) from your plan with a spread you set, then from your history. Mid-week only the days left are uncertain
+- A rejected review pays nothing, the payoff gets \* (1 - p_rejected), yours to set
+- The card says it: "buy 6 eggplants + 4 apples, all watered if you code 26 h (3 of your last 4 weeks)", "a 7th eggplant pushes that to 28 h, skip it"
+- The same on the site with a "how sure am I about my hours" slider, it has no history
+- Where P(hours >= x) comes from, once it's real: per-day history (the hours log, or Hackatime with a key, see [your-time.md](your-time.md)) -> a prediction per day (faded on the calendar, type over it) -> the spread of my own days around that prediction -> P. The risk stuff sits on top of the day predictions, not the other way round
+
+## Waiting for a better seed
+
+"Buy bok choy today, or hope eggplant shows up before Monday?" Heidi's bonus tab changes every night at 00:00 Eastern, apples are ~~always~~ usually there, and every seed dies Monday 11:59 PM. As far as i know it doesn't matter *when* in the week a crop gets planted and watered, it all grows once the week's ship is approved. So the question isn't really "now or later", it's "this seed or a better one", and it's per water, cuz water's the thing seeds fight over, not days.
+
+What a seed's worth per water: v = (m \* sell - buy) / water. At m 1 that's eggplant 30, bok choy 27, apple 25 (at m 1.2: 37.5, 34.4, 31). So bok choy only loses 3 a water to eggplant, and beats apples by 2. The whole decision lives in those small gaps, which is a bit funny for this much ~~meth~~ math.
+
+The catch is water you don't have yet. Seeds for water already in my pool can be planted and watered today, so holding off just means maybe something better tomorrow. Seeds for water i'll code *later* in the week are the interesting ones: eggplant might not be there Thursday, but buying it today means paying for it even if those hours never happen (the Buying with risk part). Both halves need numbers we don't have yet:
+
+- **Odds per seed from the shop log:** q_s = share of logged days seed s was in the shop. The log's been running since 23 Oct (`daylog.js`, per account), it needs a week or two before q means anything. Every seed treated as showing up on its own, which prolly isn't true (two bonus slots?) but it's a start. `seedOdds` in predict.js, `waitFor` uses it
+- **What waiting is worth, worked back from Sunday:** (Monday's shop is already the new week's, so Sunday's the last one for this week's water) V_0 = v_apple (last day, apples ~~always~~ usually there, a sunday without them still todo), and with n shop days left after today, V_n = E[max(best v in that day's shop, V_(n-1))] over the q_s. Same shape as the house-selling problem: buy today's best seed s for the water i'm sure of when v_s >= V_n, wait otherwise. A finite-horizon stopping table, 7 rows, tiny. `waitTable` in predict.js, `waitFor` reads that one too
+- **Water i'm not sure of:** the k-th seed's worth P(hours >= W_k) \* m \* sell - buy (from Buying with risk), and waiting for it is worth about P(hours >= W_k) \* V_n \* water, a bit more really, cuz later in the week i know my hours better. Buy if today wins
+- **Not making it back:** every plan above assumes i'm on again before Monday night. If i'm not, any water i held back goes unplanted. p_back from the hours log (how many days i actually opened Terra), and waiting's worth gets \* p_back
+- The card says it, one line under "today's best": "waiting beats today's bok choy, eggplant's in 50% of days" (`waitFor` in predict.js works it out, card.js says it). Only on days Heidi has a bonus seed, once the shop log has 14 days, and only when waiting actually wins, so it stays quiet till about 6 Nov. Went with the "How loud" default below, just the line, nothing in the buy steps changes
+
+| Decision | What it does |
+| --- | --- |
+| How loud | **Decision:** just a line under the shop step, or do the buy steps actually change ("buy 0 bok choy, wait")? Default: just the line till there's 2 weeks of shop log, then think again |
+| p_back | **Decision:** from the hours log (days i opened Terra / days), or a setting? Default: the log, with 90% till it has a week |
+| Seeds never seen | A new bonus seed Heidi's never had gets no odds, it only counts on the day it's actually in the shop. Same as how the route treats bonus seeds now |
+
+Unknowns that would change all this: whether a crop really grows the same planted Tuesday or Sunday, and whether bonus seeds have a stock limit per day (haven't checked the shop entries for one). Water doesn't carry over, what's left Sunday night is `graceWater`, only for last week's crops and gone after Monday.
