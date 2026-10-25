@@ -6,7 +6,7 @@ import { hookFetch } from "./fetch.js";
 import { loadSettings, saveSettings, mountSettings } from "./settings.js";
 import { loadJSON, saveJSON } from "./store.js";
 import { setDebug, debug } from "./debug.js";
-import { mountCard, drawCard, showNotice } from "./card.js";
+import { mountCard, drawCard, showNotice, clearNotice } from "./card.js";
 import {
     treesFrom, ownedFrom, weekFrom, firstShipped, inventoryFrom, multiplyerFrom, farmFrom, stuckFrom, userIdFromToken,
     shopFrom, shopProblems, farmSchemaProblems, loansFrom, seedsFrom, forSaleFrom,
@@ -38,6 +38,8 @@ const DAYS_KEY = "terra-calc-days";
 // own entries, settings get dumped to the debug log n the key cant be in there
 const HACKATIME_KEY = "terra-calc-hackatime-key";
 const HACKATIME_DAYS_KEY = "terra-calc-hackatime-days";
+
+const ROOM_BROKEN = "Can't read this room, Terra might have updated"; // goes once a room decodes again
 
 // message types in card notices, the rest show up as "Terra's <type>"
 const MESSAGE_WORDS = {
@@ -166,7 +168,9 @@ onGameMessage(ROOM.joined, ({ decoder }) => {
     // renamed farm fields = made up stages, so this room's farm gets skipped completly
     const missing = farmSchemaProblems(decoder);
     game.farmReadable = missing.length === 0;
-    if (!game.farmReadable) {
+    if (game.farmReadable) {
+        clearNotice("Can't read your farm");
+    } else {
         debug("farm items look different, missing", missing);
         showNotice(`Can't read your farm (no ${missing.join(", ")})`);
     }
@@ -179,11 +183,12 @@ onGameMessage(IN.joinComplete, (body) => {
 });
 onGameMessage(ROOM.state, ({ state, touched }) => {
     game.roomState = state;
+    clearNotice(ROOM_BROKEN);
     if (farmTouched(state, touched)) readFarm();
 });
 onGameMessage(ROOM.broken, () => {
     game.roomState = null;
-    showNotice("Can't read this room, Terra might have updated");
+    showNotice(ROOM_BROKEN);
 });
 // shape checks cover fields nothing reads yet too, hence "looks different"
 onGameProblem((type) => {

@@ -90,6 +90,14 @@ export function showNotice(text) {
     cardBit.redraw();
 }
 
+// every notice starting with start, the farm one ends in a list of whats missing
+export function clearNotice(start) {
+    const left = notices.filter((n) => !n.startsWith(start));
+    if (left.length === notices.length) return;
+    notices = left;
+    cardBit.redraw();
+}
+
 // plan = what main.js works out, or null when there isn't enough to go on yet (then Terra's own
 // checklist stays, unless there's a notice to show)
 export function drawCard(plan) {
