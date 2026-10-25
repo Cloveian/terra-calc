@@ -299,6 +299,9 @@ test("shopProblems: nothing when the shop matches the model", () => {
     assert.deepEqual(shopProblems(null, 12), []);
 });
 
-test("shopProblems: says what changed, plot price only", () => {
+test("shopProblems: says what changed", () => {
     assert.deepEqual(shopProblems(shopFrom(stock(5, 6)), 12), ["the next plot costs 5, the plan thinks 3 at 12 plots"]);
+    // 24 Oct's cabbage under apples, bok choy inside
+    const seeds = [{ id: "cabbage", name: "Cabbage", buy: 2, sell: 20, water: 1 }, { id: "bokchoy", name: "Bok Choy", buy: 10, sell: 37, water: 1 }];
+    assert.deepEqual(shopProblems({ plotPrice: null, seeds }, 12), ["Cabbage is 18 a water at m 1, data.js has 25 to 30"]);
 });

@@ -1,7 +1,7 @@
 // game messages into terra calc shapes. null = couldnt tell
-import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX } from "../src/data.js";
+import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX, CROPS } from "../src/data.js";
 import { withoutZeros } from "../src/tree.js";
-import { plotCost } from "../src/farm.js";
+import { plotCost, perHour } from "../src/farm.js";
 import { easternDay } from "../src/week.js";
 
 export const APPLE_SEED = "apple_seed"; // terra's item ids
@@ -220,12 +220,23 @@ export function shopFrom(shopStock) {
     };
 }
 
-// next plot price vs the formula, as words, [] when it matches
-// a mismatch can also just mean plots is old (bought some since the farm was seen, or not placed yet), can't tell which
+// next plot price vs the formula n seeds past the worst n best a water in data.js, as words, [] when it all fits
+// a plot mismatch can also just mean plots is old (bought some since the farm was seen, or not placed yet), can't tell which
 export function shopProblems(shop, plots) {
-    if (shop?.plotPrice == null || plots == null) return [];
-    const expected = plotCost(plots + 1, plots);
-    return shop.plotPrice === expected ? [] : [`the next plot costs ${shop.plotPrice}, the plan thinks ${expected} at ${plots} plots`];
+    const problems = [];
+    if (shop?.plotPrice != null && plots != null) {
+        const expected = plotCost(plots + 1, plots);
+        if (shop.plotPrice !== expected) problems.push(`the next plot costs ${shop.plotPrice}, the plan thinks ${expected} at ${plots} plots`);
+    }
+    // apple 25 to eggplant 30 at m 1
+    const known = Object.values(CROPS).filter((crop) => crop.buy != null).map((crop) => perHour(crop, 1));
+    const low = Math.min(...known);
+    const high = Math.max(...known);
+    for (const seed of shop?.seeds ?? []) {
+        const v = perHour(seed, 1);
+        if (v < low || v > high) problems.push(`${seed.name} is ${Math.round(v * 10) / 10} a water at m 1, data.js has ${low} to ${high}`);
+    }
+    return problems;
 }
 
 // todays seeds from shop.stock, apples too when they're in, [] when closed. entries without cropValue and waterNeeded left out

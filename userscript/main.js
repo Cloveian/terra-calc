@@ -391,7 +391,7 @@ function readFarm() {
     draw();
 }
 
-// plot price vs model, again on every new plot count. logged only, an off one's just as likley an old farm
+// plot price n seeds vs model, again on every new plot count. logged only, an off plot price is just as likley an old farm
 function checkShopPrices() {
     const problems = shopProblems(game.shop, game.farm?.plots ?? null);
     if (problems.length > 0) debug("shop doesn't match the plan", problems);
