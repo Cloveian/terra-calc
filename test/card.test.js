@@ -167,6 +167,8 @@ test("risk lines: all watered, or the ones under break-even get their own line",
     const some = cardFor({ ...plan, risk: { h: 24, weeks: 1, of: 4, kept: 8, skip: { bokchoy: { n: 3, weeks: 1 } } } }, NOW).details;
     assert.ok(some.includes("the other 8 seeds to buy get watered at 24h more (1 of my last 4 weeks)"));
     assert.ok(some.includes("buy 3 bok choy seeds fewer, they'd only get watered in 1 of my last 4 weeks"));
+    const wait = cardFor({ ...plan, risk: { h: 0, weeks: 4, of: 4, kept: 0, skip: { bokchoy: { n: 3, weeks: 3, wait: true } } } }, NOW).details;
+    assert.ok(wait.includes("buy 3 bok choy seeds fewer and wait, they'd only get watered in 3 of my last 4 weeks"));
     const one = cardFor({ ...plan, risk: { h: 3, weeks: 3, of: 3, kept: 1, skip: {} } }, NOW).details;
     assert.ok(one.includes("the 1 seed to buy gets watered at 3h more (3 of my last 3 weeks)"));
 });

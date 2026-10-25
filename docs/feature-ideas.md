@@ -79,7 +79,7 @@ Also in [buying-seeds.md](buying-seeds.md).
 
 - [x] Odds per seed from the shop log
 - [x] What waiting is worth, worked back from Sunday
-- [ ] Waiting on water i'm not sure of yet
+- [x] Waiting on water i'm not sure of yet
 - [x] The chance i'm not back before Monday night
 - [x] The card says when waiting beats today's seed
 

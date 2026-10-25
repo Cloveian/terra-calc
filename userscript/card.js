@@ -272,7 +272,7 @@ export function cardFor(plan, now = Date.now()) {
     return { tasks, details };
 }
 
-// "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)", then one line per seed under its break-even
+// "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)", then one line per skipped seed
 function riskLines({ h, weeks, of, kept, skip }, plan) {
     const skipped = Object.entries(skip);
     const lines = [];
@@ -280,8 +280,8 @@ function riskLines({ h, weeks, of, kept, skip }, plan) {
         const which = skipped.length ? "the other" : kept === 1 ? "the" : "all";
         lines.push(`${which} ${some(kept, "seed")} to buy ${kept === 1 ? "gets" : "get"} watered at ${h}h more (${weeks} of my last ${of} weeks)`);
     }
-    for (const [id, { n, weeks: got }] of skipped) {
-        lines.push(`buy ${some(n, seedName(id, plan))} fewer, they'd only get watered in ${got} of my last ${of} weeks`);
+    for (const [id, { n, weeks: got, wait }] of skipped) {
+        lines.push(`buy ${some(n, seedName(id, plan))} fewer${wait ? " and wait" : ""}, they'd only get watered in ${got} of my last ${of} weeks`);
     }
     return lines;
 }

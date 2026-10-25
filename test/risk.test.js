@@ -16,7 +16,17 @@ test("buyRisk: every bought seed watered in 2 of my last 4 weeks, all over their
 test("buyRisk: bok choy needs 27%, 1 of 4 weeks is under, an apple after it still makes 17%", () => {
     const steps = [buy("eggplant", 6), buy("bokchoy", 4), buy("apple", 1), { do: "code", n: 27 }];
     // eggplants to 22h, 1st bok choy at 23 (2 weeks), 2nd at 24 only 1 week, the apple at 24 is fine with that
-    assert.deepEqual(buyRisk(steps, CROPS, 1, [30, 20, 23, 10], 0), { h: 24, weeks: 1, of: 4, kept: 8, skip: { bokchoy: { n: 3, weeks: 1 } } });
+    assert.deepEqual(buyRisk(steps, CROPS, 1, [30, 20, 23, 10], 0), { h: 24, weeks: 1, of: 4, kept: 8, skip: { bokchoy: { n: 3, weeks: 1, wait: false } } });
+});
+
+test("buyRisk: water i might not code goes to a better seed later when that's worth more", () => {
+    const steps = [buy("bokchoy", 3), { do: "code", n: 3 }];
+    // 3 of 4 weeks: today 0.75 * 37 - 10 = 17.75, holding it for later 0.75 * 27.5 = 20.6
+    assert.deepEqual(buyRisk(steps, CROPS, 1, [3, 2, 1, 0], 0, 27.5).skip, { bokchoy: { n: 3, weeks: 3, wait: true } });
+    // no waiting, the 3rd is at 3h n 25% < 27%
+    assert.equal(buyRisk(steps, CROPS, 1, [3, 2, 1, 0], 0).kept, 2);
+    // every week got there, sure water is left to waitFor
+    assert.equal(buyRisk(steps, CROPS, 1, [5, 5, 5], 0, 27.5).kept, 3);
 });
 
 test("buyRisk: nothing without history or with nothing to buy", () => {
