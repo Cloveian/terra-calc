@@ -68,7 +68,6 @@ The maths is in [buying-seeds.md](buying-seeds.md).
 - [x] Buy a seed only if the chance it gets watered beats its break-even
 - [ ] P(hours >= x) from a spread you set
 - [x] P(hours >= x) from your history
-- [ ] A rejected review pays nothing, the payoff gets \* (1 - p_rejected)
 - [x] The card says it: "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)"
 - [ ] The same on the site with a "how sure am I about my hours" slider
 - [ ] P(hours >= x) off the per-day predictions
