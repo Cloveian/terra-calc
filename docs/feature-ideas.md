@@ -54,7 +54,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 - [x] A projection: what your usual week gets you by Week 12, on the card
 - [x] "What can I get": when your goal doesn't fit your hours, plan at your hours and say which picks you get, in your priority order
 - [x] Picks that don't fit your hours get marked on the tree tags ("doesn't fit") and in the site's milestone list ("not with your hours")
-- [x] Both numbers when it doesn't fit: "not on my days, a flat 31 h/week would do it"
+- [x] Both numbers when it doesn't fit: "not on your days, a flat 31 h/week would do it"
 - [x] The code step follows your days, and says what's left of today
 - [x] The same hours on the site, a box per week in the week table
 - [x] A log per day of the week's credited hours so far (`daylog.js`), raw stuff for the day predictions
@@ -67,7 +67,7 @@ The maths is in [buying-seeds.md](buying-seeds.md).
 - [x] Water order for a short week, best sale per water first
 - [x] Buy a seed only if the chance it gets watered beats its break-even
 - [x] P(hours >= x) from your history
-- [x] The card says it: "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)"
+- [x] The card says it: "all 10 seeds to buy get watered at 26h more (2 of your last 4 weeks)"
 - [ ] P(hours >= x) off the per-day predictions
 - [x] The goal on Heidi's worst and best seeds every week after this one: "if Heidi only had apple seeds: 3 of 5 picks by Week 12"
 

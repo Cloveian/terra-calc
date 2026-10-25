@@ -8,7 +8,7 @@ import { idsOn } from "./daylog.js";
 export const MIN_SAMPLES = 3;
 // n the shop log this many days before its odds say anything
 export const MIN_SHOP_DAYS = 14;
-// past weeks before "3 of my last 4 weeks" means anything
+// past weeks before "3 of your last 4 weeks" means anything
 export const MIN_WEEKS = 3;
 // chance im on terra on a given day till the hours log knows
 const BACK_GUESS = 0.9;

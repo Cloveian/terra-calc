@@ -325,14 +325,14 @@ function codeTex({ n, owed, pool, unclaimed }) {
     return [CODE_TEX, `h = ${num(owed)} - ${num(pool)} - ${num(unclaimed)} = ${num(h)}${close}`];
 }
 
-// "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)", then one line per skipped seed
+// "all 10 seeds to buy get watered at 26h more (2 of your last 4 weeks)", then one line per skipped seed
 function riskLines({ h, weeks, of, kept, skip }, plan) {
     const skipped = Object.entries(skip);
     const lines = [];
     if (kept > 0) {
         const which = skipped.length ? "the other" : kept === 1 ? "the" : "all";
         lines.push({
-            text: `${which} ${some(kept, "seed")} to buy ${kept === 1 ? "gets" : "get"} watered at ${h}h more (${weeks} of my last ${of} weeks)`,
+            text: `${which} ${some(kept, "seed")} to buy ${kept === 1 ? "gets" : "get"} watered at ${h}h more (${weeks} of your last ${of} weeks)`,
             tex: [RISK_TEX, `p = P(\\text{rest of week} \\ge ${num(h)}) = \\frac{${weeks}}{${of}}`],
         });
     }
@@ -342,7 +342,7 @@ function riskLines({ h, weeks, of, kept, skip }, plan) {
         const now = `${p} \\cdot ${num(plan.m)} \\cdot ${sell} - ${buy} = ${num((got / of) * plan.m * sell - buy)}`;
         const later = wait ? `${p} \\cdot ${num(plan.held.v)} \\cdot ${water} = ${num((got / of) * plan.held.v * water)}` : "0";
         lines.push({
-            text: `buy ${some(n, seedName(id, plan))} fewer${wait ? " and wait" : ""}, they'd only get watered in ${got} of my last ${of} weeks`,
+            text: `buy ${some(n, seedName(id, plan))} fewer${wait ? " and wait" : ""}, they'd only get watered in ${got} of your last ${of} weeks`,
             tex: [RISK_TEX, `${now} \\le ${later}`],
         });
     }
@@ -381,7 +381,7 @@ function goalLines(goal, target, coins, selling, crops) {
     if (goal.coins > 0) lines.push({ bar: { coins, selling, goal: goal.coins } });
     if (target?.reachable === false) {
         lines.push(`out of reach, max ${Math.floor(target.route.at(-1).endCoins)} coins`);
-        if (target.flat) lines.push(`not on my days, a flat ${target.flat} h/week would do it`);
+        if (target.flat) lines.push(`not on your days, a flat ${target.flat} h/week would do it`);
     }
     const picks = goal.milestones;
     const next = picks.find((pick) => !pick.now);
@@ -390,7 +390,7 @@ function goalLines(goal, target, coins, selling, crops) {
     if (next) lines.push(withPickTex(`next pick: ${pickName(next)} ${when(next)}`, next, route));
     if (next && next !== picks.at(-1)) lines.push(withPickTex(`all of it ${when(picks.at(-1))}`, picks.at(-1), route));
     // all of it now is the same at any h/week
-    if (goal.usual && next) lines.push(projectionWords(`at my usual ${goal.usual.h} h/week:`, goal.usual));
+    if (goal.usual && next) lines.push(projectionWords(`at your usual ${goal.usual.h} h/week:`, goal.usual));
     if (goal.luck && next) lines.push(...luckLines(goal.luck, picks, route.find((row) => row.out)?.week ?? null, crops));
     // every pick behind a show more, drawBlock does the link
     // 2 = next pick n all of it already
@@ -408,7 +408,7 @@ function withPickTex(text, pick, route) {
     return { text, tex: [PICK_TEX, `${before}${num(pick.total)} \\le ${num(route[at].endCoins)} = ${coins(route[at])}`] };
 }
 
-// projection() from next.js as words, "at my usual 24 h/week: 3 of 5 picks by Week 12"
+// projection() from next.js as words, "at your usual 24 h/week: 3 of 5 picks by Week 12"
 function projectionWords(start, { fit, of, week, outFrom }) {
     if (outFrom !== null) return `${start} rent runs out in ${weekName(outFrom)}`;
     if (fit === of) return `${start} all of it after ${weekName(week)}`;

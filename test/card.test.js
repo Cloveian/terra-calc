@@ -145,9 +145,9 @@ test("my usual week's line: all of it, some of it, or rent running out", () => {
     });
     // last line of words, the show more list comes after
     const last = (usual, picks) => cardFor(plan(usual, picks), NOW).details.filter((item) => typeof item === "string").at(-1);
-    assert.equal(last({ h: 24, fit: 2, of: 2, week: 7, outFrom: null }), "at my usual 24 h/week: all of it after Week 5");
-    assert.equal(last({ h: 12, fit: 1, of: 2, week: 9, outFrom: null }), "at my usual 12 h/week: 1 of 2 picks by Week 12");
-    assert.equal(last({ h: 6, fit: 0, of: 2, week: null, outFrom: 7 }), "at my usual 6 h/week: rent runs out in Week 5");
+    assert.equal(last({ h: 24, fit: 2, of: 2, week: 7, outFrom: null }), "at your usual 24 h/week: all of it after Week 5");
+    assert.equal(last({ h: 12, fit: 1, of: 2, week: 9, outFrom: null }), "at your usual 12 h/week: 1 of 2 picks by Week 12");
+    assert.equal(last({ h: 6, fit: 0, of: 2, week: null, outFrom: 7 }), "at your usual 6 h/week: rent runs out in Week 5");
     assert.equal(last(null), "all of it after Week 6"); // no usual week yet, no line
     const now = milestones.map((pick) => ({ ...pick, now: true, week: null }));
     assert.equal(last({ h: 24, fit: 2, of: 2, week: null, outFrom: null }, now), "all affordable after selling");
@@ -162,12 +162,12 @@ test("a goal you can't reach says the best you'd get, one you can buy now says t
     }, NOW).details;
     assert.ok(far.includes("goal: 20000 coins, 17000 to go"));
     assert.ok(far.includes("out of reach, max 11685 coins"));
-    assert.ok(!far.some((line) => String(line).startsWith("not on my days")));
+    assert.ok(!far.some((line) => String(line).startsWith("not on your days")));
     const short = cardFor({
         ...base, target: { w: 20, cap: null, reachable: false, flat: 31, out: false, route },
         goal: { device: "Framework 12", refund: 0, coins: 20000, custom: true, milestones: [] },
     }, NOW).details;
-    assert.ok(short.includes("not on my days, a flat 31 h/week would do it"));
+    assert.ok(short.includes("not on your days, a flat 31 h/week would do it"));
     const now = cardFor({
         ...base, target: { w: 10, cap: 10, reachable: true, out: false, route },
         goal: { device: "iPad Mini", refund: 0, coins: 750, custom: false, milestones: [{ name: "Apple Pencil", qty: 1, total: 750, now: true, week: null }] },
@@ -220,16 +220,16 @@ test("risk lines: all watered, or the ones under break-even get their own line",
     };
     const details = (risk) => cardFor({ ...plan, risk }, NOW).details;
     const texts = (risk) => details(risk).map((item) => item.text);
-    assert.ok(texts(plan.risk).includes("all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)"));
+    assert.ok(texts(plan.risk).includes("all 10 seeds to buy get watered at 26h more (2 of your last 4 weeks)"));
     const some = { h: 24, weeks: 1, of: 4, kept: 8, skip: { bokchoy: { n: 3, weeks: 1 } } };
-    assert.ok(texts(some).includes("the other 8 seeds to buy get watered at 24h more (1 of my last 4 weeks)"));
-    assert.ok(texts(some).includes("buy 3 bok choy seeds fewer, they'd only get watered in 1 of my last 4 weeks"));
+    assert.ok(texts(some).includes("the other 8 seeds to buy get watered at 24h more (1 of your last 4 weeks)"));
+    assert.ok(texts(some).includes("buy 3 bok choy seeds fewer, they'd only get watered in 1 of your last 4 weeks"));
     // 1/4 of 37 is 9.25, under the 10 it costs
     assert.equal(details(some)[1].tex[1], "\\frac{1}{4} \\cdot 1 \\cdot 37 - 10 = -0.75 \\le 0");
     const wait = { h: 0, weeks: 4, of: 4, kept: 0, skip: { bokchoy: { n: 3, weeks: 3, wait: true } } };
-    assert.ok(texts(wait).includes("buy 3 bok choy seeds fewer and wait, they'd only get watered in 3 of my last 4 weeks"));
+    assert.ok(texts(wait).includes("buy 3 bok choy seeds fewer and wait, they'd only get watered in 3 of your last 4 weeks"));
     assert.equal(details(wait)[0].tex[1], "\\frac{3}{4} \\cdot 1 \\cdot 37 - 10 = 17.75 \\le \\frac{3}{4} \\cdot 30 \\cdot 1 = 22.5");
-    assert.ok(texts({ h: 3, weeks: 3, of: 3, kept: 1, skip: {} }).includes("the 1 seed to buy gets watered at 3h more (3 of my last 3 weeks)"));
+    assert.ok(texts({ h: 3, weeks: 3, of: 3, kept: 1, skip: {} }).includes("the 1 seed to buy gets watered at 3h more (3 of your last 3 weeks)"));
 });
 
 test("at 45 plots: the loan step without the 'or', n what won't fit", () => {
