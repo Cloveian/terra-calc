@@ -20,7 +20,7 @@ import { logShop, logHours, codedBefore, knownSeeds } from "./daylog.js";
 import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, weekDay, LAST_WEEK, DAY_MS } from "../src/week.js";
-import { waitFor, dayHours, typicalDays, weekShape, sinceStart, typicalCrop, restOfWeeks } from "./predict.js";
+import { waitFor, dayHours, typicalDays, weekShape, sinceStart, typicalCrop, restOfWeeks, dayOdds } from "./predict.js";
 import { buyRisk } from "./risk.js";
 import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
@@ -589,7 +589,7 @@ function plan() {
         // false = never seen heidi's shop, planning off data.js
         shopSeen: Object.keys(shopLog).length > 0,
         // buy today's best seed or wait for a better one, shop days left after today, sunday's the last
-        wait: waitFor(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, 6 - weekDay(today)),
+        wait: waitFor(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, 6 - weekDay(today), dayOdds(hoursLog, today)),
         // do the seeds i'd buy get watered, off my past weeks from today's weekday on
         risk: buyRisk(steps, shop.table, m, restOfWeeks(started, today), codedToday ?? 0),
         // for card goal lines, null = rent week

@@ -10,6 +10,8 @@ export const MIN_SAMPLES = 3;
 export const MIN_SHOP_DAYS = 14;
 // past weeks before "3 of my last 4 weeks" means anything
 export const MIN_WEEKS = 3;
+// chance im on terra on a given day till the hours log knows
+const BACK_GUESS = 0.9;
 
 // [{ day, h, lumped }], lumped = days before it werent logged so their hours landed here too
 export function dayHours(log) {
@@ -109,7 +111,8 @@ export function seedOdds(shopLog) {
 // what a water's worth with n shop days still to come, [V_0 ... V_days], V_0 = 0 cuz water past sunday's shop goes unplanted
 // V_n = E[max(best seed in that day's shop, V_(n-1))], each seed in on its own with its odds. house-selling problem, worked back from sunday
 // values = perHour (farm.js) per seed, apples too. buy today's seed for water i'm sure of if its value >= V_(days left after today)
-export function waitTable(values, odds, days = 6) {
+// back = chance im on terra any one day (dayOdds)
+export function waitTable(values, odds, days = 6, back = 1) {
     // best first: a seed only matters on a day nothing above it showed up
     const ids = Object.keys(values).filter((id) => odds[id] > 0).sort((a, b) => values[b] - values[a]);
     const table = [0];
@@ -122,21 +125,29 @@ export function waitTable(values, odds, days = 6) {
             worth += none * odds[id] * values[id];
             none *= 1 - odds[id];
         }
-        table.push(worth + none * floor);
+        table.push(back * (worth + none * floor) + (1 - back) * floor); // a day im not on is just V_(n-1) again
     }
     return table;
 }
 
+// share of days terra was open off the hours log (a day = an hours.update seen), BACK_GUESS till it spans a week
+export function dayOdds(hoursLog, today) {
+    const days = Object.keys(hoursLog).filter((day) => day <= today).sort();
+    if (days.length === 0) return BACK_GUESS;
+    const span = Math.round((Date.parse(today) - Date.parse(days[0])) / DAY_MS) + 1;
+    return span < 7 ? BACK_GUESS : days.length / span;
+}
+
 // { best: today's best seed, top: the one worth waiting for, odds: its share of days }, or null
-// only with something in the shop today, MIN_SHOP_DAYS of log, n when waiting actually wins. daysLeft = shop days after today this week
-export function waitFor(shopLog, today, crops, m, daysLeft) {
+// only with something in the shop today, MIN_SHOP_DAYS of log, n when waiting actually wins. daysLeft = shop days after today this week, back from dayOdds
+export function waitFor(shopLog, today, crops, m, daysLeft, back = 1) {
     const here = today.filter((id) => crops[id]);
     if (here.length === 0 || daysLeft < 1 || Object.keys(shopLog).length < MIN_SHOP_DAYS) return null;
     const value = (id) => perHour(crops[id], m);
     const odds = seedOdds(shopLog);
     const values = Object.fromEntries(Object.keys(odds).filter((id) => crops[id]).map((id) => [id, value(id)]));
     const best = here.reduce((a, b) => (value(b) > value(a) ? b : a));
-    if (value(best) >= waitTable(values, odds, daysLeft)[daysLeft]) return null;
+    if (value(best) >= waitTable(values, odds, daysLeft, back)[daysLeft]) return null;
     const top = Object.keys(values).reduce((a, b) => (values[b] > values[a] ? b : a));
     return { best, top, odds: odds[top] };
 }

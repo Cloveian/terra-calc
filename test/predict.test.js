@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayHours, sinceStart, typicalDays, weekShape, restOfWeeks, typicalCrop, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
+import { dayHours, sinceStart, typicalDays, weekShape, restOfWeeks, typicalCrop, seedOdds, waitTable, waitFor, dayOdds, MIN_SHOP_DAYS } from "../userscript/predict.js";
 import { EVEN_WEEK } from "../src/route.js";
 import { perHour } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
@@ -23,6 +23,8 @@ test("waitFor: only with enough log, something in the shop today, n waiting ahea
     assert.equal(waitFor(shopLog(14, 2), ["bokchoy"], CROPS, 1, 1), null); // eggplant's rare, 25 + 5/7 < 27
     // apples only today n 3 days left, an eggplant day in there is likely: 29.4 > 25
     assert.deepEqual(waitFor(shopLog(14, 7), ["apple"], CROPS, 1, 3), { best: "apple", top: "eggplant", odds: 0.5 });
+    // on terra 90% of days, tomorrow's 27.5 is 24.75, bok choy wins
+    assert.equal(waitFor(shopLog(14, 7), ["bokchoy"], CROPS, 1, 1, 0.9), null);
     // apples on half the days too, tomorrow's only worth 15 + 6.25, bok choy wins
     assert.equal(waitFor(shopLog(14, 7, 7), ["bokchoy"], CROPS, 1, 1), null);
 });
@@ -112,6 +114,20 @@ test("waitTable: eggplant half the days vs apples every day", () => {
     assert.ok(27 < table[1]);
     // a seed thats never been seen doesnt count
     assert.deepEqual(waitTable({ eggplant: 30, mystery: 99 }, { eggplant: 0.5 }, 1), [0, 15]);
+});
+
+test("waitTable: a day im not on terra is a day its shop doesnt count", () => {
+    // on half the days: tomorrow's 27.5 if im there, 0 if not
+    assert.deepEqual(waitTable({ eggplant: 30, apple: 25 }, { eggplant: 0.5, apple: 1 }, 2, 0.5), [0, 13.75, 0.5 * 27.5 + 0.5 * 13.75]);
+    assert.deepEqual(waitTable({ eggplant: 30 }, { eggplant: 1 }, 3, 0), [0, 0, 0, 0]);
+});
+
+test("dayOdds: days terra was open over the days since the log started, 90% under a week", () => {
+    const log = (...days) => Object.fromEntries(days.map((d) => [`2026-10-${d}`, { weekKey: "2026-W43", seconds: 0 }]));
+    assert.equal(dayOdds({}, "2026-10-25"), 0.9);
+    assert.equal(dayOdds(log(20, 21, 23), "2026-10-23"), 0.9);
+    // 8 of the 10 days from the 14th
+    assert.equal(dayOdds(log(14, 15, 16, 18, 19, 20, 22, 23), "2026-10-23"), 0.8);
 });
 
 test("waitTable: same as trying every mix of whos in the shop", () => {
