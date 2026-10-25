@@ -106,10 +106,20 @@ export function inventoryFrom(currency, inventory) {
         // every other seed, { eggplant: 4 }. bought ones look like apple seeds with their own itemId
         bonus: bySeed(usable.filter((item) => item.type === "seed" && item.subtype !== "base" && item.itemId !== APPLE_SEED)),
         // water pool, devlogged hours minus what ive watered with. coded but not devlogged hours arent in it
-        water: currency.water ?? 0,
+        // weekWater first, on the wiggle day water has last week's grace in it n that cant go on this week's crops
+        water: currency.weekWater ?? currency.water ?? 0,
         // ms, soonest seeds die if not planted n waterd by then (monday night US eastern). null with no seeds
         seedsDie: soonest(usable.filter((item) => item.type === "seed").map((item) => Date.parse(item.usableUntil))),
+        // last week's leftover water on the wiggle day, endsAt in ms. never seen a real one, so a number or a date string both work
+        grace: { water: currency.graceWater ?? 0, endsAt: graceEnd(currency.graceEndsAt) },
     };
+}
+
+// s or ms or a date string -> ms, null if its none of those
+function graceEnd(value) {
+    if (typeof value === "number") return value < 1e12 ? value * 1000 : value;
+    const ms = Date.parse(value ?? "");
+    return Number.isFinite(ms) ? ms : null;
 }
 
 function soonest(times) {

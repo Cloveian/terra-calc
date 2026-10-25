@@ -2,6 +2,7 @@
 import { hoursNeeded, simulateRoute, milestones, EVEN_WEEK } from "../src/route.js";
 import { RENT, MAX_PLOTS, BASE_SEEDS, BASE_KINDS, CROPS } from "../src/data.js";
 import { isWeekAfter, weekIndex, weekDay } from "../src/week.js";
+import { perHour } from "../src/farm.js";
 
 // this weeks crops (= hours) from site route (src/route.js). goal in coins, none = rent week, 10 h or what my typed days need to pay it. w counts whole week, planted or not. out = main week short of the 10 rent crops, no coins for them or my typed days dont get there even at 45. route for milestones, mix = first weeks seeds with thisWeek
 // given = my days (daysGiven), cap comes back null when every day set n the goal fits
@@ -139,13 +140,18 @@ export function bonusOnHand(inventory, farm, weekKey) {
 
 // steps in the order i'd do them, n in crops, plots, seeds or hours. buy and plant ones carry their seed, sell its coins
 // needs the farm to count spots from (card says go look). w = this weeks h from route, null = no target, then it plants whats in the bag
+// buyNow = seed ids worth buying before the wiggle day, null = all of them. wiggle = { water, endsAt, shop: todays seed ids } on the wiggle day
 export function stepsFrom({
     farm, inventory, stuck, loans, weekKey, unclaimed = 0, w, mix = null, table = CROPS, shopToday = true, selling = { crops: 0, coins: 0 },
+    buyNow = null, wiggle = null,
 }) {
     if (!farm || !inventory) return [];
     const steps = [];
     const add = (step) => step.n > 0 && steps.push(step);
     const count = (keep) => farm.crops.filter(keep).length;
+
+    // last week's leftover water on seeds bought n planted today, best in the shop. cabbage only when its all there is
+    if (wiggle) add(wiggleStep(wiggle, farm, inventory, table));
 
     const withered = count((crop) => crop.stage === "withered");
     const ready = count((crop) => crop.stage === "ready");
@@ -198,14 +204,24 @@ export function stepsFrom({
     // mix only knows todays bonus seeds once the shop has been open today. not with no target or only free ones left to plant
     if (!shopToday && w !== null && going > base) add({ do: "checkShop", n: 1 });
     // seeds first, place n the "or wait" go right under buyPlots in nestSteps
-    for (const [id, n] of Object.entries(toPlant)) add({ do: "buySeeds", seed: id, n: Math.max(0, n - (bag[id] ?? 0)) });
+    // the rest wait for the wiggle day, when the water left is known n nothing bought goes to waste. ones in the bag get planted now
+    let later = 0;
+    const plantNow = {};
+    for (const [id, n] of Object.entries(toPlant)) {
+        const buy = Math.max(0, n - (bag[id] ?? 0));
+        const now = buyNow === null || buyNow.includes(id);
+        if (now) add({ do: "buySeeds", seed: id, n: buy });
+        else later += buy;
+        plantNow[id] = now ? n : n - buy;
+    }
     add({ do: "buyPlots", n: buyPlots });
     // or = theres a buy step its the other way to. at 45 loans are the only room left
     add({ do: "waitForLoans", n: lent, or: buyPlots > 0 });
     add({ do: "full", n: full });
     add({ do: "place", n: Math.min(inventory.unplaced + buyPlots, Math.max(0, going - free)) });
     add({ do: "plantBase", n: base });
-    for (const [id, n] of Object.entries(toPlant)) add({ do: "plant", seed: id, n });
+    for (const [id, n] of Object.entries(plantNow)) add({ do: "plant", seed: id, n });
+    add({ do: "buyLater", n: later });
 
     // water still owed, planted ones not watered yet + ones going in at table water each ({ ...CROPS, ...todays shop })
     const weekCrops = farm.crops.filter((crop) => crop.week === weekKey);
@@ -222,6 +238,17 @@ export function stepsFrom({
     const unshipped = count((crop) => crop.week === weekKey && (crop.stage === "dry" || crop.stage === "watered"));
     add({ do: "ship", n: unshipped + going });
     return steps;
+}
+
+// as many of todays best seed as last week's water covers, capped by coins n empty plots. null when theres nothing worth buying
+function wiggleStep({ water, endsAt, shop }, farm, inventory, table) {
+    const seeds = shop.filter((id) => table[id]?.water && table[id].buy != null);
+    if (seeds.length === 0) return { do: "wiggle", n: 0 };
+    // per water at m 1, the order doesnt change with m
+    const best = seeds.reduce((a, b) => (perHour(table[b], 1) > perHour(table[a], 1) ? b : a));
+    const { buy, water: each } = table[best];
+    const n = Math.min(Math.floor(water / each), Math.floor(inventory.coins / buy), farm.empty);
+    return { do: "wiggle", seed: best, n, water, endsAt };
 }
 
 // week checklist with done ones ticked, like terra's own. saved = list as it first came out, null at first

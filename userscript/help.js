@@ -39,6 +39,7 @@ const PAGES = [
         faq: [
             { q: "Where does \"usually\" come from?", a: "Terra Calc writes down your hours every day it's open. With a Hackatime key it knows your last 8 weeks right away." },
             { q: "Does AI time count?", a: "A third, same as Terra." },
+            { q: "Why wait till Monday to buy seeds?", a: "Monday is the wiggle day: you can still buy, plant and use last week's water, and by then you know exactly how much you have. Only the best seed (like eggplant) is worth grabbing early. The risk maths is still a bit WIP." },
         ],
     },
     {

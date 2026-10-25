@@ -108,6 +108,14 @@ test("the next pick's tip, the week before n the week it lands off the route", (
     assert.equal(next.tex[1], "c_{\\text{Week 2}} = 600.2 < 750 \\le 812.4 = c_{\\text{Week 3}}");
 });
 
+test("the wiggle day n buy later steps", () => {
+    const plan = (steps) => ({ t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, crops: CROPS, farm: { plots: 10, empty: 0, crops: [], seenAt: NOW }, stuck: null, steps });
+    const text = (step) => cardFor(plan([step]), NOW).tasks[0].text;
+    assert.equal(text({ do: "wiggle", seed: "apple", n: 7, water: 7.5, endsAt: NOW + 5 * 3600000 }), "wiggle day: buy 7 apple seeds (5h left)");
+    assert.equal(text({ do: "wiggle", seed: "apple", n: 7, done: true }), "wiggle day: buy 7 apple seeds");
+    assert.equal(text({ do: "buyLater", n: 10 }), "buy 10 more seeds on Monday");
+});
+
 test("the code step's maths tip, none once it's ticked", () => {
     const plan = (step) => ({ t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: { plots: 10, empty: 0, crops: [], seenAt: NOW }, stuck: null, steps: [step] });
     const tex = (step) => cardFor(plan(step), NOW).tasks[0].tex?.[1];

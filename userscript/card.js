@@ -33,6 +33,9 @@ const STEP_LINES = {
     buyPlots: (n) => `buy ${some(n, "plot")}`,
     checkShop: (n, plan) => (plan.shopSeen ? "check Heidi's shop" : "open Heidi's shop once, Terra Calc doesn't know her seeds yet"),
     buySeeds: (n, plan, now, step) => `buy ${some(n, seedName(step.seed, plan))}`,
+    buyLater: (n) => `buy ${some(n, "more seed")} on Monday`,
+    // a ticked one only has n n seed
+    wiggle: (n, plan, now, step) => `wiggle day: buy ${some(n, seedName(step.seed, plan))}${step.endsAt ? ` (${hoursLeft(step.endsAt - now)} left)` : ""}`,
     waitForLoans: (n, plan, now, step) => {
         const wait = `wait for up to ${some(n, "loan plot")} on Wednesday, if still in review`;
         return step.or ? `(or ${wait})` : wait;

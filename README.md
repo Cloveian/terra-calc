@@ -31,6 +31,7 @@ The **(?)** in the bottom right of the card opens a help book with all of this a
 
 **The This Week card**
 - this week's steps in order ("buy 12 eggplant seeds", "code 21.9h"), nested under what they wait on and ticked off as you go
+- seeds wait for the wiggle day (the Monday after the week, when you can still buy, plant and use last week's water), except the best one Heidi ever has, like eggplant. On the wiggle day it says what to buy with the water you have left, and only suggests something like cabbage if it's all there is
 - where your goal stands, when each pick lands, and what your usual week gets you by Week 12
 - whether the seeds you'd buy actually get watered in enough of your past weeks to be worth their price (once it's seen three of your weeks)
 - when waiting for a better seed in Heidi's shop beats today's
@@ -162,6 +163,7 @@ Some of the site updates when the first new plants were releaced (not really rel
 Helping me understand javascript (it'd dumb), like 'what fucion would work best in this situation'
 Debugging
 Updateing some of the comments when they were stale.
+Quick fix on the recomendations
 
 ## License
 

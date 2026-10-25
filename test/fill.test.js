@@ -107,11 +107,20 @@ test("multiplyerFrom: nothing to sell -> null", () => {
 test("inventoryFrom: coins, and apple seeds from the usable weeks only", () => {
     // 3 this week + 2 from week 8 (still usable), 4 from week 7 expired, the 10 strawberrys are base seeds, 36 plots are loans like in a capture (no week)
     const inventory = inventoryFrom(fixture("player-currency"), fixture("inventory-sync"));
-    assert.deepEqual(inventory, { coins: 42, plots: null, unplaced: 36, seeds: 5, baseSeeds: 10, baseKinds: { strawberry: 10 }, bonus: {}, water: 2.8633, seedsDie: Date.parse("2026-10-20T03:59:59.999Z") });
+    assert.deepEqual(inventory, { coins: 42, plots: null, unplaced: 36, seeds: 5, baseSeeds: 10, baseKinds: { strawberry: 10 }, bonus: {}, water: 0, seedsDie: Date.parse("2026-10-20T03:59:59.999Z"), grace: { water: 2.8633, endsAt: Date.parse("2026-10-20T03:59:59.999Z") } });
 });
 
 test("inventoryFrom: no seeds -> 0s", () => {
-    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, unplaced: 0, seeds: 0, baseSeeds: 0, baseKinds: {}, bonus: {}, water: 0, seedsDie: null });
+    assert.deepEqual(inventoryFrom({ coins: 0 }, { usableWeeks: [9], items: [] }), { coins: 0, plots: null, unplaced: 0, seeds: 0, baseSeeds: 0, baseKinds: {}, bonus: {}, water: 0, seedsDie: null, grace: { water: 0, endsAt: null } });
+});
+
+test("inventoryFrom: grace water n when it ends, whatever shape the end comes in", () => {
+    const grace = (graceEndsAt) => inventoryFrom({ coins: 0, graceWater: 3.5, graceEndsAt }, { usableWeeks: [9], items: [] }).grace;
+    const end = Date.parse("2026-10-27T03:59:59.999Z");
+    assert.deepEqual(grace("2026-10-27T03:59:59.999Z"), { water: 3.5, endsAt: end });
+    assert.deepEqual(grace(end), { water: 3.5, endsAt: end });
+    assert.deepEqual(grace(end / 1000), { water: 3.5, endsAt: end });
+    assert.deepEqual(grace(undefined), { water: 3.5, endsAt: null });
 });
 
 test("inventoryFrom: bonus seeds by id, apples and base seeds aren't in there, old ones expire", () => {
