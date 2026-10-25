@@ -2,6 +2,7 @@
 
 import { cssModule, ourBit } from "./page.js";
 import { perHour } from "../src/farm.js";
+import { texTip, perHourTex, PER_HOUR_TEX } from "./tip.js";
 
 const BADGE = "terra-calc-badge";
 const WARNING = "terra-calc-warning";
@@ -53,7 +54,7 @@ function fillBadges(bits) {
         const buy = bits.toBuy?.[seed.id] ?? 0;
         const text = buy > 0 ? `${n}/h, buy ${buy}` : `${n}/h`;
         if (badge.textContent !== text) badge.textContent = text;
-        badge.title = `${n} coins/h after seed cost (multiplier ${Math.round(bits.m * 100) / 100})`;
+        texTip(badge, [PER_HOUR_TEX, perHourTex(plain(seed.name), seed, bits.m)]);
     }
 }
 

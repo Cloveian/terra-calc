@@ -60,8 +60,14 @@ test("a mix with bonus seeds gets a line, biggest first, apples only doesn't", (
         target: { w: 30, cap: 30, reachable: null, out: false, mix },
         crops: { bokchoy: { name: "Bok Choy", buy: 10, sell: 37, water: 1 } },
     });
-    assert.deepEqual(cardFor(plan({ eggplant: 6, apple: 8, bokchoy: 0 }), NOW).details, ["today's best: 8 apple + 6 eggplant"], "not in crops, so it's the id");
-    assert.deepEqual(cardFor(plan({ apple: 3, bokchoy: 5 }), NOW).details, ["today's best: 5 bok choy + 3 apple"]);
+    const texts = (mix) => cardFor(plan(mix), NOW).details.map((item) => item.text);
+    assert.deepEqual(texts({ eggplant: 6, apple: 8, bokchoy: 0 }), ["today's best: 8 apple + 6 eggplant"], "not in crops, so it's the id");
+    assert.deepEqual(texts({ apple: 3, bokchoy: 5 }), ["today's best: 5 bok choy + 3 apple"]);
+    // the maths tip, each seed's coins a water in the same order
+    assert.deepEqual(cardFor(plan({ apple: 3, bokchoy: 5 }), NOW).details[0].tex.slice(1), [
+        "v_{\\text{bok choy}} = \\frac{1 \\cdot 37 - 10}{1} = 27",
+        "v_{\\text{apple}} = \\frac{1 \\cdot 30 - 5}{1} = 25",
+    ]);
     assert.deepEqual(cardFor(plan({ apple: 10 }), NOW).details, []);
     assert.deepEqual(cardFor(plan(null), NOW).details, []);
 });
@@ -184,16 +190,20 @@ test("crops waiting to sell come off what's to go, and get a sell step", () => {
 test("risk lines: all watered, or the ones under break-even get their own line", () => {
     const plan = {
         t: 3, inventory: { coins: 0, plots: 20, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: null, stuck: null, crops: CROPS, steps: [],
-        risk: { h: 26, weeks: 2, of: 4, kept: 10, skip: {} },
+        risk: { h: 26, weeks: 2, of: 4, kept: 10, skip: {} }, held: { v: 30, days: 3 },
     };
-    assert.ok(cardFor(plan, NOW).details.includes("all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)"));
-    const some = cardFor({ ...plan, risk: { h: 24, weeks: 1, of: 4, kept: 8, skip: { bokchoy: { n: 3, weeks: 1 } } } }, NOW).details;
-    assert.ok(some.includes("the other 8 seeds to buy get watered at 24h more (1 of my last 4 weeks)"));
-    assert.ok(some.includes("buy 3 bok choy seeds fewer, they'd only get watered in 1 of my last 4 weeks"));
-    const wait = cardFor({ ...plan, risk: { h: 0, weeks: 4, of: 4, kept: 0, skip: { bokchoy: { n: 3, weeks: 3, wait: true } } } }, NOW).details;
-    assert.ok(wait.includes("buy 3 bok choy seeds fewer and wait, they'd only get watered in 3 of my last 4 weeks"));
-    const one = cardFor({ ...plan, risk: { h: 3, weeks: 3, of: 3, kept: 1, skip: {} } }, NOW).details;
-    assert.ok(one.includes("the 1 seed to buy gets watered at 3h more (3 of my last 3 weeks)"));
+    const details = (risk) => cardFor({ ...plan, risk }, NOW).details;
+    const texts = (risk) => details(risk).map((item) => item.text);
+    assert.ok(texts(plan.risk).includes("all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)"));
+    const some = { h: 24, weeks: 1, of: 4, kept: 8, skip: { bokchoy: { n: 3, weeks: 1 } } };
+    assert.ok(texts(some).includes("the other 8 seeds to buy get watered at 24h more (1 of my last 4 weeks)"));
+    assert.ok(texts(some).includes("buy 3 bok choy seeds fewer, they'd only get watered in 1 of my last 4 weeks"));
+    // 1/4 of 37 is 9.25, under the 10 it costs
+    assert.equal(details(some)[1].tex[1], "\\frac{1}{4} \\cdot 1 \\cdot 37 - 10 = -0.75 \\le 0");
+    const wait = { h: 0, weeks: 4, of: 4, kept: 0, skip: { bokchoy: { n: 3, weeks: 3, wait: true } } };
+    assert.ok(texts(wait).includes("buy 3 bok choy seeds fewer and wait, they'd only get watered in 3 of my last 4 weeks"));
+    assert.equal(details(wait)[0].tex[1], "\\frac{3}{4} \\cdot 1 \\cdot 37 - 10 = 17.75 \\le \\frac{3}{4} \\cdot 30 \\cdot 1 = 22.5");
+    assert.ok(texts({ h: 3, weeks: 3, of: 3, kept: 1, skip: {} }).includes("the 1 seed to buy gets watered at 3h more (3 of my last 3 weeks)"));
 });
 
 test("at 45 plots: the loan step without the 'or', n what won't fit", () => {
@@ -252,8 +262,11 @@ test("the wait line names the seeds, off CROPS when they're not in today's shop"
     const plan = {
         t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, crops: {},
         farm: { plots: 10, empty: 0, crops: [], seenAt: NOW }, stuck: null, steps: [], wait: { best: "bokchoy", top: "eggplant", odds: 0.5 },
+        held: { v: 27.5, days: 1 },
     };
-    assert.ok(cardFor(plan, NOW).details.includes("waiting beats today's bok choy, eggplant's in 50% of days"));
+    const [line] = cardFor(plan, NOW).details;
+    assert.equal(line.text, "waiting beats today's bok choy, eggplant's in 50% of days");
+    assert.equal(line.tex[1], "V_{1} = 27.5 > v_{\\text{bok choy}} = 27");
 });
 
 test("the code step says the h a day, under a day just the hours left", () => {

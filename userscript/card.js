@@ -1,11 +1,12 @@
 // what to do next, inside terra's own This Week card
 import { weekName, isPrep, DAY_MS, LAST_WEEK } from "../src/week.js";
 import { CROPS, BASE_KINDS, MAX_PLOTS } from "../src/data.js";
-import { mixWords } from "../src/farm.js";
+import { mixWords, mixIds, perHour } from "../src/farm.js";
 import { nestSteps } from "./next.js";
 import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
 import { loadJSON, saveJSON } from "./store.js";
 import { canHelp, openHelp } from "./help.js";
+import { texTip, num, perHourTex, PER_HOUR_TEX } from "./tip.js";
 
 // 10 min
 const FARM_OLD = 10 * 60000;
@@ -44,6 +45,10 @@ const STEP_LINES = {
     code: (n, plan, now, step) => `code ${n}h${step.done ? "" : pace(n, plan, now)}`,
     ship: (n, plan, now, step) => `ship this week's project${deadline(plan.weekEnds, now, step)}`,
 };
+
+// hover maths, the general one over my numbers (tip.js)
+const WAIT_TEX = "V_n = p_{\\text{back}} \\, \\mathbb{E}[\\max(v, V_{n-1})] + (1 - p_{\\text{back}}) \\, V_{n-1}, \\quad V_0 = 0";
+const RISK_TEX = "\\text{buy if } p \\, m \\, \\text{sell} - \\text{buy} > p \\, V \\, \\text{water} \\quad (0 \\text{ at } p = 1)";
 
 // ---- the page ----
 // terra's "This Week" card (top right, GameCanvas quest list) is Solid DOM, our block goes at the end of its body
@@ -200,6 +205,11 @@ function drawBlock(block, { tasks, details }) {
     });
     const drawDetail = (item) => {
         if (typeof item === "string") return [detail(item)];
+        if (item.tex) {
+            const line = detail(item.text);
+            texTip(line, item.tex);
+            return [line];
+        }
         if (item.bar) return [drawBar(detail(""), item.bar)];
         if (!showPicks.on) return [link("show more", () => showPicks.set(true))];
         return [...item.picks.map((text) => detail(text, "terra-calc-pick")), link("show less", () => showPicks.set(false))];
@@ -257,7 +267,7 @@ function savedFlag(key) {
     };
 }
 
-// coins, plots and m left out, the steps already use them (terraCalc.plan().parts has em all). one detail can be the goal bar, one the picks behind show more
+// coins, plots and m left out, the steps already use them (terraCalc.plan().parts has em all). one detail can be the goal bar, one the picks behind show more, n maths lines are { text, tex } for tip.js
 export function cardFor(plan, now = Date.now()) {
     const { loans, farm, stuck, target, steps, goal, inventory } = plan;
     // ticked ones still count for the indent, list doesnt jump around
@@ -275,10 +285,17 @@ export function cardFor(plan, now = Date.now()) {
     if (target?.out) details.push("can't make rent this week");
     // nothing for apples only, the steps already say that
     const mix = mixWords(target?.mix, (id) => cropName(id, plan.crops));
-    if (mix) details.push(`today's best: ${mix}`);
+    if (mix) {
+        const each = mixIds(target.mix).map((id) => perHourTex(cropName(id, plan.crops), cropOf(id, plan.crops), plan.m));
+        details.push({ text: `today's best: ${mix}`, tex: [PER_HOUR_TEX, ...each] });
+    }
     if (plan.wait) {
         const { best, top, odds } = plan.wait;
-        details.push(`waiting beats today's ${cropName(best, plan.crops)}, ${cropName(top, plan.crops)}'s in ${Math.round(odds * 100)}% of days`);
+        const v = perHour(cropOf(best, plan.crops), plan.m);
+        details.push({
+            text: `waiting beats today's ${cropName(best, plan.crops)}, ${cropName(top, plan.crops)}'s in ${Math.round(odds * 100)}% of days`,
+            tex: [WAIT_TEX, `V_{${plan.held.days}} = ${num(plan.held.v)} > v_{\\text{${cropName(best, plan.crops)}}} = ${num(v)}`],
+        });
     }
     if (plan.risk) details.push(...riskLines(plan.risk, plan));
     // stuck ones are from before this week (or all of them if the week's unknown)
@@ -301,10 +318,20 @@ function riskLines({ h, weeks, of, kept, skip }, plan) {
     const lines = [];
     if (kept > 0) {
         const which = skipped.length ? "the other" : kept === 1 ? "the" : "all";
-        lines.push(`${which} ${some(kept, "seed")} to buy ${kept === 1 ? "gets" : "get"} watered at ${h}h more (${weeks} of my last ${of} weeks)`);
+        lines.push({
+            text: `${which} ${some(kept, "seed")} to buy ${kept === 1 ? "gets" : "get"} watered at ${h}h more (${weeks} of my last ${of} weeks)`,
+            tex: [RISK_TEX, `p = P(\\text{rest of week} \\ge ${num(h)}) = \\frac{${weeks}}{${of}}`],
+        });
     }
     for (const [id, { n, weeks: got, wait }] of skipped) {
-        lines.push(`buy ${some(n, seedName(id, plan))} fewer${wait ? " and wait" : ""}, they'd only get watered in ${got} of my last ${of} weeks`);
+        const { buy, sell, water } = cropOf(id, plan.crops);
+        const p = `\\frac{${got}}{${of}}`;
+        const now = `${p} \\cdot ${num(plan.m)} \\cdot ${sell} - ${buy} = ${num((got / of) * plan.m * sell - buy)}`;
+        const later = wait ? `${p} \\cdot ${num(plan.held.v)} \\cdot ${water} = ${num((got / of) * plan.held.v * water)}` : "0";
+        lines.push({
+            text: `buy ${some(n, seedName(id, plan))} fewer${wait ? " and wait" : ""}, they'd only get watered in ${got} of my last ${of} weeks`,
+            tex: [RISK_TEX, `${now} \\le ${later}`],
+        });
     }
     return lines;
 }
@@ -323,6 +350,11 @@ function seedName(id, plan) {
 // name off the known seeds (shop log, data.js), then the id
 function cropName(id, crops) {
     return (crops[id]?.name ?? CROPS[id]?.name ?? id).toLowerCase();
+}
+
+// buy, sell n water off the same places as cropName
+function cropOf(id, crops) {
+    return crops[id] ?? CROPS[id];
 }
 
 // "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)

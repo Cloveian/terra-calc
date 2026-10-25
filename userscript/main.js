@@ -583,7 +583,8 @@ function plan() {
     });
     const ticked = weekSteps(steps, w, farmToday);
     // worth of a water held for later. 6 - weekDay = shop days after today, sunday's the last
-    const held = waitWorth(shopLog, shop.table, m, 6 - weekDay(today), dayOdds(hoursLog, today));
+    const daysLeft = 6 - weekDay(today);
+    const held = waitWorth(shopLog, shop.table, m, daysLeft, dayOdds(hoursLog, today));
     const parts = {
         trees,
         owned,
@@ -610,6 +611,7 @@ function plan() {
         wait: waitFor(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, held),
         // do the seeds i'd buy get watered, off my past weeks from today's weekday on. or would waiting do better with the water i might not code
         risk: buyRisk(steps, shop.table, m, restOfWeeks(started, today), codedToday ?? 0, held),
+        held: { v: held, days: daysLeft }, // V_days for the wait n risk maths tips
         // for card goal lines, null = rent week
         goal: coinsGoal === null ? null : {
             device: trees[picked.device].device,

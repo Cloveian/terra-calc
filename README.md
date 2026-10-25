@@ -31,6 +31,8 @@ There's also a userscript that runs inside Terra itself, so there's nothing to t
 - on that card too: whether the seeds you'd buy actually get watered in enough of your past weeks to be worth their price (once it's seen three of your weeks), when waiting for a better seed in Heidi's shop beats today's (once it's seen her shop on 14 days), and where your goal lands if Heidi only had her worst or best seed from now on
 - a want button on each upgrade in Terra's device tree, and a priority number and the week you can afford it on the ones you want
 - coins-an-hour badges on Heidi's seeds, with how many the plan buys (off until you turn them on)
+- hover a seed badge or one of the card's maths lines to see the formula, then the same with your numbers in it. The TeX is drawn by [Temml](https://temml.org), loaded from jsdelivr the first time you hover one
+- a ? at the bottom of the card opens a little book, in the Terra Tome's style, on how to use all of this
 - an hour box on each day left on Terra's calendar: type what you can give that day, and the plan works around the rest the way your weeks usually go. Each one also says what you usually do that weekday, and days already gone show what you coded
 - Island / Hub and Goal buttons at the bottom of Terra's button column, or next to the water meter on short screens
 - a Terra Calc section in Terra's settings, to turn each part on or off, set your own multiplier, type your numbers in yourself if reading the game ever breaks, or add a Hackatime key (it only ever goes to Hackatime)
@@ -101,6 +103,8 @@ userscript/       Terra Calc inside Terra, uses the src/ files that don't touch 
   next.js         this week's steps
   goal.js         your goal, checked against Terra's live upgrade trees
   card.js         the steps in Terra's This Week card
+  help.js         the how-to book behind the card's ?, on the Terra Tome's look
+  tip.js          the maths behind a number when you hover it
   want.js         want buttons and priorities on Terra's device tree
   shop.js         the badges in Heidi's shop
   hud.js          the Island / Hub and Goal buttons
