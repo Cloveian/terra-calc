@@ -94,6 +94,14 @@ test("a goal shows before the farm's been seen, with the next pick and when it's
     ]);
 });
 
+test("the code step's maths tip, none once it's ticked", () => {
+    const plan = (step) => ({ t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: { plots: 10, empty: 0, crops: [], seenAt: NOW }, stuck: null, steps: [step] });
+    const tex = (step) => cardFor(plan(step), NOW).tasks[0].tex?.[1];
+    assert.equal(tex({ do: "code", n: 13, owed: 18, pool: 2, unclaimed: 3 }), "h = 18 - 2 - 3 = 13");
+    assert.equal(tex({ do: "code", n: 28.3, owed: 30.25, pool: 1.99, unclaimed: 0 }), "h = 30.25 - 1.99 - 0 = 28.26 \\approx 28.3");
+    assert.equal(tex({ do: "code", n: 10, done: true }), undefined);
+});
+
 test("heidi luck lines: her worst n best seed every week after this one, only when it changes something", () => {
     // plan gets both picks, the last one week 8
     const milestones = [{ name: "Core 3 304", qty: 1, now: false, week: 5 }, { name: "RAM 16 GB", qty: 1, now: false, week: 8 }];

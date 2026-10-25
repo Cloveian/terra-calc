@@ -213,10 +213,11 @@ export function stepsFrom({
         + base + Object.entries(toPlant).reduce((total, [id, n]) => total + n * (table[id]?.water ?? 1), 0);
     // pool covers some, unclaimed (coded, not devlogged yet) turns into water on devlog
     const short = owed - inventory.water;
-    const tenths = (h) => Math.max(0, Math.ceil(h * 10) / 10);
+    const tenths = (h) => Math.max(0, Math.ceil(h * 10 - 1e-9) / 10); // 17.200000000000003 is still 17.2
     // a devlog claims all of it, so the step says all of it even past whats short
     add({ do: "claim", n: short > 0 ? tenths(unclaimed) : 0 });
-    add({ do: "code", n: tenths(short - unclaimed) });
+    // rest is just for the maths tip
+    add({ do: "code", n: tenths(short - unclaimed), owed, pool: inventory.water, unclaimed });
     // this weeks not off for review yet + ones about to be planted
     const unshipped = count((crop) => crop.week === weekKey && (crop.stage === "dry" || crop.stage === "watered"));
     add({ do: "ship", n: unshipped + going });

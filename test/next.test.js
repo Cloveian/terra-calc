@@ -127,7 +127,7 @@ test("stepsFrom: 20 Oct, 36 stuck and 36 loan plots in the bag", () => {
     assert.deepEqual(steps, [
         { do: "place", n: 10 },
         { do: "plantBase", n: 10 },
-        { do: "code", n: 10 },
+        { do: "code", n: 10, owed: 10, pool: 0, unclaimed: 0 },
         { do: "ship", n: 10 },
     ]);
 });
@@ -144,7 +144,7 @@ test("stepsFrom: 19 Oct, stuck with nothing lent yet, so the plots would have to
         { do: "waitForLoans", n: 10, or: true },
         { do: "place", n: 9 },
         { do: "plantBase", n: 10 },
-        { do: "code", n: 10 },
+        { do: "code", n: 10, owed: 10, pool: 0, unclaimed: 0 },
         { do: "ship", n: 10 },
     ]);
 });
@@ -170,7 +170,7 @@ test("stepsFrom: no target n a bag bigger than 45 plots", () => {
     assert.deepEqual(steps, [
         { do: "full", n: 5 },
         { do: "plant", seed: "apple", n: 45 },
-        { do: "code", n: 45 },
+        { do: "code", n: 45, owed: 45, pool: 0, unclaimed: 0 },
         { do: "ship", n: 45 },
     ]);
 });
@@ -186,7 +186,7 @@ test("stepsFrom: what wont fit comes off the apples first", () => {
         { do: "full", n: 15 },
         { do: "plantBase", n: 10 },
         { do: "plant", seed: "eggplant", n: 10 },
-        { do: "code", n: 30 },
+        { do: "code", n: 30, owed: 30, pool: 0, unclaimed: 0 },
         { do: "ship", n: 20 },
     ]);
 });
@@ -227,7 +227,7 @@ test("stepsFrom: a busy week, harvesting last week's pays the loans back", () =>
         { do: "place", n: 15 },
         { do: "plantBase", n: 10 },
         { do: "plant", seed: "apple", n: 7 },
-        { do: "code", n: 17.5 },
+        { do: "code", n: 17.5, owed: 18, pool: 0.5, unclaimed: 0 },
         { do: "ship", n: 20 },
     ]);
     // place under buyPlots, planting under place, ship under code
@@ -279,7 +279,7 @@ test("stepsFrom: no target just plants what you've got and waters the dry ones",
         { do: "buyPlots", n: 2 },
         { do: "place", n: 2 },
         { do: "plant", seed: "apple", n: 3 },
-        { do: "code", n: 5 },
+        { do: "code", n: 5, owed: 5, pool: 0, unclaimed: 0 },
         { do: "ship", n: 5 },
     ]);
 });
@@ -296,7 +296,7 @@ test("stepsFrom: the mix's eggplants get bought and planted as eggplants, 2 wate
         { do: "plantBase", n: 10 },
         { do: "plant", seed: "eggplant", n: 4 },
         { do: "claim", n: 3 },
-        { do: "code", n: 13 },
+        { do: "code", n: 13, owed: 18, pool: 2, unclaimed: 3 },
         { do: "ship", n: 14 },
     ]);
     // planting eggplants waits on buying eggplants
@@ -321,7 +321,7 @@ test("stepsFrom: mid week, eggplants already planted count off the mix and their
     assert.deepEqual(steps, [
         { do: "buySeeds", seed: "eggplant", n: 1 },
         { do: "plant", seed: "eggplant", n: 2 },
-        { do: "code", n: 8 },
+        { do: "code", n: 8, owed: 8, pool: 0, unclaimed: 0 },
         { do: "ship", n: 4 },
     ]);
 });

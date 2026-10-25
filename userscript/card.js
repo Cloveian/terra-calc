@@ -49,6 +49,7 @@ const STEP_LINES = {
 // hover maths, the general one over my numbers (tip.js)
 const WAIT_TEX = "V_n = p_{\\text{back}} \\, \\mathbb{E}[\\max(v, V_{n-1})] + (1 - p_{\\text{back}}) \\, V_{n-1}, \\quad V_0 = 0";
 const RISK_TEX = "\\text{buy if } p \\, m \\, \\text{sell} - \\text{buy} > p \\, V \\, \\text{water} \\quad (0 \\text{ at } p = 1)";
+const CODE_TEX = "h = \\text{water owed} - \\text{pool} - h_{\\text{not devlogged}}";
 
 // ---- the page ----
 // terra's "This Week" card (top right, GameCanvas quest list) is Solid DOM, our block goes at the end of its body
@@ -200,6 +201,7 @@ function drawBlock(block, { tasks, details }) {
         const label = document.createElement("span");
         label.className = `${questClass("taskLabel")} ${task.done ? questClass("taskLabelDone") : ""}`;
         label.textContent = task.text;
+        if (task.tex) texTip(label, task.tex);
         row.append(box, label);
         return row;
     });
@@ -267,7 +269,7 @@ function savedFlag(key) {
     };
 }
 
-// coins, plots and m left out, the steps already use them (terraCalc.plan().parts has em all). one detail can be the goal bar, one the picks behind show more, n maths lines are { text, tex } for tip.js
+// coins, plots and m left out, the steps already use them (terraCalc.plan().parts has em all). one detail can be the goal bar, one the picks behind show more, n maths lines n the code task carry tex for tip.js
 export function cardFor(plan, now = Date.now()) {
     const { loans, farm, stuck, target, steps, goal, inventory } = plan;
     // ticked ones still count for the indent, list doesnt jump around
@@ -275,6 +277,8 @@ export function cardFor(plan, now = Date.now()) {
         text: STEP_LINES[step.do](step.n, plan, now, step),
         depth: step.depth,
         done: step.done ?? false,
+        // a ticked one only has n
+        ...(step.do === "code" && step.owed !== undefined && { tex: codeTex(step) }),
     }));
     // the steps need the farm to count from, the goal doesn't
     if (!farm) tasks.push({ text: "go to your island", depth: 0, done: false });
@@ -310,6 +314,13 @@ export function cardFor(plan, now = Date.now()) {
     // only once its old enough to throw the steps off
     if (farm?.seenAt && now - farm.seenAt >= FARM_OLD) details.push(`(farm as of ${ago(now - farm.seenAt)})`);
     return { tasks, details };
+}
+
+// step says it in tenths rounded up
+function codeTex({ n, owed, pool, unclaimed }) {
+    const h = owed - pool - unclaimed;
+    const close = num(h) === String(n) ? "" : ` \\approx ${n}`;
+    return [CODE_TEX, `h = ${num(owed)} - ${num(pool)} - ${num(unclaimed)} = ${num(h)}${close}`];
 }
 
 // "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)", then one line per skipped seed
