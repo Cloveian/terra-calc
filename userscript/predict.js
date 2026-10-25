@@ -88,44 +88,37 @@ export function seedOdds(shopLog) {
     return Object.fromEntries(Object.entries(counts).map(([id, n]) => [id, n / days.length]));
 }
 
-// what a water's worth with n shop days still to come, [V_0 ... V_days], V_0 = apple
+// what a water's worth with n shop days still to come, [V_0 ... V_days], V_0 = 0 cuz water past sunday's shop goes unplanted
 // V_n = E[max(best seed in that day's shop, V_(n-1))], each seed in on its own with its odds. house-selling problem, worked back from sunday
-// values = perHour (farm.js) per seed. buy today's seed for water i'm sure of if its value >= V_(days left after today)
-// todo: apples arent always there either, sunday without them is worth less
-export function waitTable(values, odds, apple, days = 6) {
-    const ids = Object.keys(values).filter((id) => odds[id] > 0);
-    const table = [apple];
+// values = perHour (farm.js) per seed, apples too. buy today's seed for water i'm sure of if its value >= V_(days left after today)
+export function waitTable(values, odds, days = 6) {
+    // best first: a seed only matters on a day nothing above it showed up
+    const ids = Object.keys(values).filter((id) => odds[id] > 0).sort((a, b) => values[b] - values[a]);
+    const table = [0];
     for (let n = 1; n <= days; n++) {
+        const floor = table[n - 1];
         let worth = 0;
-        // every mix of whos in the shop, 2^ids (2 bonus seeds = 4)
-        for (let mask = 0; mask < 1 << ids.length; mask++) {
-            let p = 1;
-            let best = apple;
-            ids.forEach((id, i) => {
-                const there = (mask >> i) & 1;
-                p *= there ? odds[id] : 1 - odds[id];
-                if (there) best = Math.max(best, values[id]);
-            });
-            worth += p * Math.max(best, table[n - 1]);
+        let none = 1; // chance none of the ones so far are in
+        for (const id of ids) {
+            if (values[id] <= floor) break;
+            worth += none * odds[id] * values[id];
+            none *= 1 - odds[id];
         }
-        table.push(worth);
+        table.push(worth + none * floor);
     }
     return table;
 }
 
-// { best: today's bonus seed, top: the one worth waiting for, odds: its share of days }, or null
-// only on days heidi has a bonus seed, with MIN_SHOP_DAYS of log, n when waiting actually wins. daysLeft = shop days after today this week
+// { best: today's best seed, top: the one worth waiting for, odds: its share of days }, or null
+// only with something in the shop today, MIN_SHOP_DAYS of log, n when waiting actually wins. daysLeft = shop days after today this week
 export function waitFor(shopLog, today, crops, m, daysLeft) {
-    // not apples, todays stock has them too
-    const bonus = today.filter((id) => crops[id] && id !== "apple");
-    if (bonus.length === 0 || daysLeft < 1 || Object.keys(shopLog).length < MIN_SHOP_DAYS) return null;
+    const here = today.filter((id) => crops[id]);
+    if (here.length === 0 || daysLeft < 1 || Object.keys(shopLog).length < MIN_SHOP_DAYS) return null;
     const value = (id) => perHour(crops[id], m);
     const odds = seedOdds(shopLog);
-    // apple is the floor already (V_0)
-    const values = Object.fromEntries(Object.keys(odds).filter((id) => crops[id] && id !== "apple").map((id) => [id, value(id)]));
-    const best = bonus.reduce((a, b) => (value(b) > value(a) ? b : a));
-    const wait = waitTable(values, odds, value("apple"), daysLeft)[daysLeft];
-    if (Math.max(value(best), value("apple")) >= wait) return null;
+    const values = Object.fromEntries(Object.keys(odds).filter((id) => crops[id]).map((id) => [id, value(id)]));
+    const best = here.reduce((a, b) => (value(b) > value(a) ? b : a));
+    if (value(best) >= waitTable(values, odds, daysLeft)[daysLeft]) return null;
     const top = Object.keys(values).reduce((a, b) => (values[b] > values[a] ? b : a));
     return { best, top, odds: odds[top] };
 }

@@ -5,17 +5,26 @@ import { EVEN_WEEK } from "../src/route.js";
 import { perHour } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
 
-// n days of shop log, eggplant on the first `egg` of them
-const shopLog = (n, egg) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`day${String(i).padStart(2, "0")}`, i < egg ? ["eggplant"] : []]));
+// n days of shop log, eggplant on the first `egg` of them, apples on the last `apples`
+const shopLog = (n, egg, apples = n) => Object.fromEntries(Array.from({ length: n }, (_, i) => {
+    const seeds = [];
+    if (i < egg) seeds.push("eggplant");
+    if (i >= n - apples) seeds.push("apple");
+    return [`day${String(i).padStart(2, "0")}`, seeds];
+}));
 
-test("waitFor: only with enough log, a bonus seed today, n waiting ahead", () => {
-    // eggplant half the days, bok choy (27) today, one shop day left: waiting's worth 27.5
+test("waitFor: only with enough log, something in the shop today, n waiting ahead", () => {
+    // eggplant half the days, apples every day, bok choy (27) today, one shop day left: waiting's worth 27.5
     assert.deepEqual(waitFor(shopLog(14, 7), ["bokchoy"], CROPS, 1, 1), { best: "bokchoy", top: "eggplant", odds: 0.5 });
     assert.equal(waitFor(shopLog(MIN_SHOP_DAYS - 1, 7), ["bokchoy"], CROPS, 1, 1), null); // not enough log yet
     assert.equal(waitFor(shopLog(14, 7), ["eggplant"], CROPS, 1, 1), null); // nothing beats it
-    assert.equal(waitFor(shopLog(14, 7), ["apple"], CROPS, 1, 3), null); // apples only today, nothing to decide
+    assert.equal(waitFor(shopLog(14, 7), [], CROPS, 1, 3), null); // nothing to buy today
     assert.equal(waitFor(shopLog(14, 7), ["bokchoy"], CROPS, 1, 0), null); // sunday, last shop of the week
     assert.equal(waitFor(shopLog(14, 2), ["bokchoy"], CROPS, 1, 1), null); // eggplant's rare, 25 + 5/7 < 27
+    // apples only today n 3 days left, an eggplant day in there is likely: 29.4 > 25
+    assert.deepEqual(waitFor(shopLog(14, 7), ["apple"], CROPS, 1, 3), { best: "apple", top: "eggplant", odds: 0.5 });
+    // apples on half the days too, tomorrow's only worth 15 + 6.25, bok choy wins
+    assert.equal(waitFor(shopLog(14, 7, 7), ["bokchoy"], CROPS, 1, 1), null);
 });
 
 const h = 3600;
@@ -82,11 +91,33 @@ test("seedOdds: share of logged days", () => {
     assert.deepEqual(odds, { eggplant: 0.75, bokchoy: 0.25 });
 });
 
-test("waitTable: eggplant half the days vs apples", () => {
-    const table = waitTable({ eggplant: 30 }, { eggplant: 0.5 }, 25, 2);
-    assert.deepEqual(table, [25, 27.5, 28.75]);
+test("waitTable: eggplant half the days vs apples every day", () => {
+    const table = waitTable({ eggplant: 30, apple: 25 }, { eggplant: 0.5, apple: 1 }, 2);
+    assert.deepEqual(table, [0, 27.5, 28.75]);
     // bok choy today (27) with one shop day left loses to waiting (27.5), by a hair
     assert.ok(27 < table[1]);
     // a seed thats never been seen doesnt count
-    assert.deepEqual(waitTable({ eggplant: 30, mystery: 99 }, { eggplant: 0.5 }, 25, 1), [25, 27.5]);
+    assert.deepEqual(waitTable({ eggplant: 30, mystery: 99 }, { eggplant: 0.5 }, 1), [0, 15]);
+});
+
+test("waitTable: same as trying every mix of whos in the shop", () => {
+    const values = { eggplant: 30, bokchoy: 27, apple: 25, cabbage: 18 };
+    const odds = { eggplant: 0.3, bokchoy: 0.2, apple: 0.8, cabbage: 0.4 };
+    const ids = Object.keys(values);
+    const brute = [0];
+    for (let n = 1; n <= 6; n++) {
+        let worth = 0;
+        for (let mask = 0; mask < 1 << ids.length; mask++) {
+            let p = 1;
+            let best = brute[n - 1];
+            ids.forEach((id, i) => {
+                const there = (mask >> i) & 1;
+                p *= there ? odds[id] : 1 - odds[id];
+                if (there) best = Math.max(best, values[id]);
+            });
+            worth += p * best;
+        }
+        brute.push(worth);
+    }
+    waitTable(values, odds).forEach((v, n) => assert.ok(Math.abs(v - brute[n]) < 1e-9, `V_${n}`));
 });

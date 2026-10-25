@@ -35,6 +35,6 @@ The route plans every week to Week 12, but only today's shop is known. A typical
 
 1. `seedsFrom` with apples in, the log keeping rows, known seeds (log, then data.js), tests. research/terra-api.md's `shop.stock` gets `itemId`, `cropValue`, `waterNeeded` and `dateKey`
 2. bestMix with no apple special case, this week's route off today's stock
-3. the typical day for later weeks: it goes where `weekCost`, `weekSales`, `applesFor` and `wMax` in farm.js use `CROPS.apple` now. predict.js's V_0 = apple becomes the typical day too, and the typed "apple seeds" box in settings just one more seed box
+3. the typical day for later weeks: it goes where `weekCost`, `weekSales`, `applesFor` and `wMax` in farm.js use `CROPS.apple` now. V_0 = apple in predict.js goes (it's 0 now, apples are one more seed with odds in the wait table), and the typed "apple seeds" box in settings just one more seed box
 4. names, badges, settings boxes off known seeds, the price notice out, the "open Heidi's shop once" step
 5. README, the "Weeks after this one" line in new-seeds.md points here

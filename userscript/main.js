@@ -40,7 +40,7 @@ const HACKATIME_DAYS_KEY = "terra-calc-hackatime-days";
 // plan parts that can stay null. the card would ask for plots (they sit in inventory)
 // farm only once you've been on your farm today (stuck any day), target needs the plot count too, goal's null till you pick one
 // weekEnds is just extra words on a few steps and the last week line, trees and owned only matter for a goal, lastWeek needs you to have been here last week
-// todayLeft only if i typed today, wait only when waiting beats todays bonus seed
+// todayLeft only if i typed today, wait only when waiting beats todays best seed
 const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "todayLeft", "wait", "trees", "owned", "lastWeek"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
@@ -582,7 +582,7 @@ function plan() {
         target,
         // every seed i know, for their names
         crops: shop.table,
-        // buy today's bonus seed or wait for a better one, shop days left after today, sunday's the last
+        // buy today's best seed or wait for a better one, shop days left after today, sunday's the last
         wait: waitFor(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, 6 - weekDay(today)),
         // for card goal lines, null = rent week
         goal: coinsGoal === null ? null : {
