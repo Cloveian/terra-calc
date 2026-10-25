@@ -47,8 +47,8 @@ function checkNames(files) {
     }
 }
 
-// --update-url <url> for the install / update links (wip gist raw link), --check = bundle n check it, dist/ left alone
-const args = parseArgs({ options: { "update-url": { type: "string" }, check: { type: "boolean" } } }).values;
+// --check = bundle n check it, dist/ left alone
+const args = parseArgs({ options: { check: { type: "boolean" } } }).values;
 
 const files = collect(ENTRY);
 checkNames(files);
@@ -64,13 +64,10 @@ if (args.check) {
 const { version: base } = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 const commits = execSync("git rev-list --count HEAD", { cwd: ROOT, encoding: "utf8" }).trim();
 const version = base.replace(/\d+$/, commits);
-const updateUrl = args["update-url"];
-let meta = readFileSync(META, "utf8").replace(/^(\/\/ @version\s+).*$/m, `$1${version}`);
-// a function so a $ in the url stays a $
-if (updateUrl) meta = meta.replace(/^(\/\/ @(?:downloadURL|updateURL)\s+).*$/gm, (_, key) => key + updateUrl);
+const meta = readFileSync(META, "utf8").replace(/^(\/\/ @version\s+).*$/m, `$1${version}`);
 const out = `${meta}\n${wrapped}`;
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, out);
 console.log(`${relative(ROOT, OUT)}: ${files.length} files, ${(out.length / 1024).toFixed(1)} KB`);
 
-// not sure if dist/ gets committed (pages needs it for install link)
+// dist/ isnt committed, the pages action builds it on every push

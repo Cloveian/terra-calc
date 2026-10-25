@@ -3,3 +3,4 @@ research/terra-js/
 *.har
 .playwright-mcp/
 .claude/
+dist/

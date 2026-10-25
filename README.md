@@ -39,7 +39,9 @@ There's also a userscript that runs inside Terra itself, so there's nothing to t
 
 It's a work in progress and Terra changes a lot, so expect a broken bit now and then. The card says so in red when something Terra sends looks different.
 
-There's no install link yet. To try it, build it and install the file with a userscript manager like [Violentmonkey](https://violentmonkey.github.io) or Tampermonkey:
+To install it, get a userscript manager like [Violentmonkey](https://violentmonkey.github.io) or Tampermonkey, then open [terra-calc.user.js](https://cloveian.github.io/terra-calc/dist/terra-calc.user.js). It updates itself from there, a new build goes up with every push.
+
+Or build it yourself:
 
 ```sh
 npm run build:userscript

@@ -8,7 +8,7 @@ A static site that takes your current Terra stats, what your goal(device) is, an
 
 - Plain HTML + CSS + JavaScript (ES modules), **no build step**
 - Tests with Node's built-in test runner (`node --test`, Node 20+), no dependencies
-- Hosted on GitHub Pages straight from the `master` branch
+- Hosted on GitHub Pages, the `pages` workflow puts it up on every push to `master`
 
 No build step means: edit a file, refresh the browser, done. GitHub Pages serves the repo as-is.
 
@@ -320,7 +320,7 @@ Start ugly, make it pretty later. A plain table is fine for a first ship.
 ## Hosting on GitHub Pages
 
 1. Create the repo on GitHub and push (`gh repo create terra-calc --public --source . --push`)
-2. Repo **Settings → Pages → Build and deployment → Deploy from a branch**, branch `main`, folder `/ (root)`
+2. Repo **Settings -> Pages -> Build and deployment -> Source: GitHub Actions**, the `pages` workflow does the rest
 3. Site shows up at `https://<username>.github.io/terra-calc/`
 
 ES modules need to be served over HTTP, opening `index.html` as a file won't work. Locally, run `python3 -m http.server` in the project folder and open `http://localhost:8000`.
