@@ -118,6 +118,8 @@ export function openHelp() {
         page = n;
         const { heading, left: lines, faq } = PAGES[n];
         const column = el("div", c.column);
+        // leftPage runs to 49.75cqw n the spine's at 49.4, theirs never fill a line that long
+        column.style.paddingRight = "3cqw";
         column.append(...lines.map((line) => el("p", c.body, line)));
         left.replaceChildren(el("h2", c.heading, heading), column);
         const answers = el("div", c.faq);
