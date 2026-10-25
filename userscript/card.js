@@ -258,6 +258,7 @@ export function cardFor(plan, now = Date.now()) {
         const { best, top, odds } = plan.wait;
         details.push(`waiting beats today's ${cropName(best, plan.crops)}, ${cropName(top, plan.crops)}'s in ${Math.round(odds * 100)}% of days`);
     }
+    if (plan.risk) details.push(...riskLines(plan.risk, plan));
     // stuck ones are from before this week (or all of them if the week's unknown)
     const stuckCrops = stuck?.crops ?? [];
     for (const why of Object.keys(stuck?.why ?? {})) {
@@ -269,6 +270,20 @@ export function cardFor(plan, now = Date.now()) {
     // only once its old enough to throw the steps off
     if (farm?.seenAt && now - farm.seenAt >= FARM_OLD) details.push(`(farm as of ${ago(now - farm.seenAt)})`);
     return { tasks, details };
+}
+
+// "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)", then one line per seed under its break-even
+function riskLines({ h, weeks, of, kept, skip }, plan) {
+    const skipped = Object.entries(skip);
+    const lines = [];
+    if (kept > 0) {
+        const which = skipped.length ? "the other" : kept === 1 ? "the" : "all";
+        lines.push(`${which} ${some(kept, "seed")} to buy ${kept === 1 ? "gets" : "get"} watered at ${h}h more (${weeks} of my last ${of} weeks)`);
+    }
+    for (const [id, { n, weeks: got }] of skipped) {
+        lines.push(`buy ${some(n, seedName(id, plan))} fewer, they'd only get watered in ${got} of my last ${of} weeks`);
+    }
+    return lines;
 }
 
 // free seed name, "carrot or strawberry" if both. none left = named by week, carrots in prep

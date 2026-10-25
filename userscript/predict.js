@@ -1,5 +1,5 @@
 // day hours off the hours log, a typical day per weekday n the week shape, n the wait-for-a-better-seed odds
-import { weekDay, DAY_MS } from "../src/week.js";
+import { weekDay, weekIndex, DAY_MS } from "../src/week.js";
 import { perHour } from "../src/farm.js";
 import { EVEN_WEEK } from "../src/route.js";
 import { idsOn } from "./daylog.js";
@@ -8,6 +8,8 @@ import { idsOn } from "./daylog.js";
 export const MIN_SAMPLES = 3;
 // n the shop log this many days before its odds say anything
 export const MIN_SHOP_DAYS = 14;
+// past weeks before "3 of my last 4 weeks" means anything
+export const MIN_WEEKS = 3;
 
 // [{ day, h, lumped }], lumped = days before it werent logged so their hours landed here too
 export function dayHours(log) {
@@ -47,6 +49,22 @@ export function weekShape(typical) {
     const filled = typical.map((h) => h ?? average);
     const total = filled.reduce((sum, h) => sum + h, 0);
     return filled.map((h) => h / total);
+}
+
+// each past week's h from today's weekday through sunday, [] till MIN_WEEKS of them. for "would i code x more this week"
+// a lumped day in there puts the week out, its hours could be from before
+export function restOfWeeks(days, today) {
+    const from = weekDay(today);
+    const sums = new Map();
+    const out = new Set();
+    for (const { day, h, lumped } of days) {
+        const week = weekIndex(day);
+        if (week >= weekIndex(today) || weekDay(day) < from) continue;
+        if (lumped) out.add(week);
+        sums.set(week, (sums.get(week) ?? 0) + h);
+    }
+    const rest = [...sums].filter(([week]) => !out.has(week)).map(([, h]) => h);
+    return rest.length < MIN_WEEKS ? [] : rest;
 }
 
 function median(xs) {

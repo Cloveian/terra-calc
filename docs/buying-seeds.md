@@ -12,6 +12,7 @@ The maths behind two parts of [feature-ideas.md](feature-ideas.md): buying with 
 - A rejected review pays nothing, the payoff gets \* (1 - p_rejected), yours to set
 - The card says it: "buy 6 eggplants + 4 apples, all watered if you code 26 h (3 of your last 4 weeks)", "a 7th eggplant pushes that to 28 h, skip it"
 - The same on the site with a "how sure am I about my hours" slider, it has no history
+- What's in now (`risk.js`): P(hours >= x) is just the share of my past weeks (from my first ship on, `restOfWeeks` in predict.js) where i coded at least x from today's weekday through Sunday, today's hours so far counted in. Needs 3 of those weeks, Hackatime's 8 weeks of days are plenty. Bought seeds get their water after everything already planted or in the bag, which is a bit careful, then best sale per water first, and each one's checked against its break-even with the ones before it. One skipped doesn't push the rest later. The card gets "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)" and "buy 3 bok choy seeds fewer, they'd only get watered in 1 of my last 4 weeks", the buy steps stay the plan's. Off a Hackatime key the weeks have AI time at full, so they come out a bit high
 - Where P(hours >= x) comes from, once it's real: per-day history (the hours log, or Hackatime with a key, see [your-time.md](your-time.md)) -> a prediction per day (faded on the calendar, type over it) -> the spread of my own days around that prediction -> P. The risk stuff sits on top of the day predictions, not the other way round
 
 ## Waiting for a better seed
@@ -31,6 +32,7 @@ The catch is water you don't have yet. Seeds for water already in my pool can be
 | Decision | What it does |
 | --- | --- |
 | How loud | **Decision:** just a line under the shop step, or do the buy steps actually change ("buy 0 bok choy, wait")? Default: just the line till there's 2 weeks of shop log, then think again |
+| How loud, risk | **Decision:** same question for "buy 3 bok choy seeds fewer". Default: just the line, the buy steps are still what the route picked |
 | p_back | **Decision:** from the hours log (days i opened Terra / days), or a setting? Default: the log, with 90% till it has a week |
 | Seeds never seen | A new bonus seed Heidi's never had gets no odds, it only counts on the day it's actually in the shop. Same as how the route treats bonus seeds now |
 

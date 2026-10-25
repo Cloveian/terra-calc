@@ -64,11 +64,12 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 
 The maths is in [buying-seeds.md](buying-seeds.md).
 
-- [ ] Water order for a short week, best sale per water first
-- [ ] Buy a seed only if the chance it gets watered beats its break-even
-- [ ] P(hours >= x) from a spread you set, then from your history
+- [x] Water order for a short week, best sale per water first
+- [x] Buy a seed only if the chance it gets watered beats its break-even
+- [ ] P(hours >= x) from a spread you set
+- [x] P(hours >= x) from your history
 - [ ] A rejected review pays nothing, the payoff gets \* (1 - p_rejected)
-- [ ] The card says it: "buy 6 eggplants + 4 apples, all watered if you code 26 h"
+- [x] The card says it: "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)"
 - [ ] The same on the site with a "how sure am I about my hours" slider
 - [ ] P(hours >= x) off the per-day predictions
 

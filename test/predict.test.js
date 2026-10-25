@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayHours, sinceStart, typicalDays, weekShape, typicalCrop, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
+import { dayHours, sinceStart, typicalDays, weekShape, restOfWeeks, typicalCrop, seedOdds, waitTable, waitFor, MIN_SHOP_DAYS } from "../userscript/predict.js";
 import { EVEN_WEEK } from "../src/route.js";
 import { perHour } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
@@ -66,6 +66,20 @@ test("weekShape: shares of my week, a weekday with no number yet gets the averag
     assert.deepEqual(weekShape([null, null, null, null, null, 6, 4]), [5, 5, 5, 5, 5, 6, 4].map((h) => h / 35));
     assert.deepEqual(weekShape(Array(7).fill(null)), EVEN_WEEK);
     assert.deepEqual(weekShape([0, 0, 0, 0, 0, 0, 0]), EVEN_WEEK);
+});
+
+test("restOfWeeks: thursday to sunday of each week before this one, lumped weeks out", () => {
+    // 1h a day the week of the 5th, 2h the 12th, 3h the 19th, then 9h this week
+    const days = [];
+    for (const [monday, h] of [[5, 1], [12, 2], [19, 3], [26, 9]]) {
+        for (let i = 0; i < 7; i++) days.push({ day: new Date(Date.UTC(2026, 9, monday + i)).toISOString().slice(0, 10), h, lumped: false });
+    }
+    assert.deepEqual(restOfWeeks(days, "2026-10-29"), [4, 8, 12]);
+    // sunday, just the one day each
+    assert.deepEqual(restOfWeeks(days, "2026-11-01"), [1, 2, 3]);
+    // the 12th's saturday had wed n thu in it, 2 weeks is under MIN_WEEKS
+    days[12] = { ...days[12], lumped: true };
+    assert.deepEqual(restOfWeeks(days, "2026-10-29"), []);
 });
 
 test("the values waitTable gets, perHour off CROPS: eggplant 30, bok choy 27, apple 25 at m 1", () => {

@@ -20,7 +20,8 @@ import { logShop, logHours, codedBefore, knownSeeds } from "./daylog.js";
 import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, weekDay, LAST_WEEK, DAY_MS } from "../src/week.js";
-import { waitFor, dayHours, typicalDays, weekShape, sinceStart, typicalCrop } from "./predict.js";
+import { waitFor, dayHours, typicalDays, weekShape, sinceStart, typicalCrop, restOfWeeks } from "./predict.js";
+import { buyRisk } from "./risk.js";
 import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
 import { byId, sameSelection } from "../src/tree.js";
@@ -40,8 +41,8 @@ const HACKATIME_DAYS_KEY = "terra-calc-hackatime-days";
 // plan parts that can stay null. the card would ask for plots (they sit in inventory)
 // farm only once you've been on your farm today (stuck any day), target needs the plot count too, goal's null till you pick one
 // weekEnds is just extra words on a few steps and the last week line, trees and owned only matter for a goal, lastWeek needs you to have been here last week
-// todayLeft only if i typed today, wait only when waiting beats todays best seed
-const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "todayLeft", "wait", "trees", "owned", "lastWeek"]);
+// todayLeft only if i typed today, wait only when waiting beats todays best seed, risk needs MIN_WEEKS of history n something to buy
+const OPTIONAL = new Set(["farm", "stuck", "target", "goal", "weekEnds", "todayLeft", "wait", "risk", "trees", "owned", "lastWeek"]);
 
 // guess till a reviewed crop is in the market, m comes from project review
 const M_GUESS = 1.1;
@@ -525,16 +526,16 @@ function plan() {
         ? Object.entries(hackatime.days).map(([day, h]) => ({ day, h, lumped: false }))
         : dayHours(hoursLog);
     const past = history.filter((d) => d.day < today);
-    const typical = typicalDays(sinceStart(past, firstShipped(game.weekTrack)));
+    const started = sinceStart(past, firstShipped(game.weekTrack));
+    const typical = typicalDays(started);
     const shape = weekShape(typical);
     // hackatime counts AI time full, so off a key its a bit over terra's
     const usualWeek = typical.includes(null) ? null : typical.reduce((sum, h) => sum + h, 0);
     const before = codedBefore(hoursLog, today, game.hours?.weekKey);
     const given = daysGiven(savedDays, today, before, shape);
+    const codedToday = game.hours ? game.hours.week.creditedSeconds / 3600 - before : null;
     // what i typed for today minus terra's credited so far today, null till today's typed
-    const todayLeft = savedDays[today] == null || !game.hours
-        ? null
-        : Math.max(0, savedDays[today] - (game.hours.week.creditedSeconds / 3600 - before));
+    const todayLeft = savedDays[today] == null || codedToday === null ? null : Math.max(0, savedDays[today] - codedToday);
     const target = start && weekTarget(start, t, coinsGoal, m, thisWeek, given);
     let rows = [];
     let usual = null;
@@ -550,7 +551,7 @@ function plan() {
     const badges = { m, seeds: shop.seeds };
     const weekEnds = Date.parse(game.currentWeek?.endDate ?? "") || null;
     const w = target?.w ?? null;
-    const ticked = weekSteps(stepsFrom({
+    const steps = stepsFrom({
         farm: farmToday,
         inventory,
         stuck,
@@ -563,7 +564,8 @@ function plan() {
         table: shop.table,
         shopToday: shop.today,
         selling,
-    }), w, farmToday);
+    });
+    const ticked = weekSteps(steps, w, farmToday);
     const parts = {
         trees,
         owned,
@@ -588,6 +590,8 @@ function plan() {
         shopSeen: Object.keys(shopLog).length > 0,
         // buy today's best seed or wait for a better one, shop days left after today, sunday's the last
         wait: waitFor(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, 6 - weekDay(today)),
+        // do the seeds i'd buy get watered, off my past weeks from today's weekday on
+        risk: buyRisk(steps, shop.table, m, restOfWeeks(started, today), codedToday ?? 0),
         // for card goal lines, null = rent week
         goal: coinsGoal === null ? null : {
             device: trees[picked.device].device,

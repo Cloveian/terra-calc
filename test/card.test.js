@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { cardFor } from "../userscript/card.js";
 import { stuckFrom } from "../userscript/fill.js";
+import { CROPS } from "../src/data.js";
 
 const NOW = Date.parse("2026-10-20T04:00:00Z");
 // apples planted last week unless told otherwise
@@ -155,6 +156,19 @@ test("crops waiting to sell come off what's to go, and get a sell step", () => {
         ["sell 10 crops (~300 coins)", 1],
         ["buy 2 plots", 2],
     ]);
+});
+
+test("risk lines: all watered, or the ones under break-even get their own line", () => {
+    const plan = {
+        t: 3, inventory: { coins: 0, plots: 20, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: null, stuck: null, crops: CROPS, steps: [],
+        risk: { h: 26, weeks: 2, of: 4, kept: 10, skip: {} },
+    };
+    assert.ok(cardFor(plan, NOW).details.includes("all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)"));
+    const some = cardFor({ ...plan, risk: { h: 24, weeks: 1, of: 4, kept: 8, skip: { bokchoy: { n: 3, weeks: 1 } } } }, NOW).details;
+    assert.ok(some.includes("the other 8 seeds to buy get watered at 24h more (1 of my last 4 weeks)"));
+    assert.ok(some.includes("buy 3 bok choy seeds fewer, they'd only get watered in 1 of my last 4 weeks"));
+    const one = cardFor({ ...plan, risk: { h: 3, weeks: 3, of: 3, kept: 1, skip: {} } }, NOW).details;
+    assert.ok(one.includes("the 1 seed to buy gets watered at 3h more (3 of my last 3 weeks)"));
 });
 
 test("at 45 plots: the loan step without the 'or', n what won't fit", () => {

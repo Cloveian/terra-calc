@@ -110,6 +110,7 @@ userscript/       Terra Calc inside Terra, uses the src/ files that don't touch 
   store.js        saving to Terra's localStorage
   daylog.js       a small log per day: Heidi's bonus seeds, and your hours so far that week
   predict.js      how your week usually goes, and the odds behind waiting for a better seed
+  risk.js         whether the seeds you'd buy get watered often enough to be worth it
   hackatime.js    your hours per day from Hackatime, if you give it a key
   debug.js        console logging
   meta.js         the userscript header
