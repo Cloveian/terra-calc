@@ -76,6 +76,7 @@ const cardBit = ourBit(fill);
 let notices = [];
 const folded = savedFlag("terra-calc-folded"); // ours folded away
 const showPicks = savedFlag("terra-calc-show-picks"); // every pick listed under the goal
+const helpSeen = savedFlag("terra-calc-help-seen"); // help book opened by itself once
 
 // watched cuz the body only exists while the card's open, rebuilt every expand
 export function mountCard() {
@@ -131,6 +132,12 @@ function fill(plan) {
         drawBlock(ours.querySelector(`.${BLOCK}`), card);
     }
     // theirs collapsed = nothing to do, our block went with their body
+
+    // steps have to be on screen, a collapsed card waits
+    if (card && (body || !theirs) && !folded.on && !helpSeen.on && canHelp()) {
+        helpSeen.set(true);
+        openHelp();
+    }
 }
 
 function toDraw(plan) {
