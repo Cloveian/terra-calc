@@ -162,6 +162,14 @@ test("stepsFrom: at 45 plots with last week's still on 10 of them, no plots to b
     assert.deepEqual(plotSteps(lent, 5), [{ do: "full", n: 10 }]);
 });
 
+test("stepsFrom: no target n a bag bigger than 45 plots", () => {
+    // 50 apples, 45 empty plots, nothing stuck
+    const steps = stepsFrom({
+        farm: { plots: 45, empty: 45, crops: [] }, inventory: bag({ seeds: 50 }), stuck: stuckFrom({ crops: [] }, "2026-W43"), loans: 0, weekKey: "2026-W43", w: null,
+    });
+    assert.deepEqual(steps.filter((step) => step.do === "full"), [{ do: "full", n: 5 }]);
+});
+
 test("stepsFrom: a busy week, harvesting last week's pays the loans back", () => {
     const farm = {
         plots: 12,
