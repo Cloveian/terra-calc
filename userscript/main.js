@@ -613,7 +613,7 @@ function plan() {
         wait: waitFor(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, held),
         // do the seeds i'd buy get watered, off my past weeks from today's weekday on. or would waiting do better with the water i might not code
         risk: buyRisk(steps, shop.table, m, restOfWeeks(started, today), codedToday ?? 0, held),
-        held: { v: held, days: daysLeft }, // V_days for the wait n risk maths tips
+        held: { v: held, days: daysLeft }, // wait_days for the wait n risk maths tips
         // for card goal lines, null = rent week
         goal: coinsGoal === null ? null : {
             device: trees[picked.device].device,

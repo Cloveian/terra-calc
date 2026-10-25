@@ -2,7 +2,7 @@
 
 import { cssModule, ourBit } from "./page.js";
 import { perHour } from "../src/farm.js";
-import { texTip, perHourTex, PER_HOUR_TEX } from "./tip.js";
+import { texIcon, perHourTex, PER_HOUR_TEX } from "./tip.js";
 
 const BADGE = "terra-calc-badge";
 const WARNING = "terra-calc-warning";
@@ -48,13 +48,16 @@ function fillBadges(bits) {
         if (!badge) {
             badge = document.createElement("span"); // shelf css squashes every div in its buttons to nothing
             badge.className = BADGE;
+            // words n the maths i, both reused till the row goes
+            badge.append(document.createElement("span"), texIcon([]));
             row.append(badge);
         }
         const n = Math.round(perHour(seed, bits.m));
         const buy = bits.toBuy?.[seed.id] ?? 0;
         const text = buy > 0 ? `${n}/h, buy ${buy}` : `${n}/h`;
-        if (badge.textContent !== text) badge.textContent = text;
-        texTip(badge, [PER_HOUR_TEX, perHourTex(plain(seed.name), seed, bits.m)]);
+        const [words, icon] = badge.children;
+        if (words.textContent !== text) words.textContent = text;
+        texIcon([PER_HOUR_TEX, perHourTex(plain(seed.name), seed, bits.m)], icon);
     }
 }
 

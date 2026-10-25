@@ -12,7 +12,7 @@ const PAGES = [
         ],
         faq: [
             { q: "Where did Terra's checklist go?", a: "Terra Calc's steps replace it. \"hide Terra Calc\" at the bottom of the card brings it back." },
-            { q: "Where do the numbers come from?", a: "Hover a line with maths in it (or a seed badge in Heidi's shop) to see the formula, then the same with your numbers in." },
+            { q: "Where do the numbers come from?", a: "Hover the little i after a line (or on a seed badge in Heidi's shop) to see the formula, then the same with your numbers in." },
             { q: "Something looks wrong?", a: "Terra changes a lot. Turn on \"Log everything to the console\" in settings and send the log my way." },
         ],
     },
@@ -51,7 +51,7 @@ const PAGES = [
         faq: [
             { q: "Should I buy upgrades early?", a: "Nope, they only arrive at the end anyway, and coins in an upgrade aren't buying plots. The plan buys everything in the last week." },
             { q: "My goal's on another device?", a: "Then it counts the coins you'd get back by switching." },
-            { q: "What's \"on apple weeks\"?", a: "Your goal if Heidi only had her worst seed from now on, or her best. It only shows up when that changes something." },
+            { q: "What's \"if Heidi only had...\"?", a: "Where your goal lands if her shop only ever had her worst seed from now on, or always her best. It only shows up when that changes something." },
         ],
     },
     {

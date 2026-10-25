@@ -69,7 +69,7 @@ The maths is in [buying-seeds.md](buying-seeds.md).
 - [x] P(hours >= x) from your history
 - [x] The card says it: "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)"
 - [ ] P(hours >= x) off the per-day predictions
-- [x] The goal on Heidi's worst and best seeds every week after this one: "on apple weeks: 3 of 5 picks by Week 12"
+- [x] The goal on Heidi's worst and best seeds every week after this one: "if Heidi only had apple seeds: 3 of 5 picks by Week 12"
 
 ## Waiting for a better seed
 

@@ -6,7 +6,7 @@ import { nestSteps } from "./next.js";
 import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
 import { loadJSON, saveJSON } from "./store.js";
 import { canHelp, openHelp } from "./help.js";
-import { texTip, num, perHourTex, PER_HOUR_TEX } from "./tip.js";
+import { texIcon, num, perHourTex, PER_HOUR_TEX } from "./tip.js";
 
 // 10 min
 const FARM_OLD = 10 * 60000;
@@ -47,8 +47,8 @@ const STEP_LINES = {
 };
 
 // hover maths, the general one over my numbers (tip.js)
-const WAIT_TEX = "V_n = p_{\\text{back}} \\, \\mathbb{E}[\\max(v, V_{n-1})] + (1 - p_{\\text{back}}) \\, V_{n-1}, \\quad V_0 = 0";
-const RISK_TEX = "\\text{buy if } p \\, m \\, \\text{sell} - \\text{buy} > p \\, V \\, \\text{water} \\quad (0 \\text{ at } p = 1)";
+const WAIT_TEX = "\\text{wait}_n = p_{\\text{back}} \\, \\mathbb{E}[\\max(v, \\text{wait}_{n-1})] + (1 - p_{\\text{back}}) \\, \\text{wait}_{n-1}, \\quad \\text{wait}_0 = 0";
+const RISK_TEX = "\\text{buy if } p \\, m \\, \\text{sell} - \\text{buy} > p \\cdot \\text{wait} \\cdot \\text{water} \\quad (0 \\text{ at } p = 1)";
 const LUCK_TEX = "\\text{the plan's h/week, every week after this one on one seed at } v = \\frac{m \\cdot \\text{sell} - \\text{buy}}{\\text{water}}";
 const PICK_TEX = "\\text{first week with } c_{\\text{end of week}} \\ge \\text{the picks up to it}";
 const CODE_TEX = "h = \\text{water owed} - \\text{pool} - h_{\\text{not devlogged}}";
@@ -203,7 +203,7 @@ function drawBlock(block, { tasks, details }) {
         const label = document.createElement("span");
         label.className = `${questClass("taskLabel")} ${task.done ? questClass("taskLabelDone") : ""}`;
         label.textContent = task.text;
-        if (task.tex) texTip(label, task.tex);
+        if (task.tex) label.append(texIcon(task.tex));
         row.append(box, label);
         return row;
     });
@@ -211,7 +211,7 @@ function drawBlock(block, { tasks, details }) {
         if (typeof item === "string") return [detail(item)];
         if (item.tex) {
             const line = detail(item.text);
-            texTip(line, item.tex);
+            line.append(texIcon(item.tex));
             return [line];
         }
         if (item.bar) return [drawBar(detail(""), item.bar)];
@@ -300,7 +300,7 @@ export function cardFor(plan, now = Date.now()) {
         const v = perHour(cropOf(best, plan.crops), plan.m);
         details.push({
             text: `waiting beats today's ${cropName(best, plan.crops)}, ${cropName(top, plan.crops)}'s in ${Math.round(odds * 100)}% of days`,
-            tex: [WAIT_TEX, `V_{${plan.held.days}} = ${num(plan.held.v)} > v_{\\text{${cropName(best, plan.crops)}}} = ${num(v)}`],
+            tex: [WAIT_TEX, `\\text{wait}_{${plan.held.days}} = ${num(plan.held.v)} > v_{\\text{${cropName(best, plan.crops)}}} = ${num(v)}`],
         });
     }
     if (plan.risk) details.push(...riskLines(plan.risk, plan));
@@ -425,15 +425,16 @@ function luckLines({ bad, good, typical }, picks, outFrom, crops) {
         return a.fit > b.fit || (a.fit === b.fit && a.week !== null && b.week !== null && a.week < b.week);
     };
     // tip = that seed's coins a water vs the plan's typical day
-    const line = (p) => {
+    // "if Heidi only had apple seeds: 3 of 5 picks by Week 12"
+    const line = (p, how) => {
         const name = cropName(p.seed, crops);
         // empty log days count as 0, typical can end up under her worst seed
         const side = p.v < typical ? "<" : p.v > typical ? ">" : "=";
-        return { text: projectionWords(`on ${name} weeks:`, p), tex: [LUCK_TEX, `v_{\\text{${name}}} = ${num(p.v)} ${side} ${num(typical)} = v_{\\text{typical day}}`] };
+        return { text: projectionWords(`if Heidi ${how} had ${name} seeds:`, p), tex: [LUCK_TEX, `v_{\\text{${name}}} = ${num(p.v)} ${side} ${num(typical)} = v_{\\text{typical day}}`] };
     };
     const lines = [];
-    if (beats(plan, bad)) lines.push(line(bad));
-    if (beats(good, plan)) lines.push(line(good));
+    if (beats(plan, bad)) lines.push(line(bad, "only"));
+    if (beats(good, plan)) lines.push(line(good, "always"));
     return lines;
 }
 

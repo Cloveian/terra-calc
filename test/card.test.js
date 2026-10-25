@@ -123,15 +123,15 @@ test("heidi luck lines: her worst n best seed every week after this one, only wh
         t: 3, inventory: { coins: 42.6, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, farm: null, stuck: null, crops: CROPS,
         target: { w: 18, cap: 18, reachable: true, out: false, route }, steps: [], selling: { crops: 0, coins: 0 },
         goal: { device: "Framework 12", refund: 0, coins: 2800, custom: false, milestones, usual: null, luck },
-    }, NOW).details.filter((item) => item.text?.startsWith("on "));
+    }, NOW).details.filter((item) => item.text?.startsWith("if Heidi"));
     const lines = (luck, route) => luckDetails(luck, route).map((item) => item.text);
     const p = (fit, week, seed, outFrom = null) => ({ h: 18, fit, of: 2, week, outFrom, seed, v: perHour(CROPS[seed], 1) });
     assert.equal(luckDetails({ bad: p(1, 6, "apple"), good: p(2, 8, "eggplant"), typical: 27 })[0].tex[1], "v_{\\text{apple}} = 25 < 27 = v_{\\text{typical day}}");
     // empty log days dragged typical under apples
     assert.equal(luckDetails({ bad: p(1, 6, "apple"), good: p(2, 8, "eggplant"), typical: 20 })[0].tex[1], "v_{\\text{apple}} = 25 > 20 = v_{\\text{typical day}}");
-    assert.deepEqual(lines({ bad: p(1, 6, "apple"), good: p(2, 7, "eggplant") }), ["on apple weeks: 1 of 2 picks by Week 12", "on eggplant weeks: all of it after Week 5"]);
+    assert.deepEqual(lines({ bad: p(1, 6, "apple"), good: p(2, 7, "eggplant") }), ["if Heidi only had apple seeds: 1 of 2 picks by Week 12", "if Heidi always had eggplant seeds: all of it after Week 5"]);
     assert.deepEqual(lines({ bad: p(2, 8, "apple"), good: p(2, 8, "eggplant") }), []);
-    assert.deepEqual(lines({ bad: p(0, null, "apple", 9), good: p(2, 8, "eggplant") }), ["on apple weeks: rent runs out in Week 7"]);
+    assert.deepEqual(lines({ bad: p(0, null, "apple", 9), good: p(2, 8, "eggplant") }), ["if Heidi only had apple seeds: rent runs out in Week 7"]);
     // plan runs out week 9 itself, apples running out then too is nothing new
     assert.deepEqual(lines({ bad: p(0, null, "apple", 9), good: p(2, 8, "eggplant", 9) }, [{ week: 9, out: true }]), []);
 });
@@ -292,7 +292,7 @@ test("the wait line names the seeds, off CROPS when they're not in today's shop"
     };
     const [line] = cardFor(plan, NOW).details;
     assert.equal(line.text, "waiting beats today's bok choy, eggplant's in 50% of days");
-    assert.equal(line.tex[1], "V_{1} = 27.5 > v_{\\text{bok choy}} = 27");
+    assert.equal(line.tex[1], "\\text{wait}_{1} = 27.5 > v_{\\text{bok choy}} = 27");
 });
 
 test("the code step says the h a day, under a day just the hours left", () => {
