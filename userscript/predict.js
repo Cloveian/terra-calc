@@ -12,6 +12,8 @@ export const MIN_SHOP_DAYS = 14;
 export const MIN_WEEKS = 3;
 // chance im on terra on a given day till the hours log knows
 const BACK_GUESS = 0.9;
+// hackatime h in a week before its credited share counts, under it one short session swings it
+const MIN_SHARE_H = 2;
 
 // [{ day, h, lumped }], lumped = days before it werent logged so their hours landed here too
 export function dayHours(log) {
@@ -24,6 +26,29 @@ export function dayHours(log) {
         const lumped = same ? Date.parse(day) - Date.parse(prev) > DAY_MS : weekDay(day) !== 0;
         return { day, h, lumped };
     });
+}
+
+// hackatime days scaled down to what terra credited that week. AI time counts a third there n projects not on terra dont count at all
+export function creditedDays(days, hoursLog, today) {
+    const last = new Map();
+    for (const day of Object.keys(hoursLog).sort()) {
+        if (day < today) last.set(weekIndex(day), day);
+    }
+    const share = new Map();
+    let credited = 0;
+    let coded = 0;
+    for (const [week, to] of last) {
+        // credited as of my last logged day / hackatime through it
+        const h = days.filter((d) => weekIndex(d.day) === week && d.day <= to).reduce((sum, d) => sum + d.h, 0);
+        if (h < MIN_SHARE_H) continue;
+        const c = hoursLog[to].seconds / 3600;
+        share.set(week, Math.min(1, c / h)); // over 1 is just timing
+        credited += c;
+        coded += h;
+    }
+    // weeks i never logged get all logged weeks together, 1 with none
+    const all = coded > 0 ? Math.min(1, credited / coded) : 1;
+    return days.map((d) => ({ ...d, h: d.h * (share.get(weekIndex(d.day)) ?? all) }));
 }
 
 // days from my first coded day, in or after the week i first shipped once i have (firstShipped). before terra it was all 0s n every median came out 0

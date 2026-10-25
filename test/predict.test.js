@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayHours, sinceStart, typicalDays, weekShape, restOfWeeks, typicalCrop, seedOdds, waitTable, waitFor, waitWorth, dayOdds, MIN_SHOP_DAYS } from "../userscript/predict.js";
+import { dayHours, creditedDays, sinceStart, typicalDays, weekShape, restOfWeeks, typicalCrop, seedOdds, waitTable, waitFor, waitWorth, dayOdds, MIN_SHOP_DAYS } from "../userscript/predict.js";
 import { EVEN_WEEK } from "../src/route.js";
 import { perHour } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
@@ -46,6 +46,25 @@ test("dayHours: differences day to day, a gap gets lumped", () => {
         { day: "2026-10-23", h: 6, lumped: true },
         { day: "2026-10-27", h: 3, lumped: true },
     ]);
+});
+
+test("creditedDays: each week scaled to what terra credited, unlogged weeks by all of them together", () => {
+    const day = (d, h) => ({ day: d, h, lumped: false });
+    const hack = [day("2026-10-13", 3), day("2026-10-19", 3), day("2026-10-20", 3), day("2026-10-21", 2), day("2026-10-22", 4), day("2026-10-26", 2), day("2026-10-27", 2)];
+    const log = {
+        "2026-10-21": { weekKey: "2026-W43", seconds: 6 * h }, // 8h on hackatime through the 21st
+        "2026-10-27": { weekKey: "2026-W44", seconds: 2 * h }, // 4h
+        "2026-10-28": { weekKey: "2026-W44", seconds: 9 * h }, // today, not done
+    };
+    const hs = creditedDays(hack, log, "2026-10-28").map((d) => d.h);
+    // week of the 12th never logged: 8 of 12 h together
+    assert.deepEqual(hs, [2, 2.25, 2.25, 1.5, 3, 1, 1]);
+    // nothing logged = hackatime as is
+    assert.deepEqual(creditedDays(hack, {}, "2026-10-28"), hack);
+    // under MIN_SHARE_H of hackatime that week, one short session isnt a share
+    assert.deepEqual(creditedDays([day("2026-10-21", 1)], { "2026-10-21": { weekKey: "2026-W43", seconds: 0.2 * h } }, "2026-10-28").map((d) => d.h), [1]);
+    // credited over hackatime is timing, stays at 1
+    assert.deepEqual(creditedDays([day("2026-10-21", 4)], { "2026-10-21": { weekKey: "2026-W43", seconds: 5 * h } }, "2026-10-28").map((d) => d.h), [4]);
 });
 
 test("sinceStart: from my first day with hours, in the week i first shipped once i have", () => {

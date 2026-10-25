@@ -62,7 +62,7 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 | --- | --- |
 | Suggested hours | **Decision:** what goes in a blank box as the suggestion, the last 4 weeks' median, the average, or nothing till you've done 3 weeks? Default: median of the last 4 (one dead week doesn't drag it), shown faded so it's clearly a guess and doesn't count as set |
 | Hackatime key | **Decided (24 Oct):** in Terra's localStorage like the rest of ours, its own per-account entry, never in the settings object (that goes to the debug log). Nobody loses money if it gets stolen and most people have it in plaintext in their wakatime config anyway. `GM_setValue` would've needed a `@grant`, a sandbox and `unsafeWindow` for the socket hook |
-| AI time | Terra's number already counts AI time at a third, so history's in Terra hours, same as water. Nothing to convert, as long as `hoursSeconds` is the credited number (the capture'll say) |
+| AI time | Terra's number already counts AI time at a third, so the hours log is in Terra hours, same as water. Hackatime isn't, it has AI time at full and every project, Terra or not. So each week's Hackatime days get scaled by what Terra credited that week as of my last logged day (`creditedDays`), and weeks from before Terra Calc get all the logged weeks' share together. No log yet means Hackatime as is, a bit high till the first day's logged |
 
 ## Data
 

@@ -20,7 +20,7 @@ import { logShop, logHours, codedBefore, knownSeeds } from "./daylog.js";
 import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, weekDay, LAST_WEEK, DAY_MS } from "../src/week.js";
-import { waitFor, waitWorth, dayHours, typicalDays, weekShape, sinceStart, typicalCrop, restOfWeeks, dayOdds } from "./predict.js";
+import { waitFor, waitWorth, dayHours, creditedDays, typicalDays, weekShape, sinceStart, typicalCrop, restOfWeeks, dayOdds } from "./predict.js";
 import { buyRisk } from "./risk.js";
 import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
@@ -535,13 +535,12 @@ function plan() {
     };
     // how my weeks go, off hackatime with a key or my hours log. today's not done yet
     const history = hackatime?.days
-        ? Object.entries(hackatime.days).map(([day, h]) => ({ day, h, lumped: false }))
+        ? creditedDays(Object.entries(hackatime.days).map(([day, h]) => ({ day, h, lumped: false })), hoursLog, today)
         : dayHours(hoursLog);
     const past = history.filter((d) => d.day < today);
     const started = sinceStart(past, firstShipped(game.weekTrack));
     const typical = typicalDays(started);
     const shape = weekShape(typical);
-    // hackatime counts AI time full, so off a key its a bit over terra's
     const usualWeek = typical.includes(null) ? null : typical.reduce((sum, h) => sum + h, 0);
     const before = codedBefore(hoursLog, today, game.hours?.weekKey);
     const given = daysGiven(savedDays, today, before, shape);
