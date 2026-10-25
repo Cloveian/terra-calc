@@ -12,6 +12,7 @@ const PAGES = [
         ],
         faq: [
             { q: "Where did Terra's checklist go?", a: "Terra Calc's steps replace it. \"hide Terra Calc\" at the bottom of the card brings it back." },
+            { q: "Where do the numbers come from?", a: "Hover a line with maths in it (or a seed badge in Heidi's shop) to see the formula, then the same with your numbers in." },
             { q: "Something looks wrong?", a: "Terra changes a lot. Turn on \"Log everything to the console\" in settings and send the log my way." },
         ],
     },

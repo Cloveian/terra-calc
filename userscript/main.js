@@ -24,6 +24,7 @@ import { waitFor, waitWorth, dayHours, creditedDays, typicalDays, weekShape, sin
 import { buyRisk } from "./risk.js";
 import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
+import { perHour } from "../src/farm.js";
 import { byId, sameSelection, goalCost } from "../src/tree.js";
 
 const FARM_KEY = "terra-calc-farm";
@@ -530,8 +531,8 @@ function plan() {
         onHand: bonusOnHand(inventory, game.farm, game.hours?.weekKey),
         // known seeds, not just todays. yesterdays cabbage in the bag still needs its numbers
         crops: shop.table,
-        // weeks after this one, a typical shop day off the log. null = apples off data.js
-        later: typicalCrop(shopLog, shop.table, m),
+        // weeks after this one, a typical shop day off the log, apples off data.js till its got a day
+        later: typicalCrop(shopLog, shop.table, m) ?? CROPS.apple,
     };
     // how my weeks go, off hackatime with a key or my hours log. today's not done yet
     const history = hackatime?.days
@@ -557,8 +558,9 @@ function plan() {
         usual = projection(start, t, items, m, thisWeek, given, usualWeek);
         // the plan's h/week with every week after this one on heidi's worst or best seed
         const range = thisWeek && seedRange(shop.table, m);
-        const on = ({ id, crop }) => ({ ...projection(start, t, items, m, { ...thisWeek, later: crop }, given, target.cap), seed: id });
-        if (range && items.length > 0) luck = { bad: on(range.low), good: on(range.high) };
+        const on = ({ id, crop }) => ({ ...projection(start, t, items, m, { ...thisWeek, later: crop }, given, target.cap), seed: id, v: perHour(crop, m) });
+        // typical = the plan's own later weeks
+        if (range && items.length > 0) luck = { bad: on(range.low), good: on(range.high), typical: perHour(thisWeek.later, m) };
     }
     const tags = {
         trees, owned, milestones: rows,

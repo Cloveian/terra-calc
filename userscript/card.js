@@ -49,6 +49,7 @@ const STEP_LINES = {
 // hover maths, the general one over my numbers (tip.js)
 const WAIT_TEX = "V_n = p_{\\text{back}} \\, \\mathbb{E}[\\max(v, V_{n-1})] + (1 - p_{\\text{back}}) \\, V_{n-1}, \\quad V_0 = 0";
 const RISK_TEX = "\\text{buy if } p \\, m \\, \\text{sell} - \\text{buy} > p \\, V \\, \\text{water} \\quad (0 \\text{ at } p = 1)";
+const LUCK_TEX = "\\text{the plan's h/week, every week after this one on one seed at } v = \\frac{m \\cdot \\text{sell} - \\text{buy}}{\\text{water}}";
 const PICK_TEX = "\\text{first week with } c_{\\text{end of week}} \\ge \\text{the picks up to it}";
 const CODE_TEX = "h = \\text{water owed} - \\text{pool} - h_{\\text{not devlogged}}";
 
@@ -415,7 +416,7 @@ function projectionWords(start, { fit, of, week, outFrom }) {
 }
 
 // vs the plan's own picks, only the side that changes something
-function luckLines({ bad, good }, picks, outFrom, crops) {
+function luckLines({ bad, good, typical }, picks, outFrom, crops) {
     const fitting = picks.filter((pick) => pick.now || pick.week !== null);
     const plan = { fit: fitting.length, week: fitting.at(-1)?.week ?? null, outFrom };
     // paying rent longer wins, then more picks, then sooner
@@ -423,9 +424,16 @@ function luckLines({ bad, good }, picks, outFrom, crops) {
         if (a.outFrom !== null || b.outFrom !== null) return b.outFrom !== null && (a.outFrom === null || a.outFrom > b.outFrom);
         return a.fit > b.fit || (a.fit === b.fit && a.week !== null && b.week !== null && a.week < b.week);
     };
+    // tip = that seed's coins a water vs the plan's typical day
+    const line = (p) => {
+        const name = cropName(p.seed, crops);
+        // empty log days count as 0, typical can end up under her worst seed
+        const side = p.v < typical ? "<" : p.v > typical ? ">" : "=";
+        return { text: projectionWords(`on ${name} weeks:`, p), tex: [LUCK_TEX, `v_{\\text{${name}}} = ${num(p.v)} ${side} ${num(typical)} = v_{\\text{typical day}}`] };
+    };
     const lines = [];
-    if (beats(plan, bad)) lines.push(projectionWords(`on ${cropName(bad.seed, crops)} weeks:`, bad));
-    if (beats(good, plan)) lines.push(projectionWords(`on ${cropName(good.seed, crops)} weeks:`, good));
+    if (beats(plan, bad)) lines.push(line(bad));
+    if (beats(good, plan)) lines.push(line(good));
     return lines;
 }
 

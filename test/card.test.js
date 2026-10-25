@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { cardFor } from "../userscript/card.js";
 import { stuckFrom } from "../userscript/fill.js";
 import { CROPS } from "../src/data.js";
+import { perHour } from "../src/farm.js";
 
 const NOW = Date.parse("2026-10-20T04:00:00Z");
 // apples planted last week unless told otherwise
@@ -118,12 +119,16 @@ test("the code step's maths tip, none once it's ticked", () => {
 test("heidi luck lines: her worst n best seed every week after this one, only when it changes something", () => {
     // plan gets both picks, the last one week 8
     const milestones = [{ name: "Core 3 304", qty: 1, now: false, week: 5 }, { name: "RAM 16 GB", qty: 1, now: false, week: 8 }];
-    const lines = (luck, route = []) => cardFor({
+    const luckDetails = (luck, route = []) => cardFor({
         t: 3, inventory: { coins: 42.6, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1.1, farm: null, stuck: null, crops: CROPS,
         target: { w: 18, cap: 18, reachable: true, out: false, route }, steps: [], selling: { crops: 0, coins: 0 },
         goal: { device: "Framework 12", refund: 0, coins: 2800, custom: false, milestones, usual: null, luck },
-    }, NOW).details.filter((item) => typeof item === "string" && item.startsWith("on "));
-    const p = (fit, week, seed, outFrom = null) => ({ h: 18, fit, of: 2, week, outFrom, seed });
+    }, NOW).details.filter((item) => item.text?.startsWith("on "));
+    const lines = (luck, route) => luckDetails(luck, route).map((item) => item.text);
+    const p = (fit, week, seed, outFrom = null) => ({ h: 18, fit, of: 2, week, outFrom, seed, v: perHour(CROPS[seed], 1) });
+    assert.equal(luckDetails({ bad: p(1, 6, "apple"), good: p(2, 8, "eggplant"), typical: 27 })[0].tex[1], "v_{\\text{apple}} = 25 < 27 = v_{\\text{typical day}}");
+    // empty log days dragged typical under apples
+    assert.equal(luckDetails({ bad: p(1, 6, "apple"), good: p(2, 8, "eggplant"), typical: 20 })[0].tex[1], "v_{\\text{apple}} = 25 > 20 = v_{\\text{typical day}}");
     assert.deepEqual(lines({ bad: p(1, 6, "apple"), good: p(2, 7, "eggplant") }), ["on apple weeks: 1 of 2 picks by Week 12", "on eggplant weeks: all of it after Week 5"]);
     assert.deepEqual(lines({ bad: p(2, 8, "apple"), good: p(2, 8, "eggplant") }), []);
     assert.deepEqual(lines({ bad: p(0, null, "apple", 9), good: p(2, 8, "eggplant") }), ["on apple weeks: rent runs out in Week 7"]);

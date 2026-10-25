@@ -137,6 +137,5 @@ What the game sends to buy, water and plant is in [terra-api.md](../research/ter
 
 ## Later
 
-- [x] Tooltips with the maths behind the numbers, in TeX (`tip.js`, Temml off jsdelivr). So far the seed badges, the code step, today's best, waiting, the buying risk lines and when picks land
+- [x] Tooltips with the maths behind the numbers, in TeX (`tip.js`, Temml off jsdelivr). So far the seed badges, the code step, today's best, waiting, the buying risk lines, when picks land and the Heidi luck lines
 - [x] Those same tooltips with my own numbers filled in: "v = (1.2 \* 75 - 15) / 2 = 37.5" next to the general formula
-- [ ] Tips on the rest: the luck lines
