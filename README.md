@@ -28,7 +28,7 @@ There's also a userscript that runs inside Terra itself, so there's nothing to t
 
 - reads your coins, seeds, plots, farm, upgrades and the week straight from the game
 - puts this week's steps in Terra's own "This Week" card ("buy 12 eggplant seeds", "code 21.9h"), and ticks them off as you do them
-- on that card too: whether the seeds you'd buy actually get watered in enough of your past weeks to be worth their price (once it's seen three of your weeks), and when waiting for a better seed in Heidi's shop beats today's (once it's seen her shop on 14 days)
+- on that card too: whether the seeds you'd buy actually get watered in enough of your past weeks to be worth their price (once it's seen three of your weeks), when waiting for a better seed in Heidi's shop beats today's (once it's seen her shop on 14 days), and where your goal lands if Heidi only had her worst or best seed from now on
 - a want button on each upgrade in Terra's device tree, and a priority number and the week you can afford it on the ones you want
 - coins-an-hour badges on Heidi's seeds, with how many the plan buys (off until you turn them on)
 - an hour box on each day left on Terra's calendar: type what you can give that day, and the plan works around the rest the way your weeks usually go. Each one also says what you usually do that weekday, and days already gone show what you coded
@@ -111,7 +111,7 @@ userscript/       Terra Calc inside Terra, uses the src/ files that don't touch 
   page.js         Terra's class names, and redrawing our bits when the page changes
   store.js        saving to Terra's localStorage
   daylog.js       a small log per day: Heidi's bonus seeds, and your hours so far that week
-  predict.js      how your week usually goes, and the odds behind waiting for a better seed
+  predict.js      how your week usually goes, the odds behind waiting for a better seed, and Heidi's worst and best seeds
   risk.js         whether the seeds you'd buy get watered often enough to be worth it
   hackatime.js    your hours per day from Hackatime, if you give it a key
   debug.js        console logging

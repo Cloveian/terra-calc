@@ -66,11 +66,10 @@ The maths is in [buying-seeds.md](buying-seeds.md).
 
 - [x] Water order for a short week, best sale per water first
 - [x] Buy a seed only if the chance it gets watered beats its break-even
-- [ ] P(hours >= x) from a spread you set
 - [x] P(hours >= x) from your history
 - [x] The card says it: "all 10 seeds to buy get watered at 26h more (2 of my last 4 weeks)"
-- [ ] The same on the site with a "how sure am I about my hours" slider
 - [ ] P(hours >= x) off the per-day predictions
+- [x] The goal on Heidi's worst and best seeds every week after this one: "on apple weeks: 3 of 5 picks by Week 12"
 
 ## Waiting for a better seed
 

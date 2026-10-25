@@ -30,11 +30,11 @@ export function weekTarget(state, t, goal, m, thisWeek = null, given = {}) {
     return { w: row?.hours ?? 0, cap, reachable, flat, out: row?.out ?? false, route, mix: row?.mix ?? null };
 }
 
-// the same plan at my usual h/week (typicalDays added up), how many goal items (goalItems) it gets n by when
+// the same plan at a flat h/week (my usual, or the plan's own with other seeds), how many goal items (goalItems) it gets n by when
 // week = last one it needed, outFrom = first week rent didnt get paid, null if it always did
-export function projection(state, t, items, m, thisWeek, given, usualWeek) {
-    if (usualWeek === null || items.length === 0) return null;
-    const h = Math.min(Math.round(usualWeek), MAX_PLOTS);
+export function projection(state, t, items, m, thisWeek, given, weekH) {
+    if (weekH === null || items.length === 0) return null;
+    const h = Math.min(Math.round(weekH), MAX_PLOTS);
     const route = simulateRoute(state, t, h, m, thisWeek, given);
     const fit = milestones(route, items).filter((pick) => pick.now || pick.week !== null);
     return {

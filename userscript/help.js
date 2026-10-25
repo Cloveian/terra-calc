@@ -50,6 +50,7 @@ const PAGES = [
         faq: [
             { q: "Should I buy upgrades early?", a: "Nope, they only arrive at the end anyway, and coins in an upgrade aren't buying plots. The plan buys everything in the last week." },
             { q: "My goal's on another device?", a: "Then it counts the coins you'd get back by switching." },
+            { q: "What's \"on apple weeks\"?", a: "Your goal if Heidi only had her worst seed from now on, or her best. It only shows up when that changes something." },
         ],
     },
     {

@@ -3,6 +3,7 @@ import { PREP_WEEKS, FREE_PLOTS, PLOT_PRICE_MAX, MAX_PLOTS, CROPS } from "../src
 import { withoutZeros } from "../src/tree.js";
 import { plotCost, perHour } from "../src/farm.js";
 import { easternDay } from "../src/week.js";
+import { seedRange } from "./predict.js";
 
 export const APPLE_SEED = "apple_seed"; // terra's item ids
 const DIRT_PLOT = "dirt_plot";
@@ -232,9 +233,9 @@ export function shopProblems(shop, plots) {
         if (shop.plotPrice !== expected) problems.push(`the next plot costs ${shop.plotPrice}, the plan thinks ${expected} at ${plots} plots`);
     }
     // apple 25 to eggplant 30 at m 1
-    const known = Object.values(CROPS).filter((crop) => crop.buy != null).map((crop) => perHour(crop, 1));
-    const low = Math.min(...known);
-    const high = Math.max(...known);
+    const range = seedRange(CROPS, 1);
+    const low = perHour(range.low.crop, 1);
+    const high = perHour(range.high.crop, 1);
     for (const seed of shop?.seeds ?? []) {
         const v = perHour(seed, 1);
         if (v < low || v > high) problems.push(`${seed.name} is ${Math.round(v * 10) / 10} a water at m 1, data.js has ${low} to ${high}`);

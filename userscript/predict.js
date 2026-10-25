@@ -113,6 +113,10 @@ function bestOn(seeds, table, m) {
     return best;
 }
 
+function oneWater({ buy, sell, water }) {
+    return { buy: buy / water, sell: sell / water, water: 1 };
+}
+
 // the made-up 1 water crop weeks after this one plant: every logged day's best seed, its buy n sell per water averaged
 // a day with nothing counts as 0. under MIN_SHOP_DAYS just the last day that had something, null if none did
 // a 2 water seed only takes 1 plot, as 1 water crops it asks for a few too many plots, so it comes out a bit careful
@@ -120,10 +124,18 @@ export function typicalCrop(shopLog, table, m) {
     const days = Object.keys(shopLog).sort().map((day) => bestOn(shopLog[day], table, m));
     if (days.length < MIN_SHOP_DAYS) {
         const last = days.filter(Boolean).at(-1);
-        return last ? { buy: last.buy / last.water, sell: last.sell / last.water, water: 1 } : null;
+        return last ? oneWater(last) : null;
     }
     const perWater = (key) => days.reduce((sum, crop) => sum + (crop ? crop[key] / crop.water : 0), 0) / days.length;
     return { buy: perWater("buy"), sell: perWater("sell"), water: 1 };
+}
+
+// worst n best seed heidi might have by water, as made-up 1 water crops. free seeds (no buy) arent hers
+export function seedRange(table, m) {
+    const seeds = Object.entries(table).filter(([, crop]) => crop.buy != null && crop.water).sort(([, a], [, b]) => perHour(a, m) - perHour(b, m));
+    if (seeds.length === 0) return null;
+    const pick = ([id, crop]) => ({ id, crop: oneWater(crop) });
+    return { low: pick(seeds[0]), high: pick(seeds.at(-1)) };
 }
 
 // share of logged shop days each seed was in, { eggplant: 0.4, apple: 0.9 }

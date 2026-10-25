@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayHours, creditedDays, sinceStart, typicalDays, weekShape, restOfWeeks, typicalCrop, seedOdds, waitTable, waitFor, waitWorth, dayOdds, MIN_SHOP_DAYS } from "../userscript/predict.js";
+import { dayHours, creditedDays, sinceStart, typicalDays, weekShape, restOfWeeks, typicalCrop, seedRange, seedOdds, waitTable, waitFor, waitWorth, dayOdds, MIN_SHOP_DAYS } from "../userscript/predict.js";
 import { EVEN_WEEK } from "../src/route.js";
 import { perHour } from "../src/farm.js";
 import { CROPS } from "../src/data.js";
@@ -125,6 +125,15 @@ test("typicalCrop: each day's best seed per water, averaged, a day with nothing 
     // 14 days, eggplant on half of them n nothing on the rest
     const log = Object.fromEntries(Array.from({ length: 14 }, (_, i) => [`day${String(i).padStart(2, "0")}`, i < 7 ? [eggplant] : []]));
     assert.deepEqual(typicalCrop(log, CROPS, 1), { buy: 3.75, sell: 18.75, water: 1 });
+});
+
+test("seedRange: heidi's worst n best seed by water, free ones left out", () => {
+    // apple 25 a water, bok choy 27, eggplant 30. carrot is free
+    assert.deepEqual(seedRange(CROPS, 1), {
+        low: { id: "apple", crop: { buy: 5, sell: 30, water: 1 } },
+        high: { id: "eggplant", crop: { buy: 7.5, sell: 37.5, water: 1 } },
+    });
+    assert.equal(seedRange({ carrot: CROPS.carrot }, 1), null);
 });
 
 test("seedOdds: share of logged days", () => {

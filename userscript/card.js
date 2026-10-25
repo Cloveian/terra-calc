@@ -289,7 +289,7 @@ export function cardFor(plan, now = Date.now()) {
     }
     if (loans > 0) details.push(`${some(loans, "loan plot")} from Ratticus`);
     // refund is in route start coins too, like selling
-    if (goal) details.push(...goalLines(goal, target, inventory.coins + goal.refund, plan.selling.coins));
+    if (goal) details.push(...goalLines(goal, target, inventory.coins + goal.refund, plan.selling.coins, plan.crops));
     // only once its old enough to throw the steps off
     if (farm?.seenAt && now - farm.seenAt >= FARM_OLD) details.push(`(farm as of ${ago(now - farm.seenAt)})`);
     return { tasks, details };
@@ -327,7 +327,7 @@ function cropName(id, crops) {
 
 // "goal: 2800 coins (Framework 12), 2758 to go" + when next pick n whole thing are affordable (milestones)
 // selling = coins unsold crops bring, already in route so "now" can mean after selling
-function goalLines(goal, target, coins, selling = 0) {
+function goalLines(goal, target, coins, selling, crops) {
     const device = goal.custom ? "" : ` (${goal.device})`;
     const toGo = Math.max(0, Math.ceil(goal.coins - coins - selling));
     const later = selling > 0 && coins < goal.coins ? " after selling" : "";
@@ -344,19 +344,34 @@ function goalLines(goal, target, coins, selling = 0) {
     if (next) lines.push(`next pick: ${pickName(next)} ${when(next)}`);
     if (next && next !== picks.at(-1)) lines.push(`all of it ${when(picks.at(-1))}`);
     // all of it now is the same at any h/week
-    if (goal.usual && next) lines.push(usualLine(goal.usual));
+    if (goal.usual && next) lines.push(projectionWords(`at my usual ${goal.usual.h} h/week:`, goal.usual));
+    if (goal.luck && next) lines.push(...luckLines(goal.luck, picks, target?.route.find((row) => row.out)?.week ?? null, crops));
     // every pick behind a show more, drawBlock does the link
     // 2 = next pick n all of it already
     if (picks.length > 2) lines.push({ picks: picks.map((pick) => `${pickName(pick)} ${pick.now ? "now" : when(pick)}`) });
     return lines;
 }
 
-// goal.usual = projection() from next.js
-function usualLine({ h, fit, of, week, outFrom }) {
-    const start = `at my usual ${h} h/week:`;
+// projection() from next.js as words, "at my usual 24 h/week: 3 of 5 picks by Week 12"
+function projectionWords(start, { fit, of, week, outFrom }) {
     if (outFrom !== null) return `${start} rent runs out in ${weekName(outFrom)}`;
     if (fit === of) return `${start} all of it after ${weekName(week)}`;
     return `${start} ${fit} of ${of} picks by ${weekName(LAST_WEEK)}`;
+}
+
+// vs the plan's own picks, only the side that changes something
+function luckLines({ bad, good }, picks, outFrom, crops) {
+    const fitting = picks.filter((pick) => pick.now || pick.week !== null);
+    const plan = { fit: fitting.length, week: fitting.at(-1)?.week ?? null, outFrom };
+    // paying rent longer wins, then more picks, then sooner
+    const beats = (a, b) => {
+        if (a.outFrom !== null || b.outFrom !== null) return b.outFrom !== null && (a.outFrom === null || a.outFrom > b.outFrom);
+        return a.fit > b.fit || (a.fit === b.fit && a.week !== null && b.week !== null && a.week < b.week);
+    };
+    const lines = [];
+    if (beats(plan, bad)) lines.push(projectionWords(`on ${cropName(bad.seed, crops)} weeks:`, bad));
+    if (beats(good, plan)) lines.push(projectionWords(`on ${cropName(good.seed, crops)} weeks:`, good));
+    return lines;
 }
 
 // "last week: 31.2h+ (plan 40h)", the + cuz hackatime keeps counting with terra closed

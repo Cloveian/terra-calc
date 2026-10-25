@@ -20,7 +20,7 @@ import { logShop, logHours, codedBefore, knownSeeds } from "./daylog.js";
 import { mountDayBoxes, drawDayBoxes } from "./calendar.js";
 import { milestones } from "../src/route.js";
 import { easternDay, weekIndex, weekDay, LAST_WEEK, DAY_MS } from "../src/week.js";
-import { waitFor, waitWorth, dayHours, creditedDays, typicalDays, weekShape, sinceStart, typicalCrop, restOfWeeks, dayOdds } from "./predict.js";
+import { waitFor, waitWorth, dayHours, creditedDays, typicalDays, weekShape, sinceStart, typicalCrop, seedRange, restOfWeeks, dayOdds } from "./predict.js";
 import { buyRisk } from "./risk.js";
 import { fetchDays, statusWords, BACK_DAYS, FETCH_EVERY_MS } from "./hackatime.js";
 import { RENT, CROPS, PRESETS, BASE_SEEDS } from "../src/data.js";
@@ -550,10 +550,15 @@ function plan() {
     const target = start && weekTarget(start, t, coinsGoal, m, thisWeek, given);
     let rows = [];
     let usual = null;
+    let luck = null;
     if (cleaned && target) {
         const items = goalItems(picked, trees, cleaned.own);
         rows = rowHours(start, t, milestones(target.route, items), m, thisWeek, given);
         usual = projection(start, t, items, m, thisWeek, given, usualWeek);
+        // the plan's h/week with every week after this one on heidi's worst or best seed
+        const range = thisWeek && seedRange(shop.table, m);
+        const on = ({ id, crop }) => ({ ...projection(start, t, items, m, { ...thisWeek, later: crop }, given, target.cap), seed: id });
+        if (range && items.length > 0) luck = { bad: on(range.low), good: on(range.high) };
     }
     const tags = {
         trees, owned, milestones: rows,
@@ -612,6 +617,7 @@ function plan() {
             custom: picked.goal !== null,
             milestones: rows,
             usual, // null till every weekday has a typical
+            luck,
             refund, // 0 on my own device
             from: mine?.device ?? null,
         },
