@@ -19,20 +19,20 @@ export const FEATURES = {
 };
 
 // m = my own multiplier, null = the games.
-// typed: numbers i typed in, each only used whn the games cant be read. seeds is apples, bonus = the rest by seed id, { cabbage: 3 }
+// typed: numbers i typed in, each only used whn the games cant be read. seeds by id, { apple: 20, cabbage: 3 }
 export function loadSettings() {
     const defaults = {
         ...Object.fromEntries(Object.entries(FEATURES).map(([id, f]) => [id, f.on])),
         m: null,
-        typed: { coins: null, plots: null, seeds: null, bonus: {} },
+        typed: { coins: null, plots: null, seeds: {} },
     };
     const saved = { ...defaults, ...loadJSON(KEY) };
-    const bonus = Object.entries(saved.typed.bonus ?? {}).map(([id, n]) => [id, cleanCount(n)]).filter(([, n]) => n !== null);
+    // old apples-only number n bonus counts just go
+    const seeds = Object.entries(saved.typed.seeds ?? {}).map(([id, n]) => [id, cleanCount(n)]).filter(([, n]) => n !== null);
     const typed = {
         coins: cleanCount(saved.typed.coins),
         plots: cleanCount(saved.typed.plots),
-        seeds: cleanCount(saved.typed.seeds),
-        bonus: Object.fromEntries(bonus),
+        seeds: Object.fromEntries(seeds),
     };
     return { ...saved, m: cleanM(saved.m), typed };
 }
@@ -167,11 +167,15 @@ function typedRow(c) {
         col.append(el("div", c.formLabel, label), input);
         return col;
     };
+    // emptied box = no key
+    const setSeeds = (id) => (n) => {
+        if (n === null) delete typed.seeds[id];
+        else typed.seeds[id] = n;
+    };
     const boxes = [
         box("Coins", typed.coins, (n) => { typed.coins = n; }),
         box("Plots", typed.plots, (n) => { typed.plots = n; }),
-        box("Apple seeds", typed.seeds, (n) => { typed.seeds = n; }),
-        ...hooks.seeds().map(({ id, name }) => box(`${name} seeds`, typed.bonus[id] ?? null, (n) => { if (n === null) delete typed.bonus[id]; else typed.bonus[id] = n; })),
+        ...hooks.seeds().map(({ id, name }) => box(`${name} seeds`, typed.seeds[id] ?? null, setSeeds(id))),
     ];
     const wrap = el("div");
     wrap.style.marginTop = "1em";

@@ -439,17 +439,19 @@ function saveChanged(key, before, after) {
 // my typed numbers shaped like inventoryFrom output, free seeds the usual 10
 function typedInventory(typed) {
     if (typed.coins === null) return null;
+    // inventory keeps apples apart
+    const { apple = 0, ...bonus } = typed.seeds;
     return {
-        coins: typed.coins, plots: null, unplaced: 0, seeds: typed.seeds ?? 0, baseSeeds: BASE_SEEDS, baseKinds: {},
-        bonus: typed.bonus,
+        coins: typed.coins, plots: null, unplaced: 0, seeds: apple, baseSeeds: BASE_SEEDS, baseKinds: {},
+        bonus,
         water: 0, seedsDie: null,
     };
 }
 
-// seeds heidi sells n i know the numbers of, apples aside (their own box n the inventory's seeds). for the typed boxes in settings
+// seeds heidi sells n i know the numbers of, for the typed boxes in settings
 function boughtSeeds() {
     return Object.entries(shopNow().table)
-        .filter(([id, crop]) => id !== "apple" && crop.buy != null)
+        .filter(([, crop]) => crop.buy != null)
         .map(([id, crop]) => ({ id, name: crop.name ?? id }));
 }
 

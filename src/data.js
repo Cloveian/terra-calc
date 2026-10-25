@@ -18,7 +18,7 @@ export const RENT_PAY = 20;       // coins for a whole week's rent (all 10 crops
 
 export const CROPS = {
     carrot: { buy: null, sell: 25, water: 1 }, // base seed, strawberries since week 1 (same numbers)
-    apple:  { buy: 5,    sell: 30, water: 1 },
+    apple:  { buy: 5,    sell: 30, water: 1, name: "Apple" },
     // bonus seeds, only in heidi's shop on the days she offers them
     // key = short name in links and the seed box id, stuck once links are out there
     bokchoy:  { name: "Bok Choy", buy: 10, sell: 37, water: 1, bonus: true, key: "bok" },
