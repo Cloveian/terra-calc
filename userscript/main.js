@@ -584,6 +584,8 @@ function plan() {
         target,
         // every seed i know, for their names
         crops: shop.table,
+        // false = never seen heidi's shop, planning off data.js
+        shopSeen: Object.keys(shopLog).length > 0,
         // buy today's best seed or wait for a better one, shop days left after today, sunday's the last
         wait: waitFor(shopLog, shop.seeds.map((seed) => seed.id), shop.table, m, 6 - weekDay(today)),
         // for card goal lines, null = rent week

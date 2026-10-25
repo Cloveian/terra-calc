@@ -256,6 +256,7 @@ test("per seed steps say which seed, the shop's name first, and the devlog step 
     const plan = {
         t: 3, inventory: { coins: 0, plots: 14, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm, stuck: null,
         crops: { eggplant: { name: "Eggplant" } },
+        shopSeen: true,
         steps: [
             { do: "checkShop", n: 1 }, { do: "buySeeds", seed: "eggplant", n: 1 }, { do: "buySeeds", seed: "bokchoy", n: 2 },
             { do: "plant", seed: "apple", n: 1 }, { do: "claim", n: 0.8 }, { do: "claim", n: 1 },
@@ -269,6 +270,7 @@ test("per seed steps say which seed, the shop's name first, and the devlog step 
         "devlog 0.8h",
         "devlog 1h",
     ]);
+    assert.equal(cardFor({ ...plan, shopSeen: false }, NOW).tasks[0].text, "open Heidi's shop once, Terra Calc doesn't know her seeds yet");
 });
 
 test("plant steps count down to the seeds' deadline once it's under 2 days away", () => {
