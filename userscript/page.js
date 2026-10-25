@@ -44,6 +44,13 @@ export function addStyle(css) {
     document.head.append(style);
 }
 
+export function el(tag, cls, text = null) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== null) node.textContent = text;
+    return node;
+}
+
 // game walks you wherever you click, opens its buy popup off clicks in tree nodes n build mode off keys anywhere
 export const POINTER = ["pointerdown", "mousedown", "touchstart", "click", "dblclick"];
 export const KEYS = ["keydown", "keyup", "keypress"];

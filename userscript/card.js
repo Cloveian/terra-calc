@@ -5,6 +5,7 @@ import { mixWords } from "../src/farm.js";
 import { nestSteps } from "./next.js";
 import { cssModule, ourBit, keepFromGame, POINTER } from "./page.js";
 import { loadJSON, saveJSON } from "./store.js";
+import { canHelp, openHelp } from "./help.js";
 
 // 10 min
 const FARM_OLD = 10 * 60000;
@@ -57,7 +58,11 @@ const CARD_CSS = `[data-terra-calc] > :not(.${BLOCK}):not([class*="_objectiveCou
 /* terra's own progress bar colors, thinner */
 .${BLOCK} .terra-calc-bar { display: flex; height: 0.5em; margin-block: 0.25em; background: #efb367; border: 2px solid #93582c; border-radius: 0.7em; overflow: hidden }
 .${BLOCK} .terra-calc-bar > * { background: #c7793c }
-.${BLOCK} .terra-calc-bar > :last-child { opacity: 0.45 }`;
+.${BLOCK} .terra-calc-bar > :last-child { opacity: 0.45 }
+.${BLOCK} .terra-calc-foot { display: flex; justify-content: space-between; align-items: center }
+/* cream n brown like the tree tags, grows on hover like terra's buttons */
+.${BLOCK} .terra-calc-help { all: unset; box-sizing: border-box; width: 1.5em; height: 1.5em; border-radius: 50%; background: #f9e6ce; border: 2px solid #93582c; color: #93582c; font: 700 .9em/1 var(--game-font, "Pleasurize", cursive); display: grid; place-items: center; cursor: pointer; transition: transform .15s }
+.${BLOCK} .terra-calc-help:hover { transform: scale(1.1) }`;
 
 const cardBit = ourBit(fill);
 let notices = [];
@@ -203,8 +208,25 @@ function drawBlock(block, { tasks, details }) {
         ...rows,
         ...notices.map((text) => detail(text, "terra-calc-notice")),
         ...details.flatMap(drawDetail),
-        link("hide Terra Calc", () => folded.set(true)),
+        drawFoot(link("hide Terra Calc", () => folded.set(true))),
     );
+}
+
+// hide link left, help ? bottom right. no tome classes = no ?
+function drawFoot(hide) {
+    const foot = document.createElement("div");
+    foot.className = "terra-calc-foot";
+    foot.append(hide);
+    if (canHelp()) {
+        const help = document.createElement("button");
+        help.className = "terra-calc-help";
+        help.textContent = "?";
+        help.title = "How to use Terra Calc";
+        help.setAttribute("aria-label", help.title);
+        help.addEventListener("click", openHelp);
+        foot.append(help);
+    }
+    return foot;
 }
 
 // goal bar in a detail line, my coins solid n crops waitng to sell faded after

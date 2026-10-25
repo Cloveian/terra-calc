@@ -1,7 +1,7 @@
 // which userscript parts are on, plus our own section in terra's settings tab
 import { MULTIPLIER } from "../src/data.js";
 import { clamp } from "../src/state.js";
-import { cssModule, watchPage, keepFromGame, KEYS, numberBox } from "./page.js";
+import { cssModule, watchPage, keepFromGame, KEYS, numberBox, el } from "./page.js";
 import { loadJSON, saveJSON } from "./store.js";
 
 const KEY = "terra-calc-settings"; // in terra's localStorage
@@ -83,13 +83,6 @@ function fillSettings() {
     if (!section || section.querySelector(`:scope > .${OUR_SECTION}`)) return;
     const bottom = c.helpLogoutRow ? section.querySelector(`:scope > .${c.helpLogoutRow}`) : null;
     section.insertBefore(makeSection(c), bottom);
-}
-
-function el(tag, cls, text = null) {
-    const node = document.createElement(tag);
-    if (cls) node.className = cls;
-    if (text !== null) node.textContent = text;
-    return node;
 }
 
 // terra's column stretches its input, in a plain wrap it went chrome's default width n ran into the next one
