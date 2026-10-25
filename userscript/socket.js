@@ -19,7 +19,12 @@ export const ROOM = {
 };
 
 const handlers = new Map(); // message type -> [fn]
+let onProblem = null; // fn(type), message failed its shape check
 let gameSocket = null;
+
+export function onGameProblem(fn) {
+    onProblem = fn;
+}
 
 export function onGameMessage(type, fn) {
     if (!handlers.has(type)) handlers.set(type, []);
@@ -90,7 +95,10 @@ function logFrame(way, data, msg) {
 
 function dispatch(type, payload) {
     const problems = CHECKS[type]?.(payload) ?? [];
-    if (problems.length > 0) debug(`${type} looks different`, problems);
+    if (problems.length > 0) {
+        debug(`${type} looks different`, problems);
+        onProblem?.(type);
+    }
     for (const fn of handlers.get(type) ?? []) {
         try {
             fn(payload);

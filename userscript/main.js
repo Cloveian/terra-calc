@@ -1,7 +1,7 @@
 // userscript entry point
 import { REST, IN, OUT, TOKEN_KEY } from "./endpoints.js";
 import { apiGet, liveBuild } from "./api.js";
-import { hookWebSocket, onGameMessage, sendGame, ROOM } from "./socket.js";
+import { hookWebSocket, onGameMessage, onGameProblem, sendGame, ROOM } from "./socket.js";
 import { hookFetch } from "./fetch.js";
 import { loadSettings, saveSettings, mountSettings } from "./settings.js";
 import { loadJSON, saveJSON } from "./store.js";
@@ -38,6 +38,16 @@ const DAYS_KEY = "terra-calc-days";
 // own entries, settings get dumped to the debug log n the key cant be in there
 const HACKATIME_KEY = "terra-calc-hackatime-key";
 const HACKATIME_DAYS_KEY = "terra-calc-hackatime-days";
+
+// message types in card notices, the rest show up as "Terra's <type>"
+const MESSAGE_WORDS = {
+    [IN.currency]: "Your coins",
+    [IN.inventory]: "Your bag",
+    [IN.shopStock]: "Heidi's shop",
+    [IN.marketItems]: "The market",
+    [IN.hours]: "Your hours",
+    [IN.joinComplete]: "The room you joined",
+};
 
 // plan parts that can stay null. the card would ask for plots (they sit in inventory)
 // farm only once you've been on your farm today (stuck any day), target needs the plot count too, goal's null till you pick one
@@ -173,6 +183,12 @@ onGameMessage(ROOM.state, ({ state, touched }) => {
 });
 onGameMessage(ROOM.broken, () => {
     game.roomState = null;
+    showNotice("Can't read this room, Terra might have updated");
+});
+// shape checks cover fields nothing reads yet too, hence "looks different"
+onGameProblem((type) => {
+    const what = MESSAGE_WORDS[type] ?? `Terra's ${type}`;
+    showNotice(`${what} looks different, Terra might have updated`);
 });
 
 document.addEventListener("DOMContentLoaded", start);
@@ -207,6 +223,7 @@ async function readUpgrades() {
         changed("deviceUpgrades", await apiGet(REST.deviceUpgrades));
     } catch (err) {
         console.warn("[terra-calc]", err);
+        showNotice(`Can't read Terra, goal's off (${err.message})`);
     }
 }
 

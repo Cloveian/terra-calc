@@ -37,7 +37,7 @@ There's also a userscript that runs inside Terra itself, so there's nothing to t
 - Island / Hub and Goal buttons at the bottom of Terra's button column, or next to the water meter on short screens
 - a Terra Calc section in Terra's settings, to turn each part on or off, set your own multiplier, type your numbers in yourself if reading the game ever breaks, or add a Hackatime key (it only ever goes to Hackatime)
 
-It's a work in progress and Terra changes a lot, so expect a broken bit now and then.
+It's a work in progress and Terra changes a lot, so expect a broken bit now and then. The card says so in red when something Terra sends looks different.
 
 There's no install link yet. To try it, build it and install the file with a userscript manager like [Violentmonkey](https://violentmonkey.github.io) or Tampermonkey:
 
