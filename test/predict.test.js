@@ -81,6 +81,10 @@ test("restOfWeeks: thursday to sunday of each week before this one, lumped weeks
     assert.deepEqual(restOfWeeks(days, "2026-10-29"), [4, 8, 12]);
     // sunday, just the one day each
     assert.deepEqual(restOfWeeks(days, "2026-11-01"), [1, 2, 3]);
+    // terra not open thursday on the week of the 5th, thats a 0 week
+    assert.deepEqual(restOfWeeks(days.filter((d, i) => i < 3 || i >= 7), "2026-10-29"), [0, 8, 12]);
+    // or not at all the week of the 12th
+    assert.deepEqual(restOfWeeks(days.filter((d, i) => i < 7 || i >= 14), "2026-10-29"), [4, 0, 12]);
     // the 12th's saturday had wed n thu in it, 2 weeks is under MIN_WEEKS
     days[12] = { ...days[12], lumped: true };
     assert.deepEqual(restOfWeeks(days, "2026-10-29"), []);

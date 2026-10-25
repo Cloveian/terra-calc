@@ -59,11 +59,14 @@ export function restOfWeeks(days, today) {
     const from = weekDay(today);
     const sums = new Map();
     const out = new Set();
+    // every week from the first one in days, nothing logged from today's weekday on (or at all) is a 0. careful side for buying
+    const first = days.length ? Math.min(...days.map((d) => weekIndex(d.day))) : weekIndex(today);
+    for (let week = first; week < weekIndex(today); week++) sums.set(week, 0);
     for (const { day, h, lumped } of days) {
         const week = weekIndex(day);
         if (week >= weekIndex(today) || weekDay(day) < from) continue;
         if (lumped) out.add(week);
-        sums.set(week, (sums.get(week) ?? 0) + h);
+        sums.set(week, sums.get(week) + h);
     }
     const rest = [...sums].filter(([week]) => !out.has(week)).map(([, h]) => h);
     return rest.length < MIN_WEEKS ? [] : rest;
