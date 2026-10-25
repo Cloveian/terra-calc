@@ -33,6 +33,19 @@
         <p class="intro">How many hours a week do you need to code in Terra to afford your upgrades? <span class="face">(⁎ˆ꒳ˆ⁎)</span></p>
     </header>
 
+    <!-- opens every visit on purpose (ui.js) -->
+    <dialog id="disclaimer">
+        <article class="panel">
+            <div class="error-art" aria-hidden="true">(・_・;)</div>
+            <h2>This site is no longer accurate</h2>
+            <p>And it probably never will be, thanks to Terra's 'unstatic' nature: seeds, prices and rules keep changing under it. Please use the userscript instead, with <a href="https://violentmonkey.github.io">Violentmonkey</a> or Tampermonkey. It reads everything straight from the game, so it keeps up.</p>
+            <footer>
+                <a href="https://cloveian.github.io/terra-calc/dist/terra-calc.user.js" role="button" id="disclaimer-install" autofocus>Install the userscript</a>
+                <button type="button" id="disclaimer-ok" class="secondary outline">Use the site anyway</button>
+            </footer>
+        </article>
+    </dialog>
+
     <!-- wide screens: two columns; the left one scrolls, the Goal panel (with the tree) on the
          right fills the screen and stays put.
          narrow screens: the wrappers step aside and it's one column, in this order:

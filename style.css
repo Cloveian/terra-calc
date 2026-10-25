@@ -625,6 +625,28 @@ button {
     list-style: "✗  ";
 }
 
+/* the "no longer accurate" popup */
+#disclaimer {
+    align-items: safe center;
+}
+
+#disclaimer > article {
+    max-width: 34rem;
+    max-height: none;
+    overflow: visible; /* Pico's scrolling card cut the outline off right and bottom, the dialog scrolls instead */
+}
+
+#disclaimer footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    justify-content: flex-end;
+}
+
+#disclaimer footer > * {
+    margin: 0; /* Pico's margin under the button stretched the link taller */
+}
+
 /* quieter than the plan above it */
 .page-footer {
     color: var(--ink-muted);
@@ -872,6 +894,13 @@ input[type="checkbox"]:checked {
     --sketch-fill: color-mix(in srgb, var(--tone-error) 6%, var(--view));
 }
 
+#disclaimer > article {
+    --sketch-color: var(--tone-warning);
+    --sketch-width: 2;
+    --sketch-dash: 8 6;
+    --sketch-fill: color-mix(in srgb, var(--tone-warning) 6%, var(--view));
+}
+
 /* !important because several boxes set their own border colour and `background` shorthand,
    which would otherwise bring the real border and fill back or tile the outline image */
 /* each box's outline settings are its own: without this, a box inside another box (a message
@@ -1006,7 +1035,7 @@ input:not([type=checkbox]):focus, select:focus {
 }
 
 /* buttons: a tight wobble and a thin line */
-button {
+button, [role=button] {
     --sketch-color: var(--outline);
     --sketch-width: 1;
     --sketch-wobble: 0.35;
@@ -1016,6 +1045,11 @@ button {
 button.outline, button.secondary {
     --sketch-color: var(--ink-muted);
     --sketch-opacity: 0.7;
+}
+
+/* filled teal, line to match */
+#disclaimer-install {
+    --sketch-color: var(--accent);
 }
 
 /* the preset toolbar: a faint line on each button so they look clickable, the pressed one in accent */
@@ -1104,7 +1138,7 @@ button:focus-visible, input[type="checkbox"]:focus-visible {
     isolation: isolate;
 }
 
-.panel, .message, button, .badge, .buttons, .view-box {
+.panel, .message, button, [role=button], .badge, .buttons, .view-box {
     position: relative;
 }
 

@@ -15,7 +15,7 @@ export const SKETCH_BRANCHES = { wobble: 1.5, every: 40 };
 //   a wobbly line, and the box's own background goes transparent
 // - clipped (buttons, pills, checkboxes, the tree window): the box keeps its own colours, so hover,
 //   pressed and checked still work, but is cut to the wobbly shape; the SVG only adds the line
-const CLIPPED = "button, .badge, input[type=checkbox], .tree-view, .tree-frame";
+const CLIPPED = "button, [role=button], .badge, input[type=checkbox], .tree-view, .tree-frame";
 
 // Most boxes get their drawing as an SVG inside them: it shows up in the same frame. These can't hold
 // anything inside, so they get it as a background image instead (images appear a frame later, which

@@ -718,6 +718,10 @@ $("shop-ticks").append(...BONUS_SEEDS.map((id) => {
 document.querySelectorAll("input[type=number]").forEach(addNumberButtons);
 addDateButton($("date"));
 
+// before the outlines, so the popup's get drawn at its real size
+$("disclaimer").showModal();
+$("disclaimer-ok").addEventListener("click", () => $("disclaimer").close());
+
 // boxes that stay on the page: panels, the upgrades area, the preset strip, message boxes, the route table
 sketchAll(
     document.querySelectorAll(".intro, .footnotes, .panel, .buttons, .message, .view-box"),
@@ -727,9 +731,9 @@ sketchAll(
 // the tree window is cut to a wobbly shape (so cards get cut off along the wobble), and a frame on
 // top draws its line, so cards panned to the edge go under the line, not over it. Same key = same shape.
 sketchAll(document.querySelectorAll(".tree-view, .tree-frame"), () => "tree-view", true);
-// buttons that stay on the page (zoom, reset order, ok, use my picks, light/dark)
+// buttons that stay on the page (zoom, reset order, ok, use my picks, light/dark, the popup)
 drawThemeToggle();
-sketchAll(document.querySelectorAll("main button, footer button"), (b) => b.id, true);
+sketchAll(document.querySelectorAll("main button, footer button, #disclaimer-install"), (b) => b.id, true);
 mountTreeView();
 // handwritten font lands after the first draw and is narrower, outlines redrawn on changes (pills, buttons, tree) stayed sized for the wider fallback
 document.fonts.ready.then(() => update());
