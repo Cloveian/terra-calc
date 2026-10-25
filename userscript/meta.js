@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Terra Calc
 // @namespace    https://cloveian.github.io/terra-calc/
-// @version      (package.json version, put in at build)
+// @version      (package.json major.minor + commit count, put in at build)
 // @description  Terra Calc inside Terra: fills itself in from the game and tells you what to do this week
 // @author       Cloveian
 // @match        https://terra.hackclub.com/*
