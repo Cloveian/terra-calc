@@ -49,6 +49,7 @@ const STEP_LINES = {
 // hover maths, the general one over my numbers (tip.js)
 const WAIT_TEX = "V_n = p_{\\text{back}} \\, \\mathbb{E}[\\max(v, V_{n-1})] + (1 - p_{\\text{back}}) \\, V_{n-1}, \\quad V_0 = 0";
 const RISK_TEX = "\\text{buy if } p \\, m \\, \\text{sell} - \\text{buy} > p \\, V \\, \\text{water} \\quad (0 \\text{ at } p = 1)";
+const PICK_TEX = "\\text{first week with } c_{\\text{end of week}} \\ge \\text{the picks up to it}";
 const CODE_TEX = "h = \\text{water owed} - \\text{pool} - h_{\\text{not devlogged}}";
 
 // ---- the page ----
@@ -384,15 +385,26 @@ function goalLines(goal, target, coins, selling, crops) {
     const picks = goal.milestones;
     const next = picks.find((pick) => !pick.now);
     if (picks.length > 0 && !next) lines.push(`all affordable ${coins >= picks.at(-1).total ? "now" : "after selling"}`);
-    if (next) lines.push(`next pick: ${pickName(next)} ${when(next)}`);
-    if (next && next !== picks.at(-1)) lines.push(`all of it ${when(picks.at(-1))}`);
+    const route = target?.route ?? [];
+    if (next) lines.push(withPickTex(`next pick: ${pickName(next)} ${when(next)}`, next, route));
+    if (next && next !== picks.at(-1)) lines.push(withPickTex(`all of it ${when(picks.at(-1))}`, picks.at(-1), route));
     // all of it now is the same at any h/week
     if (goal.usual && next) lines.push(projectionWords(`at my usual ${goal.usual.h} h/week:`, goal.usual));
-    if (goal.luck && next) lines.push(...luckLines(goal.luck, picks, target?.route.find((row) => row.out)?.week ?? null, crops));
+    if (goal.luck && next) lines.push(...luckLines(goal.luck, picks, route.find((row) => row.out)?.week ?? null, crops));
     // every pick behind a show more, drawBlock does the link
     // 2 = next pick n all of it already
     if (picks.length > 2) lines.push({ picks: picks.map((pick) => `${pickName(pick)} ${pick.now ? "now" : when(pick)}`) });
     return lines;
+}
+
+// a pick lands the first week the route ends with its running total, c_{Week 3} = 600 < 750 <= 812 = c_{Week 4}. plain text off the route
+function withPickTex(text, pick, route) {
+    const at = route.findIndex((row) => row.week === pick.week);
+    if (at < 0) return text;
+    const coins = (row) => `c_{\\text{${weekName(row.week)}}}`;
+    // num, rounding to whole coins made 749.6 < 750 read 750 < 750
+    const before = at > 0 ? `${coins(route[at - 1])} = ${num(route[at - 1].endCoins)} < ` : "";
+    return { text, tex: [PICK_TEX, `${before}${num(pick.total)} \\le ${num(route[at].endCoins)} = ${coins(route[at])}`] };
 }
 
 // projection() from next.js as words, "at my usual 24 h/week: 3 of 5 picks by Week 12"

@@ -94,6 +94,19 @@ test("a goal shows before the farm's been seen, with the next pick and when it's
     ]);
 });
 
+test("the next pick's tip, the week before n the week it lands off the route", () => {
+    const route = [{ week: 4, endCoins: 600.2 }, { week: 5, endCoins: 812.4 }, { week: 6, endCoins: 1100 }];
+    const milestones = [{ name: "RAM 16 GB", qty: 1, now: false, week: 5, total: 750 }, { name: "Framework 13", qty: 1, now: false, week: 6, total: 1050 }];
+    const plan = {
+        t: 3, inventory: { coins: 42.6, plots: 36, seeds: 0, baseSeeds: 10, baseKinds: { strawberry: 10 } }, m: 1, farm: null, stuck: null, steps: [],
+        target: { w: 18, cap: 18, reachable: true, out: false, route }, selling: { crops: 0, coins: 0 },
+        goal: { device: "Framework 12", refund: 0, coins: 1050, custom: false, milestones, usual: null },
+    };
+    const next = cardFor(plan, NOW).details.find((item) => item.text?.startsWith("next pick"));
+    assert.equal(next.text, "next pick: RAM 16 GB after Week 3");
+    assert.equal(next.tex[1], "c_{\\text{Week 2}} = 600.2 < 750 \\le 812.4 = c_{\\text{Week 3}}");
+});
+
 test("the code step's maths tip, none once it's ticked", () => {
     const plan = (step) => ({ t: 3, inventory: { coins: 0, plots: 10, seeds: 0, baseSeeds: 0, baseKinds: {} }, m: 1, farm: { plots: 10, empty: 0, crops: [], seenAt: NOW }, stuck: null, steps: [step] });
     const tex = (step) => cardFor(plan(step), NOW).tasks[0].tex?.[1];
