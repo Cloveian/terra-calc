@@ -139,10 +139,9 @@ export function dayOdds(hoursLog, today) {
 }
 
 // { best: today's best seed, top: the one worth waiting for, odds: its share of days }, or null
-// only with something in the shop today, MIN_SHOP_DAYS of log, n when waiting actually wins. daysLeft = shop days after today this week, back from dayOdds
-export function waitFor(shopLog, today, crops, m, daysLeft, back = 1) {
+// only with something in the shop today n when waiting actually wins. wait from waitWorth
+export function waitFor(shopLog, today, crops, m, wait) {
     const here = today.filter((id) => crops[id]);
-    const wait = waitWorth(shopLog, crops, m, daysLeft, back);
     if (here.length === 0 || wait === 0) return null;
     const value = (id) => perHour(crops[id], m);
     const best = here.reduce((a, b) => (value(b) > value(a) ? b : a));
@@ -153,6 +152,7 @@ export function waitFor(shopLog, today, crops, m, daysLeft, back = 1) {
 }
 
 // worth of a water held for a better seed later this week, V_daysLeft. 0 under MIN_SHOP_DAYS of log or on sunday
+// daysLeft = shop days after today this week, back from dayOdds
 export function waitWorth(shopLog, crops, m, daysLeft, back = 1) {
     if (daysLeft < 1 || Object.keys(shopLog).length < MIN_SHOP_DAYS) return 0;
     const odds = seedOdds(shopLog);
