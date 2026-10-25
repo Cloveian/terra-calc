@@ -50,7 +50,7 @@ Nobody's coding 80 h a week, so the plan should start from how much time you act
 - [x] ...and per day, the week's just the days added up
 - [x] Set them on Terra's own calendar, a box per day
 - [x] What you coded on the days already gone, on the calendar
-- [ ] Suggested hours for each day and week from that history
+- [x] Suggested hours for each day and week from that history
 - [x] A projection: what your usual week gets you by Week 12, on the card
 - [x] "What can I get": when your goal doesn't fit your hours, plan at your hours and say which picks you get, in your priority order
 - [x] Picks that don't fit your hours get marked on the tree tags ("doesn't fit") and in the site's milestone list ("not with your hours")

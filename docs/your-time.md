@@ -1,6 +1,6 @@
 # Your time
 
-*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md): the plan starts from the hours you actually have, not the hours it would like you to have. Steps 1 to 5 are in (the route, the site's week boxes, the per-day model, the userscript, the calendar boxes), step 6's started (the hours log and predict.js, waiting on data). The calendar boxes haven't been tried in the real game yet. Per day and the calendar got decided 23 Oct, the rest of the Decision lines are open.*
+*Plan for the "Your time" part of [feature-ideas.md](feature-ideas.md): the plan starts from the hours you actually have, not the hours it would like you to have. Steps 1 to 5 are in (the route, the site's week boxes, the per-day model, the userscript, the calendar boxes), step 6's started (the hours log and predict.js, waiting on data). The calendar boxes haven't been tried in the real game yet. Per day and the calendar got decided 23 Oct, the Hackatime key 24 Oct and suggested hours 25 Oct, the defaults under Days are still open.*
 
 ## Why
 
@@ -60,7 +60,7 @@ Terra already keeps it. The calendar loads `GET /ysws/week-track` every time it 
 
 | Decision | What it does |
 | --- | --- |
-| Suggested hours | **Decision:** what goes in a blank box as the suggestion, the last 4 weeks' median, the average, or nothing till you've done 3 weeks? Default: median of the last 4 (one dead week doesn't drag it), shown faded so it's clearly a guess and doesn't count as set |
+| Suggested hours | **Decided (25 Oct):** both. The box keeps the plan's need faded, and under it goes "usually 5.5", that weekday's median off my history (`typicalDays`), once it has 3 of them. Today's "2h 10m left" takes the spot once today's typed |
 | Hackatime key | **Decided (24 Oct):** in Terra's localStorage like the rest of ours, its own per-account entry, never in the settings object (that goes to the debug log). Nobody loses money if it gets stolen and most people have it in plaintext in their wakatime config anyway. `GM_setValue` would've needed a `@grant`, a sandbox and `unsafeWindow` for the socket hook |
 | AI time | Terra's number already counts AI time at a third, so the hours log is in Terra hours, same as water. Hackatime isn't, it has AI time at full and every project, Terra or not. So each week's Hackatime days get scaled by what Terra credited that week as of my last logged day (`creditedDays`), and weeks from before Terra Calc get all the logged weeks' share together. No log yet means Hackatime as is, a bit high till the first day's logged |
 

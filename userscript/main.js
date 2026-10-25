@@ -625,6 +625,7 @@ function plan() {
     const days = {
         days: savedDays,
         perDay: target?.cap ? shape.map((share) => share * target.cap) : null,
+        typical,
         // lumped ones have gone days in them too, under 0 = terra took credit back. blank beats wrong
         codedOn: Object.fromEntries(past.filter((d) => !d.lumped && d.h >= 0).map((d) => [d.day, d.h])),
         todayLeft,
