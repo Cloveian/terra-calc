@@ -261,15 +261,9 @@ function draw() {
 }
 
 // the card's own buy steps, { eggplant: 12 }, so the shop says the same. null with no farm or target
-// grace water left n its not over yet, todays shop for what to buy with it
-function wiggleNow(grace, shop) {
-    if (!grace || grace.water <= 0 || grace.endsAt === null || Date.now() >= grace.endsAt || !shop.today) return null;
-    return { water: grace.water, endsAt: grace.endsAt, shop: shop.seeds.map((seed) => seed.id) };
-}
-
 function seedsToBuy(parts) {
     if (!parts?.farm || !parts.target) return null;
-    const buying = parts.steps.filter((step) => (step.do === "buySeeds" || step.do === "wiggle") && !step.done);
+    const buying = parts.steps.filter((step) => step.do === "buySeeds" && !step.done);
     return Object.fromEntries(buying.map((step) => [step.seed, step.n]));
 }
 
@@ -597,6 +591,8 @@ function plan() {
     const badges = { m, seeds: shop.seeds };
     const weekEnds = Date.parse(game.currentWeek?.endDate ?? "") || null;
     const w = target?.w ?? null;
+    // shop days after today, sunday's the last
+    const daysLeft = 6 - weekDay(today);
     const steps = stepsFrom({
         farm: farmToday,
         inventory,
@@ -610,13 +606,11 @@ function plan() {
         table: shop.table,
         shopToday: shop.today,
         selling,
-        // only the best seed ever seen gets bought before the wiggle day
-        buyNow: [seedRange(shop.table, m)?.high.id].filter(Boolean),
-        wiggle: inventory && wiggleNow(inventory.grace, shop),
+        // only the best seed ever seen gets bought before sunday, then all of it
+        buyNow: daysLeft === 0 ? null : [seedRange(shop.table, m)?.high.id].filter(Boolean),
     });
     const ticked = weekSteps(steps, w, farmToday);
-    // worth of a water held for later. 6 - weekDay = shop days after today, sunday's the last
-    const daysLeft = 6 - weekDay(today);
+    // worth of a water held for later
     const held = waitWorth(shopLog, shop.table, m, daysLeft, dayOdds(hoursLog, today));
     const parts = {
         trees,

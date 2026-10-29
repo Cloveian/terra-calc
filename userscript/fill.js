@@ -110,16 +110,7 @@ export function inventoryFrom(currency, inventory) {
         water: currency.weekWater ?? currency.water ?? 0,
         // ms, soonest seeds die if not planted n waterd by then (monday night US eastern). null with no seeds
         seedsDie: soonest(usable.filter((item) => item.type === "seed").map((item) => Date.parse(item.usableUntil))),
-        // last week's leftover water on the wiggle day, endsAt in ms. never seen a real one, so a number or a date string both work
-        grace: { water: currency.graceWater ?? 0, endsAt: graceEnd(currency.graceEndsAt) },
     };
-}
-
-// s or ms or a date string -> ms, null if its none of those
-function graceEnd(value) {
-    if (typeof value === "number") return value < 1e12 ? value * 1000 : value;
-    const ms = Date.parse(value ?? "");
-    return Number.isFinite(ms) ? ms : null;
 }
 
 function soonest(times) {

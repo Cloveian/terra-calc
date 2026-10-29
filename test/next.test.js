@@ -4,7 +4,6 @@ import { weekTarget, stepsFrom, routeState, rowHours, nestSteps, tickSteps, toSe
 import { stuckFrom } from "../userscript/fill.js";
 import { weekShape } from "../userscript/predict.js";
 import { hoursNeeded } from "../src/route.js";
-import { CROPS } from "../src/data.js";
 
 test("daysGiven: typed days per week, this week starts from what i coded", () => {
     // friday of Week 1 (t 3), 20 h coded mon-thu
@@ -204,7 +203,7 @@ test("stepsFrom: bok choy still to buy goes before apples already in the bag", (
     ]);
 });
 
-test("stepsFrom: before the wiggle day only the best seed gets bought, the rest waits", () => {
+test("stepsFrom: before sunday only the best seed gets bought, the rest waits", () => {
     // 10 free, 10 eggplant (4 in the bag), 15 apples (5 in the bag), 35 empty plots
     const steps = stepsFrom({
         farm: { plots: 45, empty: 35, crops: [] }, inventory: bag({ seeds: 5, baseSeeds: 10, bonus: { eggplant: 4 } }), stuck: stuckFrom({ crops: [] }, "2026-W43"),
@@ -218,18 +217,6 @@ test("stepsFrom: before the wiggle day only the best seed gets bought, the rest 
     ]);
     // still planned, so still coded for
     assert.equal(steps.find((step) => step.do === "code").n, 45);
-});
-
-test("stepsFrom: wiggle day buys todays best seed with last week's water, cabbage only when its all there is", () => {
-    const table = { ...CROPS, cabbage: { id: "cabbage", name: "Cabbage", buy: 2, sell: 20, water: 1 } };
-    const wiggleOn = (shop, coins = 100) => stepsFrom({
-        farm: { plots: 30, empty: 20, crops: [] }, inventory: bag({ coins }), stuck: stuckFrom({ crops: [] }, "2026-W44"),
-        loans: 0, weekKey: "2026-W44", w: null, table, wiggle: { water: 7.5, endsAt: 1000, shop },
-    })[0];
-    assert.deepEqual(wiggleOn(["cabbage", "apple"]), { do: "wiggle", seed: "apple", n: 7, water: 7.5, endsAt: 1000 });
-    assert.equal(wiggleOn(["cabbage"]).seed, "cabbage");
-    assert.equal(wiggleOn(["apple"], 10).n, 2); // 10 coins is 2 apples
-    assert.equal(wiggleOn([]), undefined); // nothing in the shop, no step
 });
 
 test("stepsFrom: a busy week, harvesting last week's pays the loans back", () => {

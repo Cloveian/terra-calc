@@ -31,7 +31,7 @@ The **(?)** in the bottom right of the card opens a help book with all of this a
 
 **The This Week card**
 - this week's steps in order ("buy 12 eggplant seeds", "code 21.9h"), nested under what they wait on and ticked off as you go
-- seeds wait for the wiggle day (the Monday after the week, when you can still buy, plant and use last week's water), except the best one Heidi ever has, like eggplant. On the wiggle day it says what to buy with the water you have left, and only suggests something like cabbage if it's all there is
+- seeds wait for Sunday, the last shop that counts for the week (seeds bought on Monday go on the new week), except the best one Heidi ever has, like eggplant
 - where your goal stands, when each pick lands, and what your usual week gets you by Week 12
 - whether the seeds you'd buy actually get watered in enough of your past weeks to be worth their price (once it's seen three of your weeks)
 - when waiting for a better seed in Heidi's shop beats today's
